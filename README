@@ -1,0 +1,21 @@
+
+= Building
+
+cd path/to/scalp
+mkdir build
+cd build
+cmake -DUSE_GUROBI=ON .. # alternate ccmake ..
+make install
+
+= Using
+
+After installing, the libraries are found in ./lib/ and the headers are in ./include
+
+= Examples
+
+You can build all examples using
+make -C examples build
+
+or you can build and run an specific example with e. g.
+make -C examples/simple_gurobi
+

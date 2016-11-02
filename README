@@ -5,6 +5,7 @@ cd path/to/scalp
 mkdir build
 cd build
 cmake -DUSE_GUROBI=ON .. # alternate ccmake ..
+make
 make install
 
 = Using
@@ -15,6 +16,8 @@ After installing, the libraries are found in ./lib/ and the headers are in ./inc
 
 You can build all examples using
 make -C examples build
+
+from the scalp root directory
 
 or you can build and run an specific example with e. g.
 make -C examples/simple_gurobi

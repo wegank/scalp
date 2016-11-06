@@ -72,9 +72,9 @@ namespace ILP
 
       static std::string showRelation(relation r);
 
-      ILP::VariableSet extractVariables();
+      ILP::VariableSet extractVariables() const;
 
-      std::string show();
+      std::string show() const;
 
     private:
   };

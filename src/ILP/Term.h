@@ -22,17 +22,30 @@ namespace ILP
       // an weighted Variable (v*coeff)
       Term(ILP::Variable v,double coeff);
 
+      // Add a constant value
+      void add(double constant);
+
+      // Add v*coeff to the Term.
+      // If v is already present the coefficient is increased by coeff
+      void add(Variable v,double coeff);
+
+      // get the coefficient of v or zero if not present.
+      double getCoefficient(const Variable& v) const;
+
+      // set the coefficient of v to coeff
+      // if v is not present it behaves like add.
+      double setCoefficient(const Variable& v, double coeff);
+
+      double& operator[](const Variable& v);
+
+      ILP::VariableSet extractVariables() const;
+      bool isConstant() const;
+
       // the sum of weighted Variables
       std::map<Variable,double> sum;
 
       // the constant part
       double constant=0;
-
-      void add(Variable v,double coeff);
-      void add(double constant);
-
-      ILP::VariableSet extractVariables();
-      bool isConstant();
   };
 
 }

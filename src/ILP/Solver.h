@@ -42,10 +42,10 @@ namespace ILP
       void setBackend(SolverBackend *b);
 
       // return the LP-Format-representation as a string
-      std::string showLP();
+      std::string showLP() const;
 
       // write the LP-Format-representation in a file
-      void writeLP(std::string file);
+      void writeLP(std::string file) const;
 
       ~Solver();
 
@@ -63,7 +63,7 @@ namespace ILP
 
       // extract the Variables from the Constraints and the Objective
       // to avoid unused variables.
-      ILP::VariableSet extractVariables(std::list<Constraint> c,Objective o);
+      ILP::VariableSet extractVariables(std::list<Constraint> c,Objective o) const;
 
   };
 

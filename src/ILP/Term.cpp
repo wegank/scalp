@@ -66,7 +66,45 @@ void ILP::Term::add(double con)
   }
 }
 
-ILP::VariableSet ILP::Term::extractVariables()
+double ILP::Term::getCoefficient(const ILP::Variable& v) const
+{
+  auto it = sum.find(v);
+  if(it!=sum.end())
+  {
+    return it->second;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
+double ILP::Term::setCoefficient(const ILP::Variable& v, double coeff)
+{
+  if(valid(coeff))
+  {
+    auto it = sum.find(v);
+    if(it!=sum.end())
+    {
+      it->second=coeff;
+    }
+    else
+    {
+      add(v,coeff);
+    }
+  }
+  else
+  {
+    throw ILP::Exception("Only numbers are allowed as coefficients");
+  }
+}
+
+double& ILP::Term::operator[](const Variable& v)
+{
+  return sum[v];
+}
+
+ILP::VariableSet ILP::Term::extractVariables() const
 {
   ILP::VariableSet s;
   for(auto &p:sum)
@@ -77,7 +115,7 @@ ILP::VariableSet ILP::Term::extractVariables()
   return s;
 }
 
-bool ILP::Term::isConstant()
+bool ILP::Term::isConstant() const
 {
   return this->sum.size()==0;
 }

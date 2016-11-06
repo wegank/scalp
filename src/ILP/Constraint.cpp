@@ -21,7 +21,7 @@ std::string ILP::Constraint::showRelation(relation r)
   return "";
 }
 
-ILP::VariableSet ILP::Constraint::extractVariables()
+ILP::VariableSet ILP::Constraint::extractVariables() const
 {
   ILP::VariableSet vs;
   if(usedType==ILP::Constraint::type::Constraint_2)
@@ -40,7 +40,7 @@ ILP::VariableSet ILP::Constraint::extractVariables()
   return vs;
 }
 
-std::string ILP::Constraint::show()
+std::string ILP::Constraint::show() const
 {
   if(usedType==ILP::Constraint::type::Constraint_2)
   {

@@ -208,7 +208,7 @@ static std::string boundsLP(ILP::VariableSet &vs)
   return s.str();
 }
 
-std::string ILP::Solver::showLP()
+std::string ILP::Solver::showLP() const
 {
   std::stringstream s;
 
@@ -233,7 +233,7 @@ std::string ILP::Solver::showLP()
 
 }
 
-void ILP::Solver::writeLP(std::string file)
+void ILP::Solver::writeLP(std::string file) const
 {
   std::ofstream(file) << showLP();
 }
@@ -275,7 +275,7 @@ ILP::Result Solver::getResult()
   return this->back->res;
 }
 
-ILP::VariableSet Solver::extractVariables(std::list<Constraint> cs,Objective o)
+ILP::VariableSet Solver::extractVariables(std::list<Constraint> cs,Objective o) const
 {
   ILP::VariableSet vs;
 

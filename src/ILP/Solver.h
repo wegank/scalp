@@ -72,10 +72,14 @@ namespace ILP
 ILP::Term operator*(ILP::Variable v,double coeff);
 ILP::Term operator*(double coeff, ILP::Variable v);
 ILP::Term operator*(double coeff, ILP::Term t);
-ILP::Term operator*(ILP::Term t, double coeff);
+ILP::Term operator*(ILP::Term t , double coeff);
 
-ILP::Term operator+(ILP::Term tl,ILP::Term tr);
+ILP::Term operator+(ILP::Term tl, ILP::Term tr);
 ILP::Term operator-(ILP::Term tl, ILP::Term tr);
+
+ILP::Term& operator+=(ILP::Term& tl, ILP::Term tr);
+ILP::Term& operator-=(ILP::Term& tl, ILP::Term tr);
+ILP::Term& operator*=(ILP::Term& tl, double d);
 
 ILP::Term operator-(ILP::Variable v);
 

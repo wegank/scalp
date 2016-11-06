@@ -35,9 +35,13 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInf
 
 # Set some animal-specific paths
 if(BUILD_ON_ANIMAL)
-  set(GUROBI_LIBRARIES "-L/opt/gurobi/gurobi600/linux64/lib -lgurobi_c++ -lgurobi60" CACHE STRING "The Path to Gurobi libraries" FORCE)
+  set(GUROBI_LIBRARIES "/opt/gurobi/gurobi600/linux64/lib/libgurobi_c++.a;/opt/gurobi/gurobi600/linux64/lib/libgurobi60.so" CACHE STRING "The Path to Gurobi libraries" FORCE)
   set(GUROBI_INCLUDE_DIRS "/opt/gurobi/gurobi600/linux64/include" CACHE STRING "The Path to Gurobi headers" FORCE)
   set(USE_GUROBI ON CACHE BOOL "enable gurobi")
+
+  #set(SCIP_LIBRARIES "-L/usr/local/lib64 /usr/local/lib64/libscip.linux.x86_64.gnu.opt.a -lsoplex" CACHE STRING "The Path to SCIP libraries" FORCE)
+  #set(SCIP_INCLUDE_DIRS "/usr/local/include" CACHE STRING "The Path to SCIP headers" FORCE)
+  #set(USE_SCIP ON CACHE BOOL "enable SCIP/SoPlex")
 else()
 endif()
 

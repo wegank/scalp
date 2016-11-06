@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <functional> // std::puls, std::minus
 
 #include <ILP/Exception.h>
 #include <ILP/Solver.h>
@@ -54,6 +55,9 @@ static std::string showTermLP(ILP::Term t)
   bool first=true; // first iteration
   for(auto &p:t.sum)
   {
+    // eliminated Variable
+    if(p.second==0) continue;
+
     // show coefficient?
     if(p.second!=1 && p.second!=-1)
     {
@@ -245,6 +249,7 @@ ILP::status Solver::solve()
   // Add the Variables
   // Only add the used Variables.
   ILP::VariableSet vs = extractVariables(cons,objective);
+
   back->addVariables(vs);
 
   // Add Objective
@@ -289,7 +294,7 @@ ILP::VariableSet Solver::extractVariables(std::list<Constraint> cs,Objective o)
 // x*d
 ILP::Term operator*(ILP::Variable v,double coeff)
 {
-  Term t;
+  ILP::Term t;
   t.add(v,coeff);
   return t;
 }
@@ -302,12 +307,13 @@ ILP::Term operator*(double coeff, ILP::Variable v)
 // d(ax+by) = adx+bdy
 ILP::Term operator*(double coeff, ILP::Term t)
 {
-  t.constant*=coeff;
-  for(auto &p:t.sum)
+  ILP::Term n = t;
+  n.constant*=coeff;
+  for(auto &p:n.sum)
   {
     p.second*=coeff;
   }
-  return t;
+  return n;
 }
 // (xa+yb)d = xad+ybd
 ILP::Term operator*(ILP::Term t, double coeff)
@@ -325,33 +331,65 @@ static void adjust(std::map<ILP::Variable,double> &m,ILP::Variable k,double v,st
   }
   else
   {
-    m.emplace_hint(it,k,f(it->second,v));
+    it->second = f(it->second,v);
   }
 }
 
 ILP::Term operator+(ILP::Term tl,ILP::Term tr)
 {
+  Term n = tl;
+  n.constant+=tr.constant;
+  for(auto &p:tr.sum)
+  {
+    adjust(n.sum,p.first,p.second,std::plus<double>());
+  }
+  return n;
+}
+
+ILP::Term& operator+=(ILP::Term &tl,ILP::Term tr)
+{
   tl.constant+=tr.constant;
   for(auto &p:tr.sum)
   {
-    adjust(tl.sum,p.first,p.second,[](double o,double n){return o+n;});
+    adjust(tl.sum,p.first,p.second,std::plus<double>());
   }
   return tl;
 }
 
 ILP::Term operator-(ILP::Term tl, ILP::Term tr)
 {
+  Term n = tl;
+  n.constant-=tr.constant;
+  for(auto &p:tr.sum)
+  {
+    adjust(n.sum,p.first,p.second,std::minus<double>());
+  }
+  return n;
+}
+
+ILP::Term& operator-=(ILP::Term &tl, ILP::Term tr)
+{
   tl.constant-=tr.constant;
   for(auto &p:tr.sum)
   {
-    adjust(tl.sum,p.first,p.second,[](double o,double n){return o-n;});
+    adjust(tl.sum,p.first,p.second,std::minus<double>());
+  }
+  return tl;
+}
+
+ILP::Term& operator*=(ILP::Term& tl,double d)
+{
+  tl.constant*=d;
+  for(auto &p:tl.sum)
+  {
+    p.second*=d;
   }
   return tl;
 }
 
 ILP::Term operator-(ILP::Variable v)
 {
-  return Term((-1)*v);
+  return (-1)*v;
 }
 
 #define ILP_RELATION_OPERATOR(A,B,C,D) \

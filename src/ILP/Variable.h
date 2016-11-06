@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <set>
+#include <map>
 #include <string>
 
 namespace ILP
@@ -21,10 +22,7 @@ namespace ILP
       , REAL
       };
 
-      VariableBase(std::string n,double a,double b,type t=type::INTEGER)
-        :name(n),lowerRange(a),upperRange(b),usedType(t)
-      {
-      }
+      VariableBase(std::string n,double a,double b,type t=type::INTEGER);
 
       std::string name;
       
@@ -55,6 +53,7 @@ namespace ILP
     }
   };
   using VariableSet = std::set<Variable,variableComparator>;
+  using VariableMap = std::map<std::string,Variable>;
 
 
 }

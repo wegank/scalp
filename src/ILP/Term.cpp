@@ -1,5 +1,6 @@
 
 #include <cmath>
+#include <algorithm>
 
 #include <ILP/Term.h>
 #include <ILP/Variable.h>
@@ -70,7 +71,8 @@ ILP::VariableSet ILP::Term::extractVariables()
   ILP::VariableSet s;
   for(auto &p:sum)
   {
-    s.insert(p.first);
+    // extract all non-eliminated variables
+    if (p.second!=0) s.insert(p.first);
   }
   return s;
 }

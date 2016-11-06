@@ -1,6 +1,8 @@
 
 #include <memory>
+#include <cmath>
 #include <ILP/Variable.h>
+#include <ILP/Exception.h>
 
 namespace ILP
 {
@@ -34,6 +36,25 @@ ILP::Variable ILP::newRealVariable(std::string n)
 ILP::Variable ILP::newBinaryVariable(std::string n,double a, double b)
 {
   return ILP::newVariable(n,a,b,ILP::VariableType::BINARY);
+}
+
+using VT = ILP::VariableBase::type;
+ILP::VariableBase::VariableBase(std::string n,double a,double b,VT t)
+  :name(n),lowerRange(a),upperRange(b),usedType(t)
+{
+  // Illegal or flipped bounds
+  if(a==ILP::INF() || b==-ILP::INF() || a>b)
+    throw ILP::Exception("The bounds of "+n+" are illegal: ["+std::to_string(a)+";"+std::to_string(b)+"]");
+
+  // Integer boundaries
+  if(t==ILP::VariableBase::type::INTEGER)
+  {
+    if(a!=-ILP::INF() && fmod(a,1)!=0)
+      throw ILP::Exception("Lower bound of Integer-Variable "+n+" is not an Integer("+std::to_string(a)+")");
+    if(b!=ILP::INF() && fmod(b,1)!=0)
+      throw ILP::Exception("Upper bound of Integer-Variable "+n+" is not an Integer("+std::to_string(b)+")");
+    // TODO: check integer bounds
+  }
 }
 
 std::ostream& operator<<(std::ostream& oss, const ILP::Variable& v)

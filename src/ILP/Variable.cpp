@@ -37,6 +37,10 @@ ILP::Variable ILP::newBinaryVariable(std::string n,double a, double b)
 {
   return ILP::newVariable(n,a,b,ILP::VariableType::BINARY);
 }
+ILP::Variable ILP::newBinaryVariable(std::string n)
+{
+  return ILP::newVariable(n,false,true,ILP::VariableType::BINARY);
+}
 
 using VT = ILP::VariableBase::type;
 ILP::VariableBase::VariableBase(std::string n,double a,double b,VT t)
@@ -46,6 +50,13 @@ ILP::VariableBase::VariableBase(std::string n,double a,double b,VT t)
   if(a==ILP::INF() || b==-ILP::INF() || a>b)
     throw ILP::Exception("The bounds of "+n+" are illegal: ["+std::to_string(a)+";"+std::to_string(b)+"]");
 
+  // Binary boundaries
+  if(t==ILP::VariableBase::type::BINARY)
+  {
+    if(a+b<0 || a+b>2)
+      throw ILP::Exception("The boundaries of the binary variable "+n+" are not right, only 0 and 1 are allowed.");
+  }
+
   // Integer boundaries
   if(t==ILP::VariableBase::type::INTEGER)
   {
@@ -53,7 +64,6 @@ ILP::VariableBase::VariableBase(std::string n,double a,double b,VT t)
       throw ILP::Exception("Lower bound of Integer-Variable "+n+" is not an Integer("+std::to_string(a)+")");
     if(b!=ILP::INF() && fmod(b,1)!=0)
       throw ILP::Exception("Upper bound of Integer-Variable "+n+" is not an Integer("+std::to_string(b)+")");
-    // TODO: check integer bounds
   }
 }
 

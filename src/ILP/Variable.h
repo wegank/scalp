@@ -46,6 +46,7 @@ namespace ILP
   Variable newRealVariable(std::string n,double a, double b);
   Variable newRealVariable(std::string n); // free variable
   Variable newBinaryVariable(std::string n,double a, double b);
+  Variable newBinaryVariable(std::string n);
 
   struct variableComparator{
     bool operator()(Variable x,Variable y){

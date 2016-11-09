@@ -150,7 +150,7 @@ static std::string showConstraintLP(ILP::Constraint c)
 static std::string variableTypesLP(ILP::VariableSet &vs)
 {
   std::string binary="BINARY\n";
-  std::string general="GENARAL\n";
+  std::string general="GENERAL\n";
   for(const ILP::Variable v:vs)
   {
     if(v->usedType==ILP::VariableType::INTEGER)

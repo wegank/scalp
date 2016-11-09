@@ -82,6 +82,7 @@ ILP::Term& operator-=(ILP::Term& tl, ILP::Term tr);
 ILP::Term& operator*=(ILP::Term& tl, double d);
 
 ILP::Term operator-(ILP::Variable v);
+ILP::Term operator-(ILP::Term t);
 
 ILP::Constraint operator< (ILP::Term tl,ILP::Term tr);
 ILP::Constraint operator<=(ILP::Term tl,ILP::Term tr);

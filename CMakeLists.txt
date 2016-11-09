@@ -47,6 +47,7 @@ endif()
 
 # some options and values
 option(USE_GUROBI "Compile the Gurobi-Backend" OFF)
+option(USE_DYNAMIC "Compile the Dynamic-Backend (GNU/Linux-only at the moment)" ON)
 option(USE_SCIP "Compile the SCIP-Backend" OFF)
 option(USE_CPLEX "Compile the CPLEX-Backend" OFF)
 option(BUILD_ON_ANIMAL "Set some animal-specific paths automatically (INCOMPLETE)" OFF)
@@ -135,6 +136,8 @@ endif()
 
 # add backend-libraries
 
+set(CMAKE_INSTALL_RPATH "$ORIGIN")
+
 if(USE_CPLEX)
   include_directories(${CPLEX_INCLUDE_DIRS})
   add_library(ILP-CPLEX ${LIBRARY_TYPE}
@@ -152,16 +155,26 @@ if(USE_GUROBI)
   target_link_libraries(ILP-Gurobi ${GUROBI_LIBRARIES})
   list(APPEND BACKEND_TARGETS ILP-Gurobi)
   list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverGurobi.h)
-  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverGurobi_intern.h) # TODO: temporary?
 endif()
 
 if(USE_SCIP)
+  SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
   include_directories(${SCIP_INCLUDE_DIRS})
   add_library(ILP-SCIP ${LIBRARY_TYPE}
     src/ILP/SolverBackend/SolverSCIP.cpp)
   target_link_libraries(ILP-SCIP ${SCIP_LIBRARIES})
   list(APPEND BACKEND_TARGETS ILP-SCIP)
   list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverSCIP.h)
+endif()
+
+if(USE_DYNAMIC)
+  SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+  include_directories(${SCIP_INCLUDE_DIRS})
+  add_library(ILP-Dynamic ${LIBRARY_TYPE}
+    src/ILP/SolverBackend/SolverDynamic.cpp)
+  target_link_libraries(ILP-Dynamic dl)
+  list(APPEND BACKEND_TARGETS ILP-Dynamic)
+  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverDynamic.h)
 endif()
 
 

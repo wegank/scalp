@@ -2,8 +2,13 @@
 
 #include <ILP/SolverBackend.h>
 
-namespace ILP
+extern "C"
 {
   // create a new SolverBackend using SCIP / SoPlex
+  ILP::SolverBackend* newSolverSCIP();
+}
+
+namespace ILP
+{
   ILP::SolverBackend* newSolverSCIP();
 }

@@ -356,13 +356,26 @@ ILP::Term& operator+=(ILP::Term &tl,ILP::Term tr)
   return tl;
 }
 
+ILP::Term operator-(ILP::Term t)
+{
+  ILP::Term n = t;
+  n.constant*= -1;
+  for(auto& p:n.sum) p.second*=-1;
+  return n;
+}
+
+ILP::Term operator-(ILP::Variable v)
+{
+  return (-1)*v;
+}
+
 ILP::Term operator-(ILP::Term tl, ILP::Term tr)
 {
   Term n = tl;
   n.constant-=tr.constant;
   for(auto &p:tr.sum)
   {
-    adjust(n.sum,p.first,p.second,std::minus<double>());
+    adjust(n.sum,p.first,-p.second,std::plus<double>());
   }
   return n;
 }
@@ -372,7 +385,7 @@ ILP::Term& operator-=(ILP::Term &tl, ILP::Term tr)
   tl.constant-=tr.constant;
   for(auto &p:tr.sum)
   {
-    adjust(tl.sum,p.first,p.second,std::minus<double>());
+    adjust(tl.sum,p.first,-p.second,std::plus<double>());
   }
   return tl;
 }
@@ -387,10 +400,6 @@ ILP::Term& operator*=(ILP::Term& tl,double d)
   return tl;
 }
 
-ILP::Term operator-(ILP::Variable v)
-{
-  return (-1)*v;
-}
 
 #define ILP_RELATION_OPERATOR(A,B,C,D) \
   ILP::Constraint operator A(C l,D r) \

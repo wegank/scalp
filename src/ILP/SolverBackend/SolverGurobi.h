@@ -2,8 +2,13 @@
 
 #include <ILP/SolverBackend.h>
 
-namespace ILP
+extern "C"
 {
   // create a new SolverBackend using Gurobi
+  ILP::SolverBackend* newSolverGurobi();
+}
+
+namespace ILP
+{
   ILP::SolverBackend* newSolverGurobi();
 }

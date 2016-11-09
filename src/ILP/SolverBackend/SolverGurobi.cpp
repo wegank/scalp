@@ -7,9 +7,14 @@
 
 #include <ILP/Exception.h>
 
-ILP::SolverBackend* ILP::newSolverGurobi()
+ILP::SolverBackend* newSolverGurobi()
 {
   return new ILP::SolverGurobi();
+}
+
+ILP::SolverBackend* ILP::newSolverGurobi()
+{
+  return ::newSolverGurobi();
 }
 
 ILP::SolverGurobi::SolverGurobi()

@@ -188,7 +188,14 @@ GRBLinExpr ILP::SolverGurobi::mapTerm(ILP::Term t)
   int i=0;
   for(auto &p:t.sum)
   {
-    vars[i] = variables.at(p.first);
+    try
+    {
+      vars[i] = variables.at(p.first);
+    }
+    catch(std::out_of_range& e)
+    {
+      throw ILP::Exception("Gurobi trys to access a non-existing variable, this should never happen ("+p.first->name+")");
+    }
     coeffs[i] = p.second;
     ++i;
   }
@@ -203,6 +210,10 @@ double ILP::SolverGurobi::mapValue(double d)
 
 void ILP::SolverGurobi::reset()
 {
+  // clear the variables-cache
+  variables.clear();
+
+  // reset Gurobi itself
   try
   {
     model.reset();

@@ -34,11 +34,17 @@ void Solver::setBackend(SolverBackend *b)
 void Solver::setObjective(Objective o)
 {
   this->objective=o;
+
+  // this should throw an exception if the new Constraint rises a name-collision
+  extractVariables(cons,objective);
 }
 
 void Solver::addConstraint(Constraint b)
 {
   this->cons.push_back(b);
+
+  // this should throw an exception if the new Constraint rises a name-collision
+  extractVariables(cons,objective);
 }
 
 static std::string showTermLP(ILP::Term t)

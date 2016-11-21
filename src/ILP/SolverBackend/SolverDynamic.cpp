@@ -3,6 +3,7 @@
 #include <ILP/SolverBackend.h>
 
 #include <ILP/Exception.h>
+#include <ILP/Result.h>
 
 #include <dlfcn.h>  // dlopen, etc.
 #include <stdlib.h> // getenv
@@ -27,41 +28,101 @@ static std::list<std::string> getEnvironment()
   return ls;
 }
 
-ILP::SolverBackend* ILP::newSolverDynamic(std::list<std::string> lsa)
+// wrapper-class to manage the library memory
+namespace ILP
 {
-  std::list<std::string> ls= getEnvironment();
-  ls.splice(ls.end(),lsa);
-  ls.unique();
-
-  void *handle;
-  ILP::SolverBackend* (*smartconstructor)();
-
-  for(auto& name:ls)
+class SolverDynamic : public SolverBackend
+{
+  public:
+  SolverDynamic(std::list<std::string> lsa)
   {
-    dlerror(); // free error message
-    handle = dlopen(("libILP-"+name+".so").c_str(),RTLD_NOW);
-    
-    // could not load
-    if(handle==nullptr) continue;
+    std::list<std::string> ls= getEnvironment();
+    ls.splice(ls.end(),lsa);
+    ls.unique();
 
-    // load the constructor
-    *(void **) (&smartconstructor) = dlsym(handle, ("newSolver"+name).c_str());
+    void *handle;
+    ILP::SolverBackend* (*smartconstructor)();
 
-    // error handling
-    const char* err = dlerror();
-    if(err!=nullptr)
+    for(auto& name:ls)
     {
-      dlclose(handle);
-      continue;
+      dlerror(); // free error message
+      handle = dlopen(("libILP-"+name+".so").c_str(),RTLD_NOW);
+      
+      // could not load
+      if(handle==nullptr) continue;
+
+      // load the constructor
+      *(void **) (&smartconstructor) = dlsym(handle, ("newSolver"+name).c_str());
+
+      // error handling
+      const char* err = dlerror();
+      if(err!=nullptr)
+      {
+        dlclose(handle);
+        continue;
+      }
+      else
+      {
+        back=smartconstructor();
+        library=handle;
+      }
     }
-    else
+
+    if(back==nullptr)
     {
-      return smartconstructor();
+      throw ILP::Exception("Could not load any backend");
     }
   }
 
-  throw ILP::Exception("Could not load any backend");
-  return nullptr;
+  ~SolverDynamic()
+  {
+    delete back;
+    dlclose(library);
+  }
+
+  bool addVariable(ILP::Variable v) override
+  {
+    return back->addVariable(v);
+  }
+  bool addVariables(ILP::VariableSet vs) override
+  {
+    return back->addVariables(vs);
+  }
+  bool addConstraint(ILP::Constraint con) override
+  {
+    return back->addConstraint(con);
+  }
+  bool addConstraints(std::list<ILP::Constraint> cons) override
+  {
+    return back->addConstraints(cons);
+  }
+  bool setObjective(ILP::Objective o) override
+  {
+    return back->setObjective(o);
+  }
+  ILP::status solve() override
+  {
+    return back->solve();
+  }
+  void reset() override
+  {
+    back->reset();
+  }
+  void setConsoleOutput(bool verbose) override
+  {
+    back->setConsoleOutput(verbose);
+  }
+
+  private:
+  SolverBackend* back;
+  void* library;
+};
+
+} // namespace ILP
+
+ILP::SolverBackend* ILP::newSolverDynamic(std::list<std::string> lsa)
+{
+  return dynamic_cast<SolverBackend*>(new SolverDynamic(lsa));
 }
 
 ILP::SolverBackend* ILP::newSolverDynamic()

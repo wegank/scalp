@@ -6,6 +6,8 @@
 #include <map>
 #include <string>
 
+#include <ILP/Exception.h>
+
 namespace ILP
 {
 
@@ -50,6 +52,10 @@ namespace ILP
 
   struct variableComparator{
     bool operator()(Variable x,Variable y){
+      if(x->name==y->name && x.get()!=y.get())
+      { // name-collision
+        throw ILP::Exception("You defined multiple variables with the name: "+x->name);
+      }
       return x->name<y->name;
     }
   };

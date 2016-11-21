@@ -15,6 +15,7 @@ namespace ILP
   {
     public:
       SolverSCIP();
+      ~SolverSCIP();
 
       // basic functions
       //virtual bool addVariable(ILP::Variable v) override;

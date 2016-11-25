@@ -19,6 +19,7 @@ namespace ILP
       virtual ILP::status solve() override;
       virtual void reset() override;
       virtual void setConsoleOutput(bool verbose) override;
+      virtual void setTimeout(long timeout) override;
 
     private:
       // map some values

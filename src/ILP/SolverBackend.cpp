@@ -61,3 +61,9 @@ void ILP::SolverBackend::setConsoleOutput(bool verbose)
   (void)(verbose);
   throw ILP::Exception("ILP: You need to implement the setConsoleOutput function in the backend.");
 }
+
+void ILP::SolverBackend::setTimeout(long t)
+{
+  (void)(t);
+  throw ILP::Exception("ILP: You need to implement the setTimeout function in the backend.");
+}

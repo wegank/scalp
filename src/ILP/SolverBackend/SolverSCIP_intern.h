@@ -1,7 +1,8 @@
 
 #pragma once
 
-#include <iostream>
+#include <map>
+#include <vector>
 
 #include <scip/scip.h>
 //#include <objscip/objscip.h>
@@ -18,16 +19,16 @@ namespace ILP
       ~SolverSCIP();
 
       // basic functions
-      //virtual bool addVariable(ILP::Variable v) override;
-      virtual bool addVariables(ILP::VariableSet vs); // alternative to addVariable
+      virtual bool addVariable(ILP::Variable v) override;
       virtual bool addConstraint(ILP::Constraint con) override;
-      //virtual bool addConstraints(std::list<ILP::Constraint> cons); // alternative to addConstraint
       virtual bool setObjective(ILP::Objective o) override;
       virtual ILP::status solve() override;
       virtual void reset() override;
       virtual void setConsoleOutput(bool verbose) override;
+      virtual void setTimeout(long timeout) override;
 
       SCIP *scip;
       std::map<ILP::Variable,SCIP_VAR*> variables;
+      std::vector<SCIP_CONS*> constraints;
   };
 }

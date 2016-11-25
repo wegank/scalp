@@ -234,3 +234,13 @@ void ILP::SolverGurobi::setConsoleOutput(bool verbose)
   }
 }
 
+void ILP::SolverGurobi::setTimeout(long timeout)
+{
+  try
+  {
+    model.getEnv().set(GRB_DoubleParam_TimeLimit,timeout);
+  }catch(GRBException &e)
+  {
+    throw ILP::Exception(std::to_string(e.getErrorCode())+" "+e.getMessage());
+  }
+}

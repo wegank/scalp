@@ -24,6 +24,10 @@ int main()
     ILP::Solver s = ILP::Solver(ILP::newSolverDynamic({"SCIP","Gurobi"}));
     s.quiet=true; // disable solver output
 
+    // set the timeout of the solver
+    s.timeout = 1_hour + 30_minutes + 5_seconds;
+
+
     // declare the Variables
     ILP::Variable x = ILP::newIntegerVariable("x"); // x is free
     ILP::Variable y = ILP::newRealVariable("y",12.5,26);
@@ -41,10 +45,7 @@ int main()
 
     // print results
     std::cout << "The result is " << stat << std::endl;
-    if(stat==ILP::status::OPTIMAL || stat==ILP::status::FEASIBLE)
-    {
-      std::cout << s.getResult() << std::endl;
-    }
+    std::cout << s.getResult() << std::endl;
 
   }
   catch(ILP::Exception &e)

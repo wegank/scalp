@@ -27,6 +27,12 @@ namespace ILP
       // set true to disable the Output of the Solver
       bool quiet = false;
 
+      // timeout for the solving progress
+      // it is measured in seconds, zero is no limit.
+      // you can use suffixes like _hours, _seconds (_hour, etc. works too)
+      // e. g. timeout = 2_hours + 15_minutes + 30_seconds
+      long timeout = 0;
+
       // pass everything to the Solver and run it
       ILP::status solve();
 
@@ -104,3 +110,29 @@ ILP::Constraint operator==(ILP::Term tl,ILP::Constraint tr);
 
 ILP::Solver &operator<<(ILP::Solver &s,ILP::Objective o);
 ILP::Solver &operator<<(ILP::Solver &s,ILP::Constraint o);
+
+
+// time suffixes
+// visual studio < 2015 does not support constexpr and user-defined-literals
+#if(not defined(_MSC_VER) ||  _MSC_VER >= 1900)
+
+#define SUFFIX(A,MULT) \
+constexpr long double operator"" A (long double n) \
+{ \
+  return n*MULT; \
+} \
+constexpr unsigned long long int operator"" A (unsigned long long int n) \
+{ \
+  return n*MULT; \
+}
+
+SUFFIX(_days    , 60*60*24)
+SUFFIX(_day     , 60*60*24)
+SUFFIX(_hours   , 60*60)
+SUFFIX(_hour    , 60*60)
+SUFFIX(_minutes , 60)
+SUFFIX(_minute  , 60)
+SUFFIX(_seconds , 1)
+SUFFIX(_second  , 1)
+
+#endif // _MSC_VER

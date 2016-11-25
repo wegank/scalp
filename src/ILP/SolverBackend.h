@@ -25,6 +25,7 @@ namespace ILP
       virtual ILP::status solve();
       virtual void reset();
       virtual void setConsoleOutput(bool verbose);
+      virtual void setTimeout(long timeout);
 
       // experimental: advanced functions
       // You can implement these functions if your ILP-solver can make use of them.

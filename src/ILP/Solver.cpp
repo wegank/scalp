@@ -43,8 +43,8 @@ void Solver::addConstraint(Constraint b)
 {
   this->cons.push_back(b);
 
-  // this should throw an exception if the new Constraint rises a name-collision
-  extractVariables(cons,objective);
+  // this should throw an exception if the new Constraint rises a name-collision (too slow)
+  //extractVariables(cons,objective);
 }
 
 static std::string showTermLP(ILP::Term t)
@@ -249,8 +249,13 @@ ILP::status Solver::solve()
   // reset the backend
   back->reset();
 
+  // reset the result
+  back->res.values.clear();
+
   // set the verbosity of the backend
   back->setConsoleOutput(!quiet);
+
+  if(timeout>0) back->setTimeout(timeout);
 
   // Add the Variables
   // Only add the used Variables.

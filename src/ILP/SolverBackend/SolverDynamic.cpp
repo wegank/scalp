@@ -102,7 +102,9 @@ class SolverDynamic : public SolverBackend
   }
   ILP::status solve() override
   {
-    return back->solve();
+    ILP::status s = back->solve();
+    res = back->res;
+    return s;
   }
   void reset() override
   {
@@ -111,6 +113,10 @@ class SolverDynamic : public SolverBackend
   void setConsoleOutput(bool verbose) override
   {
     back->setConsoleOutput(verbose);
+  }
+  void setTimeout(long timeout) override
+  {
+    back->setTimeout(timeout);
   }
 
   private:

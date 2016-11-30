@@ -34,7 +34,7 @@ namespace ILP
 
       // set the coefficient of v to coeff
       // if v is not present it behaves like add.
-      double setCoefficient(const Variable& v, double coeff);
+      void setCoefficient(const Variable& v, double coeff);
 
       double& operator[](const Variable& v);
 

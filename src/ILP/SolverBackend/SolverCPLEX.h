@@ -1,23 +1,14 @@
-
 #pragma once
 
 #include <ILP/SolverBackend.h>
 
+extern "C"
+{
+  // create a new SolverBackend using CPLEX
+  ILP::SolverBackend* newSolverCPLEX();
+}
+
 namespace ILP
 {
-  class SolverCPLEX : public SolverBackend
-  {
-    public:
-      SolverCPLEX()
-      {
-      }
-
-      // basic functions
-      virtual bool addVariable(ILP::Variable v) override;
-      virtual bool addConstraint(ILP::Constraint con) override;
-      virtual bool setObjective(ILP::Objective o) override;
-      virtual ILP::status solve() override;
-
-    private:
-  };
+  ILP::SolverBackend* newSolverCPLEX();
 }

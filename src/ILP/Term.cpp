@@ -79,7 +79,7 @@ double ILP::Term::getCoefficient(const ILP::Variable& v) const
   }
 }
 
-double ILP::Term::setCoefficient(const ILP::Variable& v, double coeff)
+void ILP::Term::setCoefficient(const ILP::Variable& v, double coeff)
 {
   if(valid(coeff))
   {

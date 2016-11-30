@@ -9,6 +9,7 @@
 #include <stdlib.h> // getenv
 
 #include <sstream>
+#include <iostream>
 
 static std::list<std::string> getEnvironment()
 {
@@ -49,7 +50,11 @@ class SolverDynamic : public SolverBackend
       handle = dlopen(("libILP-"+name+".so").c_str(),RTLD_NOW);
       
       // could not load
-      if(handle==nullptr) continue;
+      if(handle==nullptr)
+      {
+        std::cerr << dlerror() << std::endl;
+        continue;
+      }
 
       // load the constructor
       *(void **) (&smartconstructor) = dlsym(handle, ("newSolver"+name).c_str());

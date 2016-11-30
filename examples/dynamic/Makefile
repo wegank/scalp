@@ -1,7 +1,7 @@
 
 ILP_LIB_PATH=../../lib
 ILP_INC_PATH=../../include
-OTHER_FLAGS= -O2
+OTHER_FLAGS= -O2 # -D_GLIBCXX_USE_CXX11_ABI=0
 CXX?=clang++
 
 

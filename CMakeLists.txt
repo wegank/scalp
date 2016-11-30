@@ -35,9 +35,13 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInf
 
 # Set some animal-specific paths
 if(BUILD_ON_ANIMAL)
-  set(GUROBI_LIBRARIES "/opt/gurobi/gurobi600/linux64/lib/libgurobi_c++.a;/opt/gurobi/gurobi600/linux64/lib/libgurobi60.so" CACHE STRING "The Path to Gurobi libraries" FORCE)
+  set(GUROBI_LIBRARIES "/opt/gurobi/gurobi600/linux64/lib/libgurobi60.so;/opt/gurobi/gurobi600/linux64/lib/libgurobi_c++.a" CACHE STRING "The Path to Gurobi libraries" FORCE)
   set(GUROBI_INCLUDE_DIRS "/opt/gurobi/gurobi600/linux64/include" CACHE STRING "The Path to Gurobi headers" FORCE)
   set(USE_GUROBI ON CACHE BOOL "enable gurobi")
+
+  set(CPLEX_LIBRARIES "-Wl,--whole-archive;/opt/ibm/ILOG/CPLEX_Studio126/cplex/lib/x86-64_linux/static_pic/libcplex.a;/opt/ibm/ILOG/CPLEX_Studio126/cplex/lib/x86-64_linux/static_pic/libilocplex.a;/opt/ibm/ILOG/CPLEX_Studio126/concert/lib/x86-64_linux/static_pic/libconcert.a;-Wl,--no-whole-archive;-lm;-lpthread" CACHE STRING "The Path to CPLEX libraries" FORCE)
+  set(CPLEX_INCLUDE_DIRS "/opt/ibm/ILOG/CPLEX_Studio126/cplex/include/;/opt/ibm/ILOG/CPLEX_Studio126/concert/include/" CACHE STRING "The Path to CPLEX headers" FORCE)
+  set(USE_CPLEX ON CACHE BOOL "enable cplex")
 
   #set(SCIP_LIBRARIES "-L/usr/local/lib64 /usr/local/lib64/libscip.linux.x86_64.gnu.opt.a -lsoplex" CACHE STRING "The Path to SCIP libraries" FORCE)
   #set(SCIP_INCLUDE_DIRS "/usr/local/include" CACHE STRING "The Path to SCIP headers" FORCE)
@@ -52,6 +56,7 @@ option(USE_SCIP "Compile the SCIP-Backend" OFF)
 option(USE_CPLEX "Compile the CPLEX-Backend" OFF)
 option(BUILD_ON_ANIMAL "Set some animal-specific paths automatically (INCOMPLETE)" OFF)
 option(BUILD_SHARED_LIBRARIES "Build as shared libraries" ON)
+option(OLD_CXX_ABI "Build with an old C++-abi (activate if you get undefined references with '__cxx11')" OFF)
 
 set(CPLEX_LIBRARIES "" CACHE STRING "the paths to the cplex libraries")
 set(CPLEX_INCLUDE_DIRS "" CACHE STRING "the paths to the cplex headers")
@@ -83,6 +88,10 @@ else()
   message(FATAL_ERROR,"The compiler ${CMAKE_CXX_COMPILER} has no C++11 support.")
 endif()
 
+# Deactivate C++11-abi?
+if(OLD_CXX_ABI) 
+  add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0) 
+endif()
 
 if(BUILD_SHARED_LIBRARIES)
   set(LIBRARY_TYPE SHARED)
@@ -137,6 +146,7 @@ endif()
 # add backend-libraries
 
 set(CMAKE_INSTALL_RPATH "$ORIGIN")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 if(USE_CPLEX)
   include_directories(${CPLEX_INCLUDE_DIRS})
@@ -148,7 +158,6 @@ if(USE_CPLEX)
 endif()
 
 if(USE_GUROBI)
-  SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
   include_directories(${GUROBI_INCLUDE_DIRS})
   add_library(ILP-Gurobi ${LIBRARY_TYPE}
     src/ILP/SolverBackend/SolverGurobi.cpp)
@@ -158,7 +167,6 @@ if(USE_GUROBI)
 endif()
 
 if(USE_SCIP)
-  SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
   include_directories(${SCIP_INCLUDE_DIRS})
   add_library(ILP-SCIP ${LIBRARY_TYPE}
     src/ILP/SolverBackend/SolverSCIP.cpp)
@@ -168,8 +176,6 @@ if(USE_SCIP)
 endif()
 
 if(USE_DYNAMIC)
-  SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-  include_directories(${SCIP_INCLUDE_DIRS})
   add_library(ILP-Dynamic ${LIBRARY_TYPE}
     src/ILP/SolverBackend/SolverDynamic.cpp)
   target_link_libraries(ILP-Dynamic dl)

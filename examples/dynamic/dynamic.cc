@@ -21,7 +21,7 @@ int main()
     // You can prepend additional solvers by defining the environment variable
     //   SCALP_SOLVER_LIST="name1;name2;..."
     // before you program starts.
-    ILP::Solver s = ILP::Solver(ILP::newSolverDynamic({"SCIP","Gurobi"}));
+    ILP::Solver s = ILP::Solver(ILP::newSolverDynamic({"CPLEX","SCIP","Gurobi"}));
     s.quiet=true; // disable solver output
 
     // set the timeout of the solver

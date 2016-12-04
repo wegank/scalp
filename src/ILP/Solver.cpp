@@ -286,6 +286,15 @@ ILP::Result Solver::getResult()
   return this->back->res;
 }
 
+void Solver::reset()
+{
+  if(back!=nullptr) back->reset();
+  objective= ILP::Objective();
+  cons.clear();
+  result=ILP::Result();
+
+}
+
 ILP::VariableSet Solver::extractVariables(std::list<Constraint> cs,Objective o) const
 {
   ILP::VariableSet vs;

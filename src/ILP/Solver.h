@@ -53,6 +53,9 @@ namespace ILP
       // write the LP-Format-representation in a file
       void writeLP(std::string file) const;
 
+      // reset the Solver (removes all Constraints, etc)
+      void reset();
+
       ~Solver();
 
     private:

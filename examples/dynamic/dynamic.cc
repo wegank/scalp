@@ -21,22 +21,29 @@ int main()
     // You can prepend additional solvers by defining the environment variable
     //   SCALP_SOLVER_LIST="name1;name2;..."
     // before you program starts.
-    ILP::Solver s = ILP::Solver(ILP::newSolverDynamic({"CPLEX","SCIP","Gurobi"}));
-    s.quiet=true; // disable solver output
+    ILP::Solver s = ILP::Solver(ILP::newSolverDynamic({"LPSolve","CPLEX","SCIP","Gurobi"}));
+
+    // disable solver output
+    s.quiet=true;
+
+    // enable presolving
+    s.presolve=true;
+
+    // print the used Solver
+    std::cout << s.getBackendName() << std::endl;
 
     // set the timeout of the solver
     s.timeout = 1_hour + 30_minutes + 5_seconds;
-
 
     // declare the Variables
     ILP::Variable x = ILP::newIntegerVariable("x"); // x is free
     ILP::Variable y = ILP::newRealVariable("y",12.5,26);
 
     // Set the Objective
-    s.setObjective(ILP::maximize(x));
+    s.setObjective(ILP::maximize(x+5));
 
     // add the Constraints
-    s << (x+y<=30) << (5<=x<=30);
+    s << (x+y<=31) << (5<=x<=30);
     
     s.writeLP("dynamic.lp");
 

@@ -16,15 +16,6 @@ else()
 
   # set a default build-type
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "The compilation type (only Debug works at the moment)" FORCE)
-
-  # Detect animal build server
-  site_name(HOSTNAME)
-  string(FIND "${HOSTNAME}" "animal" ANIMAL_IDX)
-  if(ANIMAL_IDX EQUAL 0)
-    set(BUILD_ON_ANIMAL ON CACHE BOOL "")
-  endif()
-  unset(HOSTNAME)
-  unset(ANIMAL_IDX)
 endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel "")
 
@@ -33,28 +24,12 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInf
 #  add_definitions(-D__DEBUG__)
 #endif()
 
-# Set some animal-specific paths
-if(BUILD_ON_ANIMAL)
-  set(GUROBI_LIBRARIES "/opt/gurobi/gurobi600/linux64/lib/libgurobi60.so;/opt/gurobi/gurobi600/linux64/lib/libgurobi_c++.a" CACHE STRING "The Path to Gurobi libraries" FORCE)
-  set(GUROBI_INCLUDE_DIRS "/opt/gurobi/gurobi600/linux64/include" CACHE STRING "The Path to Gurobi headers" FORCE)
-  set(USE_GUROBI ON CACHE BOOL "enable gurobi")
-
-  set(CPLEX_LIBRARIES "-Wl,--whole-archive;/opt/ibm/ILOG/CPLEX_Studio126/cplex/lib/x86-64_linux/static_pic/libcplex.a;/opt/ibm/ILOG/CPLEX_Studio126/cplex/lib/x86-64_linux/static_pic/libilocplex.a;/opt/ibm/ILOG/CPLEX_Studio126/concert/lib/x86-64_linux/static_pic/libconcert.a;-Wl,--no-whole-archive;-lm;-lpthread" CACHE STRING "The Path to CPLEX libraries" FORCE)
-  set(CPLEX_INCLUDE_DIRS "/opt/ibm/ILOG/CPLEX_Studio126/cplex/include/;/opt/ibm/ILOG/CPLEX_Studio126/concert/include/" CACHE STRING "The Path to CPLEX headers" FORCE)
-  set(USE_CPLEX ON CACHE BOOL "enable cplex")
-
-  #set(SCIP_LIBRARIES "-L/usr/local/lib64 /usr/local/lib64/libscip.linux.x86_64.gnu.opt.a -lsoplex" CACHE STRING "The Path to SCIP libraries" FORCE)
-  #set(SCIP_INCLUDE_DIRS "/usr/local/include" CACHE STRING "The Path to SCIP headers" FORCE)
-  #set(USE_SCIP ON CACHE BOOL "enable SCIP/SoPlex")
-else()
-endif()
-
 # some options and values
 option(USE_GUROBI "Compile the Gurobi-Backend" OFF)
 option(USE_DYNAMIC "Compile the Dynamic-Backend (GNU/Linux-only at the moment)" ON)
 option(USE_SCIP "Compile the SCIP-Backend" OFF)
 option(USE_CPLEX "Compile the CPLEX-Backend" OFF)
-option(BUILD_ON_ANIMAL "Set some animal-specific paths automatically (INCOMPLETE)" OFF)
+option(USE_LPSOLVE "Compile the LPSolve-Backend" OFF)
 option(BUILD_SHARED_LIBRARIES "Build as shared libraries" ON)
 option(OLD_CXX_ABI "Build with an old C++-abi (activate if you get undefined references with '__cxx11')" OFF)
 
@@ -64,6 +39,8 @@ set(GUROBI_LIBRARIES "" CACHE STRING "the paths to the gurobi libraries")
 set(GUROBI_INCLUDE_DIRS "" CACHE STRING "the paths to the gurobi headers")
 set(SCIP_LIBRARIES "" CACHE STRING "the paths to the scip libraries")
 set(SCIP_INCLUDE_DIRS "" CACHE STRING "the paths to the scip headers")
+set(LPSOLVE_LIBRARIES "" CACHE STRING "the paths to the lp_solve libraries")
+set(LPSOLVE_INCLUDE_DIRS "" CACHE STRING "the paths to the lp_solve headers")
 
 # hide the paths, maybe they are detected automatically
 mark_as_advanced(
@@ -73,9 +50,12 @@ mark_as_advanced(
   GUROBI_INCLUDE_DIRS
   SCIP_LIBRARIES
   SCIP_INCLUDE_DIRS
+  LPSOLVE_LIBRARIES
+  LPSOLVE_INCLUDE_DIRS
   CPLEX_DIR
   GUROBI_DIR
   SCIP_DIR
+  LPSOLVE_DIR
   )
 
 
@@ -142,6 +122,19 @@ elseif(NOT USE_SCIP)
   mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
 endif()
 
+find_package(LPSOLVE QUIET)
+if(LPSOLVE_FOUND)
+  set(USE_LPSOLVE ON CACHE BOOL "Switch lp_solve on")
+  mark_as_advanced(FORCE LPSOLVE_LIBRARIES LPSOLVE_INCLUDE_DIRS)
+  message("Found lp_solve, switched it on automatically")
+elseif(USE_LPSOLVE)
+  if((NOT LPSOLVE_LIBRARIES) OR (NOT LPSOLVE_INCLUDE_DIRS))
+    message(SEND_ERROR "lp_solve neither found nor set manually. Set LPSOLVE_LIBRARIES and LPSOLVE_INCLUDE_DIRS.")
+  endif()
+  mark_as_advanced(CLEAR LPSOLVE_LIBRARIES LPSOLVE_INCLUDE_DIRS)
+elseif(NOT USE_LPSOLVE)
+  mark_as_advanced(FORCE LPSOLVE_LIBRARIES LPSOLVE_INCLUDE_DIRS)
+endif()
 
 # add backend-libraries
 
@@ -173,6 +166,15 @@ if(USE_SCIP)
   target_link_libraries(ILP-SCIP ${SCIP_LIBRARIES})
   list(APPEND BACKEND_TARGETS ILP-SCIP)
   list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverSCIP.h)
+endif()
+
+if(USE_LPSOLVE)
+  include_directories(${LPSOLVE_INCLUDE_DIRS})
+  add_library(ILP-LPSolve ${LIBRARY_TYPE}
+    src/ILP/SolverBackend/SolverLPSolve.cpp)
+  target_link_libraries(ILP-LPSolve ${LPSOLVE_LIBRARIES})
+  list(APPEND BACKEND_TARGETS ILP-LPSolve)
+  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverLPSolve.h)
 endif()
 
 if(USE_DYNAMIC)

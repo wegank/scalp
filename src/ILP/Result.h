@@ -24,6 +24,8 @@ namespace ILP
   {
     public:
 
+      double objectiveValue=0;
+
       std::map<ILP::Variable,double> values;
 
     private:

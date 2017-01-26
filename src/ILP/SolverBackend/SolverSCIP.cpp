@@ -5,6 +5,8 @@
 #include <ILP/Exception.h>
 
 #include <vector>
+#include <utility>
+#include <iostream>
 
 namespace ILP
 {
@@ -31,13 +33,18 @@ ILP::SolverBackend* ILP::newSolverSCIP()
 
 ILP::SolverSCIP::SolverSCIP()
 {
+  name="SCIP";
   // creation is done in reset().
 }
 
 ILP::SolverSCIP::~SolverSCIP()
 {
-  if(scip!=nullptr) // at least one run
-    SCALP_SCIP_EXC(SCIPfree(&scip));
+  if(scip!=nullptr)
+  { // at least one run
+    // FIXME: throwing in Destructor leads to warnings.
+    //SCALP_SCIP_EXC(SCIPfree(&scip));
+    SCIPfree(&scip);
+  }
 }
 
 static SCIP_VARTYPE mapVariableType(ILP::VariableType t)
@@ -51,7 +58,7 @@ static SCIP_VARTYPE mapVariableType(ILP::VariableType t)
   }
 }
 
-bool ILP::SolverSCIP::addVariable(ILP::Variable v)
+bool ILP::SolverSCIP::addVariable(const ILP::Variable& v)
 {
   SCIP_VAR* var;
   SCALP_SCIP_EXC(SCIPcreateVarBasic(scip,&var,v->name.c_str(),
@@ -59,8 +66,7 @@ bool ILP::SolverSCIP::addVariable(ILP::Variable v)
         0.0, mapVariableType(v->usedType)));
   SCALP_SCIP_EXC(SCIPaddVar(scip, var));
 
-  auto r=variables.emplace(v,var);
-  return r.second; // inserted correctly
+  return variables.emplace(v,var).second; // inserted correctly?
 }
 
 // add the Constraint to scip, returns the added constraint.
@@ -76,12 +82,10 @@ static SCIP_CONS* scipAddCons(SCIP* scip, std::map<ILP::Variable,SCIP_VAR*> &var
     vals.push_back(p.second);
   }
 
-  // EXPERIMENTAL: equivalent transformation (remove the constant part from the term)
   if(term.constant!=0)
   {
     lhs-=term.constant;
     rhs-=term.constant;
-    //throw ILP::Exception("Constant parts of Constraints are not implemented yet.");
   }
 
   SCALP_SCIP_EXC(SCIPcreateConsBasicLinear(scip,&cons,name.c_str(),vars.size(),vars.data(),vals.data(),lhs,rhs));
@@ -90,108 +94,22 @@ static SCIP_CONS* scipAddCons(SCIP* scip, std::map<ILP::Variable,SCIP_VAR*> &var
   return cons;
 }
 
-static bool addConstraint2(SCIP* scip, std::vector<SCIP_CONS*>& constraints, std::map<ILP::Variable,SCIP_VAR*> &variables, ILP::Constraint2 c)
+bool ILP::SolverSCIP::addConstraint(const ILP::Constraint& c)
 {
-  double lhs,rhs;
-  ILP::Term& term= c.lhs;
 
-  // map the relations to a <= x+y <= b:
-  if(!c.lhs.isConstant() && c.rhs.isConstant() && c.usedRelation== ILP::relation::EQUAL)
-  { // x == d
-    lhs=c.rhs.constant;
-    rhs=c.rhs.constant;
-    term=c.lhs;
-  }
-  else if(c.rhs.isConstant() && !c.lhs.isConstant() && c.usedRelation== ILP::relation::EQUAL)
-  { // d == x
-    lhs=c.lhs.constant;
-    rhs=c.lhs.constant;
-    term=c.rhs;
-  }
-  else if(!c.lhs.isConstant() && c.rhs.isConstant() && c.usedRelation== ILP::relation::LESS_EQ_THAN)
-  { // x <= d
-    lhs=-ILP::INF();
-    rhs=c.rhs.constant;
-    term=c.lhs;
-  }
-  else if(c.rhs.isConstant() && !c.lhs.isConstant() && c.usedRelation== ILP::relation::LESS_EQ_THAN)
-  { // d <= x
-    lhs=c.lhs.constant;
-    rhs=ILP::INF();
-    term=c.rhs;
-  }
-  else if(!c.lhs.isConstant() && c.rhs.isConstant() && c.usedRelation== ILP::relation::MORE_EQ_THAN)
-  { // x >= d
-    lhs=c.rhs.constant;
-    rhs=ILP::INF();
-    term=c.lhs;
-  }
-  else if(!c.rhs.isConstant() && c.lhs.isConstant() && c.usedRelation== ILP::relation::MORE_EQ_THAN)
-  { // d >= x
-    lhs=-ILP::INF();
-    rhs=c.lhs.constant;
-    term=c.rhs;
+  if(c.lrel==ILP::relation::MORE_EQ_THAN and c.rrel==ILP::relation::MORE_EQ_THAN)
+  { // flip boundaries
+    constraints.push_back(scipAddCons(scip,variables,c.term,c.ubound,c.lbound,c.name.c_str()));
   }
   else
   {
-    throw ILP::Exception("Cant add Constraint, most likely this relation is not supported.");
+    constraints.push_back(scipAddCons(scip,variables,c.term,c.lbound,c.ubound,c.name.c_str()));
   }
-
-  constraints.push_back(scipAddCons(scip,variables,term,lhs,rhs));
-
   return true;
-}
-
-static bool addConstraint3(SCIP* scip, std::vector<SCIP_CONS*>& constraints, std::map<ILP::Variable,SCIP_VAR*> &variables, ILP::Constraint3 c)
-{
-
-  double lhs,rhs;
-
-  if(c.lrel == ILP::relation::LESS_EQ_THAN || c.rrel == ILP::relation::LESS_EQ_THAN)
-  { // a <= x <= b
-    lhs=c.lbound.constant;
-    rhs=c.ubound.constant;
-  }
-  else if(c.lrel == ILP::relation::MORE_EQ_THAN || c.rrel == ILP::relation::MORE_EQ_THAN)
-  { // a >= x >= b
-    lhs=c.ubound.constant;
-    rhs=c.lbound.constant;
-  }
-  else
-  {
-    throw ILP::Exception("This Constraint-Type is not supported at the moment by the SCIP-backend.");
-  }
-  // TODO: add less- and more-than relations
-
-  constraints.push_back(scipAddCons(scip,variables,c.term,lhs,rhs));
-
-  return true;
-}
-
-bool ILP::SolverSCIP::addConstraint(ILP::Constraint c)
-{
-  if(c.usedType==ILP::Constraint::type::Constraint_2)
-  {
-    return addConstraint2(scip,constraints,variables,c.c2);
-  }
-  else if(c.usedType==ILP::Constraint::type::Constraint_3)
-  {
-    return addConstraint3(scip,constraints,variables,c.c3);
-  }
-  else
-  {
-    return false;
-  }
 }
 
 bool ILP::SolverSCIP::setObjective(ILP::Objective o)
 {
-  // TODO constant part missing.
-  if(o.usedTerm.constant!=0)
-  {
-    throw ILP::Exception("Constant parts for Objectives are not implemented yet.");
-  }
-
   if(o.usedType==ILP::Objective::type::MAXIMIZE)
   {
     SCALP_SCIP_EXC(SCIPsetObjsense(scip, SCIP_OBJSENSE_MAXIMIZE));
@@ -206,6 +124,8 @@ bool ILP::SolverSCIP::setObjective(ILP::Objective o)
     SCALP_SCIP_EXC(SCIPchgVarObj(scip,variables.at(p.first),p.second));
   }
 
+  objectiveOffset=o.usedTerm.constant;
+
   return true;
 }
 
@@ -214,20 +134,31 @@ ILP::status ILP::SolverSCIP::solve()
   SCALP_SCIP_EXC(SCIPsolve(scip));
   SCIP_SOL* sol = SCIPgetBestSol(scip);
 
+  // Objective-value
+  res.objectiveValue = SCIPgetPrimalbound(scip) + objectiveOffset;
+
   if(sol!=nullptr)
   {
     for(auto &p:variables)
     {
-      res.values.emplace(p.first,SCIPgetSolVal(scip,sol,p.second));
+      double variableValue = SCIPgetSolVal(scip,sol,p.second);
+      res.values.emplace(p.first,variableValue);
     }
+
+    // TODO: <+ SCIP apparently does not support Constraint-solutions +>
+    // TODO: <+ Maybe create them out of the variable solutions?  +>
   }
 
   switch(SCIPgetStatus(scip))
   {
-    case SCIP_STATUS_TIMELIMIT: return ILP::status::TIMEOUT;
-    case SCIP_STATUS_OPTIMAL: return ILP::status::OPTIMAL;
-    case SCIP_STATUS_INFEASIBLE: return ILP::status::INFEASIBLE;
-    default: return ILP::status::ERROR;
+    case SCIP_STATUS_TIMELIMIT:     return ILP::status::TIMEOUT;
+    case SCIP_STATUS_OPTIMAL:       return ILP::status::OPTIMAL;
+    case SCIP_STATUS_INFEASIBLE:    return ILP::status::INFEASIBLE;
+    default:
+      {
+        std::cerr << "Scalp: This SCIP-Status is not supported, please report with an simplified example" << std::endl;
+        return ILP::status::ERROR;
+      }
   }
   return ILP::status::ERROR;
 }
@@ -262,4 +193,16 @@ void ILP::SolverSCIP::setConsoleOutput(bool verbose)
 void ILP::SolverSCIP::setTimeout(long timeout)
 {
   SCALP_SCIP_EXC(SCIPsetRealParam(scip, "limits/time", timeout));
+}
+
+void ILP::SolverSCIP::presolve(bool presolve)
+{
+  if(presolve)
+  {
+    SCALP_SCIP_EXC(SCIPsetPresolving(scip,SCIP_PARAMSETTING_DEFAULT,true));
+  }
+  else
+  {
+    SCALP_SCIP_EXC(SCIPsetPresolving(scip,SCIP_PARAMSETTING_OFF,true));
+  }
 }

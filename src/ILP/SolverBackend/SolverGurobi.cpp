@@ -20,6 +20,7 @@ ILP::SolverBackend* ILP::newSolverGurobi()
 ILP::SolverGurobi::SolverGurobi()
   :environment(GRBEnv()), model(GRBModel(environment))
 {
+  name="Gurobi";
 }
 
 char ILP::SolverGurobi::variableType(ILP::VariableBase::type t)
@@ -33,7 +34,7 @@ char ILP::SolverGurobi::variableType(ILP::VariableBase::type t)
   }
 }
 
-bool ILP::SolverGurobi::addVariable(ILP::Variable v)
+bool ILP::SolverGurobi::addVariable(const ILP::Variable& v)
 {
   GRBVar grbv;
   try
@@ -73,63 +74,49 @@ static char mapRelation(ILP::relation r)
   switch(r)
   {
     case ILP::relation::LESS_EQ_THAN:
-      {
-        rel = GRB_LESS_EQUAL;
-        break;
-      }
+      return GRB_LESS_EQUAL;
     case ILP::relation::EQUAL:
-      {
-        rel = GRB_EQUAL;
-        break;
-      }
+      return GRB_EQUAL;
     case ILP::relation::MORE_EQ_THAN:
-      {
-        rel = GRB_GREATER_EQUAL;
+      return GRB_GREATER_EQUAL;
+    default:
+      throw ILP::Exception("Relation (" + ILP::Constraint::showRelation(r) + ") not supported at the moment.");
+  }
+  return GRB_LESS_EQUAL;
+}
+
+bool ILP::SolverGurobi::addConstraint(const ILP::Constraint& cons)
+{
+  try
+  {
+    switch(cons.ctype)
+    {
+      case ILP::Constraint::type::C2L:
+        model.addConstr(cons.lbound,mapRelation(cons.lrel),mapTerm(cons.term),cons.name);
         break;
-      }
-    default: throw ILP::Exception("Relation (" + ILP::Constraint::showRelation(r) + ") not supported at the moment.");
-  }
-  return rel;
-}
-
-bool ILP::SolverGurobi::addConstraint2(ILP::Term lhs, ILP::relation r, ILP::Term rhs)
-{
-  try
-  {
-    model.addConstr(mapTerm(lhs),mapRelation(r),mapTerm(rhs));
-  }
-  catch(GRBException e)
-  {
-    throw ILP::Exception("Error while adding a Constraint to the backend: "+e.getMessage());
-  }
-  return true;
-}
-
-bool ILP::SolverGurobi::addConstraint3(ILP::Constraint3 &c3)
-{
-  try
-  {
-    // Gurobi Range
-    model.addRange(mapTerm(c3.term),c3.lbound.constant,c3.ubound.constant);
+      case ILP::Constraint::type::C2R:
+        model.addConstr(mapTerm(cons.term),mapRelation(cons.rrel),cons.ubound,cons.name);
+        break;
+      case ILP::Constraint::type::CEQ:
+        model.addConstr(cons.lbound,mapRelation(cons.lrel),mapTerm(cons.term),cons.name);
+        break;
+      case ILP::Constraint::type::C3:
+        if(cons.lrel==ILP::relation::LESS_EQ_THAN)
+        { // d <= x <= d
+          model.addRange(mapTerm(cons.term),cons.lbound,cons.ubound,cons.name);
+        }
+        else
+        { // d >= x >= d
+          model.addRange(mapTerm(cons.term),cons.ubound,cons.lbound,cons.name);
+        }
+        break;
+    }
   }
   catch(GRBException e)
   {
     throw ILP::Exception("Error while adding a Constraint to the backend: "+e.getMessage());
   }
   return true;
-}
-
-bool ILP::SolverGurobi::addConstraint(ILP::Constraint cons)
-{
-  if(cons.usedType==ILP::Constraint::type::Constraint_2)
-    return addConstraint2(cons.c2.lhs,cons.c2.usedRelation,cons.c2.rhs);
-  else if(cons.usedType==ILP::Constraint::type::Constraint_3)
-    return addConstraint3(cons.c3);
-  else
-  {
-    throw ILP::Exception("Constraint-Type not supported");
-    return false;
-  }
 }
 
 bool ILP::SolverGurobi::setObjective(ILP::Objective o)
@@ -138,7 +125,8 @@ bool ILP::SolverGurobi::setObjective(ILP::Objective o)
   try
   {
     GRBLinExpr t = mapTerm(o.usedTerm);
-    model.setObjective(t,type);
+    model.setObjective(t-o.usedTerm.constant,type);
+    objectiveOffset = o.usedTerm.constant;
   }
   catch(GRBException e)
   {
@@ -152,11 +140,13 @@ ILP::status ILP::SolverGurobi::solve()
 {
   try
   {
-    model.write("aa.lp");
+    //model.write("gurobi.lp");
 
     model.optimize();
   
     int grbStatus = model.get(GRB_IntAttr_Status);
+
+    res.objectiveValue = model.get(GRB_DoubleAttr_ObjVal)+objectiveOffset;
 
     if(grbStatus != GRB_INFEASIBLE)
     {
@@ -239,6 +229,25 @@ void ILP::SolverGurobi::setTimeout(long timeout)
   try
   {
     model.getEnv().set(GRB_DoubleParam_TimeLimit,timeout);
+  }catch(GRBException &e)
+  {
+    throw ILP::Exception(std::to_string(e.getErrorCode())+" "+e.getMessage());
+  }
+}
+
+void ILP::SolverGurobi::presolve(bool presolve)
+{
+  try
+  {
+    if(presolve)
+    {
+      model.getEnv().set(GRB_IntParam_Presolve,2); // set aggressive presolve
+    }
+    else
+    {
+      model.getEnv().set(GRB_IntParam_Presolve,0); // no presolve
+    }
+    model.presolve(); // TODO: <+ testing +> maybe the resolved Model is discarded
   }catch(GRBException &e)
   {
     throw ILP::Exception(std::to_string(e.getErrorCode())+" "+e.getMessage());

@@ -5,8 +5,8 @@
 #include <vector>
 
 #include <scip/scip.h>
-//#include <objscip/objscip.h>
 #include <scip/scipdefplugins.h>
+#include <scip/type_paramset.h>
 
 #include <ILP/SolverBackend.h>
 
@@ -19,13 +19,14 @@ namespace ILP
       ~SolverSCIP();
 
       // basic functions
-      virtual bool addVariable(ILP::Variable v) override;
-      virtual bool addConstraint(ILP::Constraint con) override;
+      virtual bool addVariable(const ILP::Variable& v) override;
+      virtual bool addConstraint(const ILP::Constraint& con) override;
       virtual bool setObjective(ILP::Objective o) override;
       virtual ILP::status solve() override;
       virtual void reset() override;
       virtual void setConsoleOutput(bool verbose) override;
       virtual void setTimeout(long timeout) override;
+      virtual void presolve(bool presolve) override;
 
       SCIP *scip;
       std::map<ILP::Variable,SCIP_VAR*> variables;

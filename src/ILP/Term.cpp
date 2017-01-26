@@ -20,12 +20,20 @@ ILP::Term::Term(double con)
   constant=con;
 }
 
-ILP::Term::Term(ILP::Variable v)
+ILP::Term::Term(ILP::Variable& v)
+{
+  add(v,1);
+}
+ILP::Term::Term(ILP::Variable&& v)
 {
   add(v,1);
 }
 
-ILP::Term::Term(ILP::Variable v,double coeff)
+ILP::Term::Term(ILP::Variable& v,double coeff)
+{
+  add(v,coeff);
+}
+ILP::Term::Term(ILP::Variable&& v,double coeff)
 {
   add(v,coeff);
 }
@@ -35,7 +43,26 @@ static bool valid(double d)
   return d!= ILP::INF() || d!= -ILP::INF() || d!=NAN;
 }
 
-void ILP::Term::add(ILP::Variable v,double coeff)
+void ILP::Term::add(ILP::Variable& v,double coeff)
+{
+  if(valid(coeff))
+  {
+    auto it = this->sum.find(v);
+    if (it!=end(sum))
+    {
+      it->second+=coeff;
+    }
+    else
+    {
+      this->sum.emplace(v,coeff);
+    }
+  }
+  else
+  {
+    throw ILP::Exception("Only numbers are allowed as coefficients");
+  }
+}
+void ILP::Term::add(ILP::Variable&& v,double coeff)
 {
   if(valid(coeff))
   {
@@ -79,7 +106,7 @@ double ILP::Term::getCoefficient(const ILP::Variable& v) const
   }
 }
 
-void ILP::Term::setCoefficient(const ILP::Variable& v, double coeff)
+void ILP::Term::setCoefficient(ILP::Variable& v, double coeff)
 {
   if(valid(coeff))
   {
@@ -110,7 +137,10 @@ ILP::VariableSet ILP::Term::extractVariables() const
   for(auto &p:sum)
   {
     // extract all non-eliminated variables
-    if (p.second!=0) s.insert(p.first);
+    if (p.second!=0)
+    {
+      s.insert(p.first);
+    }
   }
   return s;
 }

@@ -5,7 +5,6 @@
 #include <ILP/Result.h>
 
 #include <tuple>
-#include <iostream>
 
 ILP::SolverBackend* newSolverCPLEX()
 {
@@ -20,9 +19,10 @@ ILP::SolverBackend* ILP::newSolverCPLEX()
 ILP::SolverCPLEX::SolverCPLEX()
   :env(IloEnv()), model(IloModel(env))
 {
+  name="CPLEX";
 }
 
-static IloNumVar::Type mapVariableType(ILP::Variable& v)
+static IloNumVar::Type mapVariableType(const ILP::Variable& v)
 {
   switch(v->usedType)
   {
@@ -34,7 +34,7 @@ static IloNumVar::Type mapVariableType(ILP::Variable& v)
   return ILOINT;
 }
 
-bool ILP::SolverCPLEX::addVariable(ILP::Variable v)
+bool ILP::SolverCPLEX::addVariable(const ILP::Variable& v)
 {
   bool r=false;
   try{
@@ -48,7 +48,7 @@ bool ILP::SolverCPLEX::addVariable(ILP::Variable v)
   return r;
 }
 
-static IloExpr mapTerm(IloEnv& env, const std::map<ILP::Variable,IloNumVar>& variables, const ILP::Term& t)
+IloExpr ILP::SolverCPLEX::mapTerm(const ILP::Term& t)
 {
   IloExpr term= IloExpr(env)+t.constant;
   for(auto&p:t.sum)
@@ -58,91 +58,68 @@ static IloExpr mapTerm(IloEnv& env, const std::map<ILP::Variable,IloNumVar>& var
   return term;
 }
 
-static std::tuple<double,IloExpr,double> addConstraint2(IloEnv& env, const std::map<ILP::Variable,IloNumVar>& variables, const ILP::Constraint2 &c)
+IloRange ILP::SolverCPLEX::createRange(double d, ILP::relation rel,const ILP::Term& t)
 {
-  double lhs,rhs;
-  const ILP::Term *sterm;;
-
-  if(c.usedRelation==ILP::relation::LESS_EQ_THAN && c.lhs.sum.size()==0)
-  { // a <= x
-    lhs=c.lhs.constant;
-    rhs=IloInfinity;
-    sterm=&c.rhs;
-  }
-  else if(c.usedRelation==ILP::relation::LESS_EQ_THAN && c.rhs.sum.size()==0)
-  { // x <= a
-    lhs=-IloInfinity;
-    rhs=c.rhs.constant;
-    sterm=&c.lhs;
-  }
-  else if(c.usedRelation==ILP::relation::MORE_EQ_THAN && c.lhs.sum.size()==0)
-  { // a >= x
-    lhs=-IloInfinity;
-    rhs=c.lhs.constant;
-    sterm=&c.lhs;
-  }
-  else if(c.usedRelation==ILP::relation::MORE_EQ_THAN && c.rhs.sum.size()==0)
-  { // x >= a
-    lhs=c.rhs.constant;
-    rhs=IloInfinity;
-    sterm=&c.lhs;
-  }
-  else if(c.usedRelation==ILP::relation::MORE_EQ_THAN && c.lhs.sum.size()==0)
-  { // a == x
-    rhs=c.lhs.constant;
-    lhs=c.lhs.constant;
-    sterm=&c.rhs;
-  }
-  else if(c.usedRelation==ILP::relation::MORE_EQ_THAN && c.rhs.sum.size()==0)
-  { // x == a
-    rhs=c.rhs.constant;
-    lhs=c.rhs.constant;
-    sterm=&c.lhs;
-  }
-  else
+  switch(rel)
   {
-    throw ILP::Exception("This relation is not implemented yet.");
+    case ILP::relation::MORE_EQ_THAN:
+      return d>=mapTerm(t);
+    case ILP::relation::LESS_EQ_THAN:
+      return d<=mapTerm(t);
+    case ILP::relation::EQUAL:
+      return d==mapTerm(t);
   }
-
-  return std::make_tuple(lhs,mapTerm(env,variables,*sterm),rhs);
+}
+IloRange ILP::SolverCPLEX::createRange(const ILP::Term& t, ILP::relation rel,double d)
+{
+  switch(rel)
+  {
+    case ILP::relation::MORE_EQ_THAN:
+      return mapTerm(t)>=d;
+    case ILP::relation::LESS_EQ_THAN:
+      return mapTerm(t)<=d;
+    case ILP::relation::EQUAL:
+      return mapTerm(t)==d;
+  }
 }
 
-static std::tuple<double,IloExpr,double> addConstraint3(IloEnv& env, const std::map<ILP::Variable,IloNumVar>& variables, const ILP::Constraint3 &c)
+IloRange ILP::SolverCPLEX::createConstraint3(const ILP::Constraint& c)
 {
-  double lhs,rhs;
   if(c.lrel==ILP::relation::LESS_EQ_THAN && c.rrel==ILP::relation::LESS_EQ_THAN)
   { // a <= x <= b
-    lhs=c.lbound.constant;
-    rhs=c.ubound.constant;
+    return c.lbound <= mapTerm(c.term) <= c.ubound;
   }
   else if(c.lrel==ILP::relation::MORE_EQ_THAN && c.rrel==ILP::relation::MORE_EQ_THAN)
   { // a >= x >= b
-    lhs=c.ubound.constant;
-    rhs=c.lbound.constant;
+    return c.lbound >= mapTerm(c.term) >= c.ubound;
   }
-
-  return std::make_tuple(lhs,mapTerm(env,variables,c.term),rhs);
 }
 
 bool ILP::SolverCPLEX::addConstraints(std::list<ILP::Constraint> cons)
 {
-  char* name=nullptr; // TODO: add names
   try
   {
     IloRangeArray cc(env);
     for(const ILP::Constraint &c:cons)
     {
-      double lhs,rhs;
-      IloExpr term;
-      if(c.usedType == ILP::Constraint::type::Constraint_2)
+      IloRange constr;
+      switch(c.ctype)
       {
-        std::tie(lhs,term,rhs) = addConstraint2(env,variables,c.c2);
+        case ILP::Constraint::type::C3:
+          constr = createConstraint3(c);
+          break;
+        case ILP::Constraint::type::C2L:
+          constr = createRange(c.lbound,c.lrel,c.term);
+          break;
+        case ILP::Constraint::type::C2R:
+          constr = createRange(c.term,c.rrel,c.ubound);
+          break;
+        case ILP::Constraint::type::CEQ:
+          constr = createRange(c.lbound,c.lrel,c.term);
+          break;
       }
-      else
-      {
-        std::tie(lhs,term,rhs) = addConstraint3(env,variables,c.c3);
-      }
-      cc.add(IloRange(env,lhs,term,rhs,name));
+      constr.setName(c.name.c_str());
+      cc.add(constr);
     }
     model.add(cc);
   }
@@ -178,7 +155,7 @@ bool ILP::SolverCPLEX::setObjective(ILP::Objective o)
     {
       obj += variables.at(p.first) * p.second;
     }
-    obj+=o.usedTerm.constant;
+    objectiveOffset=o.usedTerm.constant;
 
     if(o.usedType==ILP::Objective::type::MINIMIZE)
     {
@@ -204,15 +181,19 @@ ILP::status ILP::SolverCPLEX::solve()
     IloCplex cplex(model);
 
     // disable output
-    if(!verbose) cplex.setOut(env.getNullStream());
+    if(verbose) cplex.setOut(env.getNullStream());
 
     // set time limit
     if(timeout>0) cplex.setParam(IloCplex::TiLim,timeout);
 
     // simplify model if possible
-    cplex.presolve(IloCplex::Algorithm::NoAlg);
+    if(presolving)
+    {
+      cplex.setParam(IloCplex::PreInd,presolving);
+      cplex.presolve(IloCplex::Algorithm::NoAlg);
+    }
 
-    //cplex.exportModel("aaa.lp");
+    //cplex.exportModel("cplex.lp");
 
     if(cplex.solve())
     {
@@ -222,6 +203,8 @@ ILP::status ILP::SolverCPLEX::solve()
         IloNum n = cplex.getValue(p.second);
         res.values.emplace(p.first,n);
       }
+
+      res.objectiveValue = cplex.getBestObjValue()+objectiveOffset;
     }
 
     stat = mapStatus(cplex.getStatus());
@@ -253,4 +236,16 @@ void ILP::SolverCPLEX::setConsoleOutput(bool verbose)
 void ILP::SolverCPLEX::setTimeout(long timeout)
 {
   timeout=timeout;
+}
+
+void ILP::SolverCPLEX::presolve(bool presolve)
+{
+  try
+  {
+    this->presolving=presolve;
+  }
+  catch(IloException& e)
+  {
+    throw ILP::Exception(e.getMessage());
+  }
 }

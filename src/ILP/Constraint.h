@@ -7,38 +7,18 @@
 #include <ILP/Variable.h>
 
 
+
 namespace ILP
 {
   /** An enum-representation of relational operators
    */
   enum class relation
   { LESS_EQ_THAN
-  , LESS_THAN
   , MORE_EQ_THAN
-  , MORE_THAN
   , EQUAL
   };
 
-  class Constraint2
-  {
-    public:
-    Term lhs;
-    relation usedRelation;
-    Term rhs;
-    Constraint2(ILP::Term l, relation rel, ILP::Term r);
-    Constraint2(){}
-  };
-  class Constraint3
-  {
-    public:
-    Term lbound;
-    relation lrel;
-    Term term;
-    relation rrel;
-    Term ubound;
-    Constraint3(Term lb, relation lrel, ILP::Term t, relation rrel,Term ub);
-    Constraint3();
-  };
+  extern double INF();
 
   /** \brief A representation of ILP Constaints
    *
@@ -48,27 +28,26 @@ namespace ILP
   {
     public:
       // construct Constraints
-      Constraint(ILP::Term l, relation rel, ILP::Term r);
-      Constraint(ILP::Term lb, relation lrel, ILP::Term t, relation rrel,ILP::Term ub);
-
-      // Convert ConstraintX to Constraint
-      Constraint(ILP::Constraint3 c);
-      Constraint(ILP::Constraint2 c);
+      Constraint(double l, relation rel, ILP::Term& r);
+      Constraint(ILP::Term& l, relation rel, double r);
+      Constraint(double lb, relation lrel, ILP::Term& t, relation rrel,double ub);
 
       // combine Constraints
-      Constraint(ILP::Constraint lhs, relation rel, ILP::Term ub);
-      Constraint(ILP::Term lb, relation rel, ILP::Constraint rhs);
+      Constraint(ILP::Constraint& lhs, relation rel, double ub);
+      Constraint(double lb, relation rel, ILP::Constraint& rhs);
 
-      enum class type
-      {
-        Constraint_2
-      , Constraint_3
-      };
+      // named constraint constructor
+      Constraint(std::string n, ILP::Constraint& c);
+      Constraint(std::string n, ILP::Constraint&& c);
+      Constraint(std::pair<std::string,ILP::Constraint>& p);
 
-      type usedType;
-      // TODO: replace with an union
-      Constraint2 c2;
-      Constraint3 c3;
+      Constraint(const ILP::Constraint&) = default;
+      Constraint(ILP::Constraint&&) = default;
+
+      // empty Constraint
+      Constraint(){};
+
+      void setName(std::string n);
 
       static std::string showRelation(relation r);
 
@@ -76,11 +55,27 @@ namespace ILP
 
       std::string show() const;
 
+      enum class type
+      { C2L // d R x
+      , C2R // x R d
+      , CEQ // x == d or d == x
+      , C3  // d R x R d
+      };
+
+      std::string name="";
+
+      type ctype;
+
+      double lbound=-ILP::INF();
+      relation lrel = ILP::relation::LESS_EQ_THAN;
+      Term term;
+      relation rrel = ILP::relation::LESS_EQ_THAN;
+      double ubound=ILP::INF();
+
     private:
+      bool valid(); // check, if the constraint is valid
   };
 
 }
 
 std::ostream& operator<<(std::ostream& os, const ILP::Constraint &c);
-std::ostream& operator<<(std::ostream& os, const ILP::Constraint2 &c);
-std::ostream& operator<<(std::ostream& os, const ILP::Constraint3 &c);

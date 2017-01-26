@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <iomanip>
 #include <ILP/Result.h>
 
 std::string ILP::showStatus(ILP::status s)
@@ -20,9 +21,11 @@ std::string ILP::showStatus(ILP::status s)
 
 std::ostream& operator<<(std::ostream& os, const ILP::Result &r)
 {
+  std::cout << "Objective: " << r.objectiveValue << std::endl;
+  std::cout << "Variables:" << std::endl;
   for(auto &p:r.values)
   {
-    std::cout << p.first << "=" << p.second << std::endl;
+    std::cout << "  " << std::left << std::setw(8) << p.first << std::setw(7) << " = " << p.second << std::endl;
   } 
   return os;
 }

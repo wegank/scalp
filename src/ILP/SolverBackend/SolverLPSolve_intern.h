@@ -2,22 +2,24 @@
 
 #include <ILP/SolverBackend.h>
 
-#include "gurobi_c++.h"
+#include <lpsolve/lp_lib.h>
 
 #include <string>
 #include <map>
 
 namespace ILP
 {
-  class SolverGurobi : public SolverBackend
+  class SolverLPSolve : public SolverBackend
   {
     public:
-      SolverGurobi();
+      SolverLPSolve();
+      ~SolverLPSolve();
 
       // basic functions
       virtual bool addVariable(const ILP::Variable& v) override;
-      virtual bool addVariables(ILP::VariableSet vs) override;
+      //virtual bool addVariables(ILP::VariableSet vs) override;
       virtual bool addConstraint(const ILP::Constraint& con) override;
+      //virtual bool addConstraints(std::list<ILP::Constraint> cons) override;
       virtual bool setObjective(ILP::Objective o) override;
       virtual ILP::status solve() override;
       virtual void reset() override;
@@ -26,14 +28,9 @@ namespace ILP
       virtual void presolve(bool presolve) override;
 
     private:
-      // map some values
-      char variableType(ILP::VariableBase::type t);
-      GRBLinExpr mapTerm(ILP::Term t);
-      double mapValue(double d);
-
-      GRBEnv environment;
-      GRBModel model;
-
-      std::map<ILP::Variable,GRBVar> variables;
+      lprec* lp;
+      std::map<ILP::Variable,int> variables;
+      int variableCounter=0; // index of the last variable
+      bool addConstrH(const ILP::Term& t, int rel, double rhs, std::string name);
   };
 }

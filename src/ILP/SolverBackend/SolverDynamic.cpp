@@ -70,6 +70,7 @@ class SolverDynamic : public SolverBackend
       {
         back=smartconstructor();
         library=handle;
+        break;
       }
     }
 
@@ -77,6 +78,7 @@ class SolverDynamic : public SolverBackend
     {
       throw ILP::Exception("Could not load any backend");
     }
+    name="Dynamic: "+back->name;
   }
 
   ~SolverDynamic()
@@ -85,7 +87,7 @@ class SolverDynamic : public SolverBackend
     dlclose(library);
   }
 
-  bool addVariable(ILP::Variable v) override
+  bool addVariable(const ILP::Variable& v) override
   {
     return back->addVariable(v);
   }
@@ -93,7 +95,7 @@ class SolverDynamic : public SolverBackend
   {
     return back->addVariables(vs);
   }
-  bool addConstraint(ILP::Constraint con) override
+  bool addConstraint(const ILP::Constraint& con) override
   {
     return back->addConstraint(con);
   }
@@ -122,6 +124,10 @@ class SolverDynamic : public SolverBackend
   void setTimeout(long timeout) override
   {
     back->setTimeout(timeout);
+  }
+  void presolve(bool presolve) override
+  {
+    back->presolve(presolve);
   }
 
   private:

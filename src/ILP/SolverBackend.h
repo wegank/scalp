@@ -17,30 +17,27 @@ namespace ILP
     public:
 
       // basic functions
-      virtual bool addVariable(ILP::Variable v);
+      virtual bool addVariable(const ILP::Variable& v);
       virtual bool addVariables(ILP::VariableSet vs); // alternative to addVariable
-      virtual bool addConstraint(ILP::Constraint con);
+      virtual bool addConstraint(const ILP::Constraint& con);
       virtual bool addConstraints(std::list<ILP::Constraint> cons); // alternative to addConstraint
       virtual bool setObjective(ILP::Objective o);
       virtual ILP::status solve();
       virtual void reset();
       virtual void setConsoleOutput(bool verbose);
       virtual void setTimeout(long timeout);
-
-      // experimental: advanced functions
-      // You can implement these functions if your ILP-solver can make use of them.
-      // You should be able to change an already existing Backend too.
-      // TODO: Add more?
-      //
-      // These functions are called before and after the solve-function is invoked.
-      std::function<void()> preSolve;
-      std::function<void()> postSolve;
+      virtual void presolve(bool presolve);
 
       ILP::Result res;
+
+      double objectiveOffset=0;
 
       virtual ~SolverBackend()
       {
       }
+
+      // The name of the backend-solver
+      std::string name;
 
     protected:
 

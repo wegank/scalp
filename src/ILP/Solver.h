@@ -33,6 +33,13 @@ namespace ILP
       // e. g. timeout = 2_hours + 15_minutes + 30_seconds
       long timeout = 0;
 
+      // use presolvers to simplify the model
+      bool presolve = false;
+
+      // enable debug-output of scalp and possibly a file with the LP-output of the backend.
+      // TODO: not implemented yet.
+      //bool debug = false;
+
       // pass everything to the Solver and run it
       ILP::status solve();
 
@@ -42,10 +49,13 @@ namespace ILP
       void setObjective(Objective o);
 
       // add a constraint
-      void addConstraint(Constraint b);
+      void addConstraint(Constraint& b);
+      void addConstraint(Constraint&& b);
 
       // set a new backend
       void setBackend(SolverBackend *b);
+
+      std::string getBackendName() const;
 
       // return the LP-Format-representation as a string
       std::string showLP() const;
@@ -93,26 +103,24 @@ ILP::Term& operator*=(ILP::Term& tl, double d);
 ILP::Term operator-(ILP::Variable v);
 ILP::Term operator-(ILP::Term t);
 
-ILP::Constraint operator< (ILP::Term tl,ILP::Term tr);
-ILP::Constraint operator<=(ILP::Term tl,ILP::Term tr);
-ILP::Constraint operator> (ILP::Term tl,ILP::Term tr);
-ILP::Constraint operator>=(ILP::Term tl,ILP::Term tr);
-ILP::Constraint operator==(ILP::Term tl,ILP::Term tr);
+ILP::Constraint operator<=(ILP::Term tl,double tr);
+ILP::Constraint operator>=(ILP::Term tl,double tr);
+ILP::Constraint operator==(ILP::Term tl,double tr);
+ILP::Constraint operator<=(double tl,ILP::Term tr);
+ILP::Constraint operator>=(double tl,ILP::Term tr);
+ILP::Constraint operator==(double tl,ILP::Term tr);
 
-ILP::Constraint operator< (ILP::Constraint tl,ILP::Term tr);
-ILP::Constraint operator<=(ILP::Constraint tl,ILP::Term tr);
-ILP::Constraint operator> (ILP::Constraint tl,ILP::Term tr);
-ILP::Constraint operator>=(ILP::Constraint tl,ILP::Term tr);
-ILP::Constraint operator==(ILP::Constraint tl,ILP::Term tr);
+ILP::Constraint operator<=(ILP::Constraint tl,double tr);
+ILP::Constraint operator>=(ILP::Constraint tl,double tr);
+ILP::Constraint operator==(ILP::Constraint tl,double tr);
 
-ILP::Constraint operator< (ILP::Term tl,ILP::Constraint tr);
-ILP::Constraint operator<=(ILP::Term tl,ILP::Constraint tr);
-ILP::Constraint operator> (ILP::Term tl,ILP::Constraint tr);
-ILP::Constraint operator>=(ILP::Term tl,ILP::Constraint tr);
-ILP::Constraint operator==(ILP::Term tl,ILP::Constraint tr);
+ILP::Constraint operator<=(double tl,ILP::Constraint tr);
+ILP::Constraint operator>=(double tl,ILP::Constraint tr);
+ILP::Constraint operator==(double tl,ILP::Constraint tr);
 
 ILP::Solver &operator<<(ILP::Solver &s,ILP::Objective o);
-ILP::Solver &operator<<(ILP::Solver &s,ILP::Constraint o);
+ILP::Solver &operator<<(ILP::Solver &s,ILP::Constraint& o);
+ILP::Solver &operator<<(ILP::Solver &s,ILP::Constraint&& o);
 
 
 // time suffixes

@@ -35,16 +35,17 @@ void Solver::setObjective(Objective o)
 {
   this->objective=o;
 
-  // this should throw an exception if the new Constraint rises a name-collision
+  // this should throw an exception if the Objective rises a name-collision
   extractVariables(cons,objective);
 }
 
-void Solver::addConstraint(Constraint b)
+void Solver::addConstraint(Constraint& b)
 {
   this->cons.push_back(b);
-
-  // this should throw an exception if the new Constraint rises a name-collision (too slow)
-  //extractVariables(cons,objective);
+}
+void Solver::addConstraint(Constraint&& b)
+{
+  this->cons.push_back(b);
 }
 
 static std::string showTermLP(ILP::Term t)
@@ -129,13 +130,13 @@ static std::string showObjectiveLP(ILP::Objective o)
   return s.str();
 }
 
-static std::string showConstraintLP(ILP::Constraint2 c)
+static std::string showConstraint2LP(ILP::Term lhs,ILP::relation rel, ILP::Term rhs)
 {
   std::stringstream s;
-  s << showTermLP(c.lhs) << " " << ILP::Constraint::showRelation(c.usedRelation) << " " << showTermLP(c.rhs);
+  s << showTermLP(lhs) << " " << ILP::Constraint::showRelation(rel) << " " << showTermLP(rhs);
   return s.str();
 }
-static std::string showConstraintLP(ILP::Constraint3 c)
+static std::string showConstraint3LP(const ILP::Constraint& c)
 {
   std::stringstream s;
   s << showTermLP(c.lbound) << " " << ILP::Constraint::showRelation(c.lrel) << " "
@@ -145,12 +146,18 @@ static std::string showConstraintLP(ILP::Constraint3 c)
 }
 static std::string showConstraintLP(ILP::Constraint c)
 {
-  if(c.usedType == ILP::Constraint::type::Constraint_2)
-    return showConstraintLP(c.c2);
-  else if(c.usedType == ILP::Constraint::type::Constraint_3)
-    return showConstraintLP(c.c3);
-  else
-    return "";
+  switch(c.ctype)
+  {
+    case ILP::Constraint::type::C2L:
+      return showConstraint2LP(c.lbound,c.lrel,c.term);
+    case ILP::Constraint::type::C2R:
+      return showConstraint2LP(c.term,c.rrel,c.ubound);
+    case ILP::Constraint::type::CEQ:
+      return showConstraint2LP(c.lbound,c.lrel,c.term);
+    case ILP::Constraint::type::C3:
+      return showConstraint3LP(c);
+  }
+  return "";
 }
 
 static std::string variableTypesLP(ILP::VariableSet &vs)
@@ -214,6 +221,11 @@ static std::string boundsLP(ILP::VariableSet &vs)
   return s.str();
 }
 
+std::string ILP::Solver::getBackendName() const
+{
+  return back->name;
+}
+
 std::string ILP::Solver::showLP() const
 {
   std::stringstream s;
@@ -249,9 +261,6 @@ ILP::status Solver::solve()
   // reset the backend
   back->reset();
 
-  // reset the result
-  back->res.values.clear();
-
   // set the verbosity of the backend
   back->setConsoleOutput(!quiet);
 
@@ -259,9 +268,7 @@ ILP::status Solver::solve()
 
   // Add the Variables
   // Only add the used Variables.
-  ILP::VariableSet vs = extractVariables(cons,objective);
-
-  back->addVariables(vs);
+  back->addVariables(extractVariables(cons,objective));
 
   // Add Objective
   back->setObjective(objective);
@@ -269,14 +276,11 @@ ILP::status Solver::solve()
   // Add Constraints
   back->addConstraints(cons);
 
-  // Call the optional preSolve-Function
-  if(back->preSolve) back->preSolve();
+  // use presolve?
+  back->presolve(presolve);
 
   // Solve
   ILP::status stat = back->solve();
-
-  // Call the optional postSolve-Function
-  if(back->postSolve) back->postSolve();
 
   return stat;
 }
@@ -292,7 +296,6 @@ void Solver::reset()
   objective= ILP::Objective();
   cons.clear();
   result=ILP::Result();
-
 }
 
 ILP::VariableSet Solver::extractVariables(std::list<Constraint> cs,Objective o) const
@@ -302,7 +305,7 @@ ILP::VariableSet Solver::extractVariables(std::list<Constraint> cs,Objective o) 
   ILP::VariableSet ovs = o.usedTerm.extractVariables();
   vs.insert(ovs.begin(),ovs.end());
 
-  for(ILP::Constraint c:cs)
+  for(ILP::Constraint& c:cs)
   {
     ILP::VariableSet vvs = c.extractVariables();
     vs.insert(vvs.begin(),vvs.end());
@@ -424,35 +427,35 @@ ILP::Term& operator*=(ILP::Term& tl,double d)
 #define ILP_RELATION_OPERATOR(A,B,C,D) \
   ILP::Constraint operator A(C l,D r) \
   { \
-    ILP::Constraint c(l,ILP::relation::B,r); \
-    return c; \
+    return ILP::Constraint(l,ILP::relation::B,r); \
   }
 
+ILP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, ILP::Term)
+ILP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, ILP::Term)
+ILP_RELATION_OPERATOR(==,EQUAL       , double, ILP::Term)
+ILP_RELATION_OPERATOR(<=,LESS_EQ_THAN, ILP::Term, double)
+ILP_RELATION_OPERATOR(>=,MORE_EQ_THAN, ILP::Term, double)
+ILP_RELATION_OPERATOR(==,EQUAL       , ILP::Term, double)
 
-ILP_RELATION_OPERATOR(< ,LESS_THAN   , ILP::Term, ILP::Term)
-ILP_RELATION_OPERATOR(<=,LESS_EQ_THAN, ILP::Term, ILP::Term)
-ILP_RELATION_OPERATOR(> ,MORE_THAN   , ILP::Term, ILP::Term)
-ILP_RELATION_OPERATOR(>=,MORE_EQ_THAN, ILP::Term, ILP::Term)
-ILP_RELATION_OPERATOR(==,EQUAL       , ILP::Term, ILP::Term)
+ILP_RELATION_OPERATOR(<=,LESS_EQ_THAN, ILP::Constraint, double)
+ILP_RELATION_OPERATOR(>=,MORE_EQ_THAN, ILP::Constraint, double)
+ILP_RELATION_OPERATOR(==,EQUAL       , ILP::Constraint, double)
 
-ILP_RELATION_OPERATOR(< ,LESS_THAN   , ILP::Constraint, ILP::Term)
-ILP_RELATION_OPERATOR(<=,LESS_EQ_THAN, ILP::Constraint, ILP::Term)
-ILP_RELATION_OPERATOR(> ,MORE_THAN   , ILP::Constraint, ILP::Term)
-ILP_RELATION_OPERATOR(>=,MORE_EQ_THAN, ILP::Constraint, ILP::Term)
-ILP_RELATION_OPERATOR(==,EQUAL       , ILP::Constraint, ILP::Term)
+ILP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, ILP::Constraint)
+ILP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, ILP::Constraint)
+ILP_RELATION_OPERATOR(==,EQUAL       , double, ILP::Constraint)
 
-ILP_RELATION_OPERATOR(< ,LESS_THAN   , ILP::Term, ILP::Constraint)
-ILP_RELATION_OPERATOR(<=,LESS_EQ_THAN, ILP::Term, ILP::Constraint)
-ILP_RELATION_OPERATOR(> ,MORE_THAN   , ILP::Term, ILP::Constraint)
-ILP_RELATION_OPERATOR(>=,MORE_EQ_THAN, ILP::Term, ILP::Constraint)
-ILP_RELATION_OPERATOR(==,EQUAL       , ILP::Term, ILP::Constraint)
-
-Solver &operator<<(Solver &s,Objective o)
+Solver& operator<<(Solver &s,Objective o)
 {
   s.setObjective(o);
   return s;
 }
-Solver &operator<<(Solver &s,Constraint o)
+Solver& operator<<(Solver &s,Constraint& o)
+{
+  s.addConstraint(o);
+  return s;
+}
+Solver& operator<<(Solver &s,Constraint&& o)
 {
   s.addConstraint(o);
   return s;

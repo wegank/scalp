@@ -31,6 +31,8 @@ option(USE_SCIP "Compile the SCIP-Backend" OFF)
 option(USE_CPLEX "Compile the CPLEX-Backend" OFF)
 option(USE_LPSOLVE "Compile the LPSolve-Backend" OFF)
 option(BUILD_SHARED_LIBRARIES "Build as shared libraries" ON)
+option(BUILD_TESTS "Build tests" OFF)
+option(BUILD_SCALP_EXECUTABLE "Build the scalp executable (no functionality yet)" ON)
 option(OLD_CXX_ABI "Build with an old C++-abi (activate if you get undefined references with '__cxx11')" OFF)
 
 set(CPLEX_LIBRARIES "" CACHE STRING "the paths to the cplex libraries")
@@ -209,13 +211,26 @@ add_library(ILP ${LIBRARY_TYPE}
   src/ILP/Variable.cpp
 )
 
+if(BUILD_SCALP_EXECUTABLE)
+  add_executable(scalp
+    src/main.cpp
+  )
+  target_link_libraries(scalp ILP ILP-Dynamic)
+  set_target_properties(scalp PROPERTIES INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib")
+endif()
+
+if(BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(src/tests)
+endif()
 
 # installation
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR} CACHE PATH "local installation" FORCE)
 endif()
 
-install (TARGETS ILP ${BACKEND_TARGETS}
+install (TARGETS ILP ${BACKEND_TARGETS} scalp
+  RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
 #INCLUDES DESTINATION include)

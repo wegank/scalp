@@ -41,9 +41,6 @@ namespace ILP
       Constraint(std::string n, ILP::Constraint&& c);
       Constraint(std::pair<std::string,ILP::Constraint>& p);
 
-      Constraint(const ILP::Constraint&) = default;
-      Constraint(ILP::Constraint&&) = default;
-
       // empty Constraint
       Constraint(){};
 

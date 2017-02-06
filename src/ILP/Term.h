@@ -49,6 +49,9 @@ namespace ILP
 
       // the constant part
       double constant=0;
+
+      bool operator==(const Term &n) const;
+      bool operator!=(const Term &n) const;
   };
 
 }

@@ -1,12 +1,7 @@
 
 = Building
 
-cd path/to/scalp
-mkdir build
-cd build
-cmake -DUSE_GUROBI=ON .. # alternate ccmake ..
-make
-make install
+See the Wiki: https://digidev.digi.e-technik.uni-kassel.de/scalp/wiki/DeveloperDocumentation
 
 = Using
 

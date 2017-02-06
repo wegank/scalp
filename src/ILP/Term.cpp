@@ -150,6 +150,16 @@ bool ILP::Term::isConstant() const
   return this->sum.size()==0;
 }
 
+bool ILP::Term::operator==(const Term &n) const
+{
+  return this->constant==n.constant and this->sum==n.sum;
+}
+
+bool ILP::Term::operator!=(const Term &n) const
+{
+  return not (*this==n);
+}
+
 std::ostream& operator<<(std::ostream& os, const ILP::Term &t)
 {
   for(auto &p:t.sum)

@@ -53,7 +53,7 @@ namespace ILP
       bool operator==(const Term &n) const;
       bool operator!=(const Term &n) const;
   };
+  std::ostream& operator<<(std::ostream& os, const ILP::Term &t);
 
 }
 
-std::ostream& operator<<(std::ostream& os, const ILP::Term &t);

@@ -19,7 +19,7 @@ std::string ILP::showStatus(ILP::status s)
   return "UNKNOWN";
 }
 
-std::ostream& operator<<(std::ostream& os, const ILP::Result &r)
+std::ostream& ILP::operator<<(std::ostream& os, const ILP::Result &r)
 {
   std::cout << "Objective: " << r.objectiveValue << std::endl;
   std::cout << "Variables:" << std::endl;
@@ -29,7 +29,7 @@ std::ostream& operator<<(std::ostream& os, const ILP::Result &r)
   } 
   return os;
 }
-std::ostream& operator<<(std::ostream& os, const ILP::status &s)
+std::ostream& ILP::operator<<(std::ostream& os, const ILP::status &s)
 {
   return os << showStatus(s);
 }

@@ -62,9 +62,9 @@ namespace ILP
   using VariableSet = std::set<Variable,variableComparator>;
   using VariableMap = std::map<std::string,Variable>;
 
+  std::ostream& operator<<(std::ostream& oss, const ILP::Variable& v);
+  std::ostream& operator<<(std::ostream& oss, const ILP::VariableBase& v);
+  std::ostream& operator<<(std::ostream& oss, const ILP::VariableBase* v);
 
 }
 
-std::ostream& operator<<(std::ostream& oss, const ILP::Variable& v);
-std::ostream& operator<<(std::ostream& oss, const ILP::VariableBase& v);
-std::ostream& operator<<(std::ostream& oss, const ILP::VariableBase* v);

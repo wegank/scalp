@@ -30,7 +30,7 @@ namespace ILP
 
     private:
   };
+  std::ostream& operator<<(std::ostream& os, const ILP::Result &r);
+  std::ostream& operator<<(std::ostream& os, const ILP::status &s);
 }
 
-std::ostream& operator<<(std::ostream& os, const ILP::Result &r);
-std::ostream& operator<<(std::ostream& os, const ILP::status &s);

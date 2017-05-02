@@ -72,7 +72,7 @@ namespace ILP
     private:
       bool valid(); // check, if the constraint is valid
   };
+  std::ostream& operator<<(std::ostream& os, const ILP::Constraint &c);
 
 }
 
-std::ostream& operator<<(std::ostream& os, const ILP::Constraint &c);

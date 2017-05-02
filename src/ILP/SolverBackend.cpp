@@ -72,5 +72,6 @@ void ILP::SolverBackend::setTimeout(long t)
 
 void ILP::SolverBackend::presolve(bool presolve)
 {
+  (void)(presolve);
   std::cerr << "Scalp: presolve not supported by this backend, ignore this step." << std::endl;
 }

@@ -102,6 +102,8 @@ bool ILP::SolverLPSolve::addConstrH(const ILP::Term& t, int rel, double rhs, std
   add_constraintex(lp,coeffs.size(),coeffs.data(),indices.data(),rel,rhs+t.constant);
 
   set_add_rowmode(lp, false);
+
+  return true;
 }
 
 bool ILP::SolverLPSolve::addConstraint(const ILP::Constraint& cons)

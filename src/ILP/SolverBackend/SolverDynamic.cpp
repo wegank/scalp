@@ -46,6 +46,9 @@ class SolverDynamic : public SolverBackend
 
     for(auto& name:ls)
     {
+      // skip empty entries
+      if(name.empty()) continue;
+
       dlerror(); // free error message
       handle = dlopen(("libILP-"+name+".so").c_str(),RTLD_NOW);
       

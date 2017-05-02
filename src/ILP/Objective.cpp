@@ -18,7 +18,7 @@ Objective ILP::maximize(Term term)
   return Objective(Objective::type::MAXIMIZE,term);
 }
 
-std::ostream& operator<<(std::ostream& os, const ILP::Objective &o)
+std::ostream& ILP::operator<<(std::ostream& os, const ILP::Objective& o)
 {
   if(o.usedType==ILP::Objective::type::MAXIMIZE)
     os << std::string("max(") << o.usedTerm << std::string(")");

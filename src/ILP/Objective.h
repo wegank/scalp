@@ -27,6 +27,7 @@ namespace ILP
   ILP::Objective minimize(ILP::Term term);
   ILP::Objective maximize(ILP::Term term);
 
+  std::ostream& operator<<(std::ostream& os, const ILP::Objective& c);
+
 }
 
-std::ostream& operator<<(std::ostream& os, const ILP::Objective &c);

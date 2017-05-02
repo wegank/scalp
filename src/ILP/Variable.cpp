@@ -67,18 +67,18 @@ ILP::VariableBase::VariableBase(std::string n,double a,double b,VT t)
   }
 }
 
-std::ostream& operator<<(std::ostream& oss, const ILP::Variable& v)
+std::ostream& ILP::operator<<(std::ostream& oss, const ILP::Variable& v)
 {
   return oss << v->name;
 }
 
-std::ostream& operator<<(std::ostream& oss, const ILP::VariableBase& v)
+std::ostream& ILP::operator<<(std::ostream& oss, const ILP::VariableBase& v)
 {
   oss << v.name;
   return oss;
 }
 
-std::ostream& operator<<(std::ostream& oss, const ILP::VariableBase* v)
+std::ostream& ILP::operator<<(std::ostream& oss, const ILP::VariableBase* v)
 {
   oss << v->name;
   return oss;

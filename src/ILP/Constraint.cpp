@@ -103,7 +103,7 @@ ILP::Constraint::Constraint(std::pair<std::string,ILP::Constraint>& p)
   name=p.first;
 }
 
-std::ostream& operator<<(std::ostream& os, const ILP::Constraint &c)
+std::ostream& ILP::operator<<(std::ostream& os, const ILP::Constraint &c)
 {
   switch(c.ctype)
   {

@@ -315,20 +315,20 @@ ILP::VariableSet Solver::extractVariables(std::list<Constraint> cs,Objective o) 
 }
 
 // x*d
-ILP::Term operator*(ILP::Variable v,double coeff)
+ILP::Term ILP::operator*(ILP::Variable v,double coeff)
 {
   ILP::Term t;
   t.add(v,coeff);
   return t;
 }
 // d*x
-ILP::Term operator*(double coeff, ILP::Variable v)
+ILP::Term ILP::operator*(double coeff, ILP::Variable v)
 {
   return v*coeff;
 }
 
 // d(ax+by) = adx+bdy
-ILP::Term operator*(double coeff, ILP::Term t)
+ILP::Term ILP::operator*(double coeff, ILP::Term t)
 {
   ILP::Term n = t;
   n.constant*=coeff;
@@ -339,7 +339,7 @@ ILP::Term operator*(double coeff, ILP::Term t)
   return n;
 }
 // (xa+yb)d = xad+ybd
-ILP::Term operator*(ILP::Term t, double coeff)
+ILP::Term ILP::operator*(ILP::Term t, double coeff)
 {
   return coeff*t;
 }
@@ -358,7 +358,7 @@ static void adjust(std::map<ILP::Variable,double> &m,ILP::Variable k,double v,st
   }
 }
 
-ILP::Term operator+(ILP::Term tl,ILP::Term tr)
+ILP::Term ILP::operator+(ILP::Term tl,ILP::Term tr)
 {
   Term n = tl;
   n.constant+=tr.constant;
@@ -369,7 +369,7 @@ ILP::Term operator+(ILP::Term tl,ILP::Term tr)
   return n;
 }
 
-ILP::Term& operator+=(ILP::Term &tl,ILP::Term tr)
+ILP::Term& ILP::operator+=(ILP::Term &tl,ILP::Term tr)
 {
   tl.constant+=tr.constant;
   for(auto &p:tr.sum)
@@ -379,7 +379,7 @@ ILP::Term& operator+=(ILP::Term &tl,ILP::Term tr)
   return tl;
 }
 
-ILP::Term operator-(ILP::Term t)
+ILP::Term ILP::operator-(ILP::Term t)
 {
   ILP::Term n = t;
   n.constant*= -1;
@@ -387,12 +387,12 @@ ILP::Term operator-(ILP::Term t)
   return n;
 }
 
-ILP::Term operator-(ILP::Variable v)
+ILP::Term ILP::operator-(ILP::Variable v)
 {
   return (-1)*v;
 }
 
-ILP::Term operator-(ILP::Term tl, ILP::Term tr)
+ILP::Term ILP::operator-(ILP::Term tl, ILP::Term tr)
 {
   Term n = tl;
   n.constant-=tr.constant;
@@ -403,7 +403,7 @@ ILP::Term operator-(ILP::Term tl, ILP::Term tr)
   return n;
 }
 
-ILP::Term& operator-=(ILP::Term &tl, ILP::Term tr)
+ILP::Term& ILP::operator-=(ILP::Term &tl, ILP::Term tr)
 {
   tl.constant-=tr.constant;
   for(auto &p:tr.sum)
@@ -413,7 +413,7 @@ ILP::Term& operator-=(ILP::Term &tl, ILP::Term tr)
   return tl;
 }
 
-ILP::Term& operator*=(ILP::Term& tl,double d)
+ILP::Term& ILP::operator*=(ILP::Term& tl,double d)
 {
   tl.constant*=d;
   for(auto &p:tl.sum)
@@ -425,7 +425,7 @@ ILP::Term& operator*=(ILP::Term& tl,double d)
 
 
 #define ILP_RELATION_OPERATOR(A,B,C,D) \
-  ILP::Constraint operator A(C l,D r) \
+  ILP::Constraint ILP::operator A(C l,D r) \
   { \
     return ILP::Constraint(l,ILP::relation::B,r); \
   }
@@ -445,17 +445,17 @@ ILP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, ILP::Constraint)
 ILP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, ILP::Constraint)
 ILP_RELATION_OPERATOR(==,EQUAL       , double, ILP::Constraint)
 
-Solver& operator<<(Solver &s,Objective o)
+Solver& ILP::operator<<(Solver &s,Objective o)
 {
   s.setObjective(o);
   return s;
 }
-Solver& operator<<(Solver &s,Constraint& o)
+Solver& ILP::operator<<(Solver &s,Constraint& o)
 {
   s.addConstraint(o);
   return s;
 }
-Solver& operator<<(Solver &s,Constraint&& o)
+Solver& ILP::operator<<(Solver &s,Constraint&& o)
 {
   s.addConstraint(o);
   return s;

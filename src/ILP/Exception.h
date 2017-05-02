@@ -18,7 +18,8 @@ namespace ILP
       virtual const char* what() const noexcept override;
   };
 
+  std::ostream& operator<<( std::ostream& oss, ILP::Exception &e);
+
 
 }
 
-std::ostream& operator<<( std::ostream& oss, ILP::Exception &e);

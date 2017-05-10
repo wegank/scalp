@@ -146,14 +146,18 @@ ILP::status ILP::SolverGurobi::solve()
   
     int grbStatus = model.get(GRB_IntAttr_Status);
 
-    if(grbStatus == GRB_OPTIMAL or grbStatus == GRB_SUBOPTIMAL)
+    if(grbStatus == GRB_OPTIMAL or grbStatus == GRB_SUBOPTIMAL or grbStatus == GRB_TIME_LIMIT)
     {
-      res.objectiveValue = model.get(GRB_DoubleAttr_ObjVal)+objectiveOffset;
-      for(auto &p:variables)
+      if(model.get(GRB_IntAttr_SolCount)>0)
       {
-        res.values.emplace(p.first,p.second.get(GRB_DoubleAttr_X));
+        res.objectiveValue = model.get(GRB_DoubleAttr_ObjVal)+objectiveOffset;
+        for(auto &p:variables)
+        {
+          res.values.emplace(p.first,p.second.get(GRB_DoubleAttr_X));
+        }
       }
     }
+
     if(grbStatus == GRB_OPTIMAL) return ILP::status::OPTIMAL;
     if(grbStatus == GRB_UNBOUNDED) return ILP::status::UNBOUND;
     if(grbStatus == GRB_SUBOPTIMAL) return ILP::status::FEASIBLE;

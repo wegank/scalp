@@ -181,7 +181,7 @@ ILP::status ILP::SolverCPLEX::solve()
     IloCplex cplex(model);
 
     // disable output
-    if(verbose) cplex.setOut(env.getNullStream());
+    if(not verbose) cplex.setOut(env.getNullStream());
 
     // set time limit
     if(timeout>0) cplex.setParam(IloCplex::TiLim,timeout);
@@ -228,9 +228,9 @@ void ILP::SolverCPLEX::reset()
   }
 }
 
-void ILP::SolverCPLEX::setConsoleOutput(bool verbose)
+void ILP::SolverCPLEX::setConsoleOutput(bool verbose1)
 {
-  verbose=verbose;
+  verbose=verbose1;
 }
 
 void ILP::SolverCPLEX::setTimeout(long timeout)

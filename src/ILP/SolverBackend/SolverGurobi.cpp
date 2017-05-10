@@ -146,10 +146,9 @@ ILP::status ILP::SolverGurobi::solve()
   
     int grbStatus = model.get(GRB_IntAttr_Status);
 
-    res.objectiveValue = model.get(GRB_DoubleAttr_ObjVal)+objectiveOffset;
-
-    if(grbStatus != GRB_INFEASIBLE)
+    if(grbStatus == GRB_OPTIMAL or grbStatus == GRB_SUBOPTIMAL)
     {
+      res.objectiveValue = model.get(GRB_DoubleAttr_ObjVal)+objectiveOffset;
       for(auto &p:variables)
       {
         res.values.emplace(p.first,p.second.get(GRB_DoubleAttr_X));

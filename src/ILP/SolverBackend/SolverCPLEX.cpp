@@ -228,14 +228,14 @@ void ILP::SolverCPLEX::reset()
   }
 }
 
-void ILP::SolverCPLEX::setConsoleOutput(bool verbose1)
+void ILP::SolverCPLEX::setConsoleOutput(bool verbose)
 {
-  verbose=verbose1;
+  this->verbose=verbose;
 }
 
 void ILP::SolverCPLEX::setTimeout(long timeout)
 {
-  timeout=timeout;
+  this->timeout=timeout;
 }
 
 void ILP::SolverCPLEX::presolve(bool presolve)

@@ -206,3 +206,8 @@ void ILP::SolverSCIP::presolve(bool presolve)
     SCALP_SCIP_EXC(SCIPsetPresolving(scip,SCIP_PARAMSETTING_OFF,true));
   }
 }
+
+void ILP::SolverSCIP::setThreads(unsigned int t)
+{
+  SCALP_SCIP_EXC(SCIPsetIntParam(scip,"lp/threads",t));
+}

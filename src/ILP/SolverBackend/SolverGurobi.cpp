@@ -256,3 +256,8 @@ void ILP::SolverGurobi::presolve(bool presolve)
     throw ILP::Exception(std::to_string(e.getErrorCode())+" "+e.getMessage());
   }
 }
+
+void ILP::SolverGurobi::setThreads(unsigned int t)
+{
+  model.getEnv().set(GRB_IntParam_Threads,t);
+}

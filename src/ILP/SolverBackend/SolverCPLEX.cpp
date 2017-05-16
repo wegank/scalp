@@ -182,6 +182,9 @@ ILP::status ILP::SolverCPLEX::solve()
 
     // disable output
     if(not verbose) cplex.setOut(env.getNullStream());
+    
+    // set threads
+    if(threads>0) cplex.setParam(IloCplex::Threads,threads);
 
     // set time limit
     if(timeout>0) cplex.setParam(IloCplex::TiLim,timeout);
@@ -248,4 +251,9 @@ void ILP::SolverCPLEX::presolve(bool presolve)
   {
     throw ILP::Exception(e.getMessage());
   }
+}
+
+void ILP::SolverCPLEX::setThreads(unsigned int t)
+{
+  this->threads=t;
 }

@@ -24,6 +24,7 @@ namespace ILP
       virtual void setConsoleOutput(bool verbose) override;
       virtual void setTimeout(long timeout) override;
       virtual void presolve(bool presolve) override;
+      virtual void setThreads(unsigned int t) override;
 
     private:
       // map some values

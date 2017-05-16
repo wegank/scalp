@@ -75,3 +75,9 @@ void ILP::SolverBackend::presolve(bool presolve)
   (void)(presolve);
   std::cerr << "Scalp: presolve not supported by this backend, ignore this step." << std::endl;
 }
+
+void ILP::SolverBackend::setThreads(unsigned int t)
+{
+  (void)(t);
+  std::cerr << "Scalp: a thread-limit is not supported by this backend, ignore it." << std::endl;
+}

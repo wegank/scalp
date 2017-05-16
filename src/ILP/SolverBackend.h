@@ -27,6 +27,7 @@ namespace ILP
       virtual void setConsoleOutput(bool verbose);
       virtual void setTimeout(long timeout);
       virtual void presolve(bool presolve);
+      virtual void setThreads(unsigned int t);
 
       ILP::Result res;
 

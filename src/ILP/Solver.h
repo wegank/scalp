@@ -40,6 +40,9 @@ namespace ILP
       // TODO: not implemented yet.
       //bool debug = false;
 
+      // Threads used by the solver (0 means auto-detection)
+      int threads = 0;
+
       // pass everything to the Solver and run it
       ILP::status solve();
 
@@ -120,31 +123,31 @@ namespace ILP
   ILP::Solver &operator<<(ILP::Solver &s,ILP::Constraint& o);
   ILP::Solver &operator<<(ILP::Solver &s,ILP::Constraint&& o);
 
-  // time suffixes
-  // visual studio < 2015 does not support constexpr and user-defined-literals
-  #if(not defined(_MSC_VER) ||  _MSC_VER >= 1900)
-
-  #define SUFFIX(A,MULT) \
-  constexpr long double operator"" A (long double n) \
-  { \
-    return n*MULT; \
-  } \
-  constexpr unsigned long long int operator"" A (unsigned long long int n) \
-  { \
-    return n*MULT; \
-  }
-
-  SUFFIX(_days    , 60*60*24)
-  SUFFIX(_day     , 60*60*24)
-  SUFFIX(_hours   , 60*60)
-  SUFFIX(_hour    , 60*60)
-  SUFFIX(_minutes , 60)
-  SUFFIX(_minute  , 60)
-  SUFFIX(_seconds , 1)
-  SUFFIX(_second  , 1)
-
-  #endif // _MSC_VER
-
 }
 
+
+// time suffixes
+// visual studio < 2015 does not support constexpr and user-defined-literals
+#if(not defined(_MSC_VER) ||  _MSC_VER >= 1900)
+
+#define SUFFIX(A,MULT) \
+constexpr long double operator"" A (long double n) \
+{ \
+  return n*MULT; \
+} \
+constexpr unsigned long long int operator"" A (unsigned long long int n) \
+{ \
+  return n*MULT; \
+}
+
+SUFFIX(_days    , 60*60*24)
+SUFFIX(_day     , 60*60*24)
+SUFFIX(_hours   , 60*60)
+SUFFIX(_hour    , 60*60)
+SUFFIX(_minutes , 60)
+SUFFIX(_minute  , 60)
+SUFFIX(_seconds , 1)
+SUFFIX(_second  , 1)
+
+#endif // _MSC_VER
 

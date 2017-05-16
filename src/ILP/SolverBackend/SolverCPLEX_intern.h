@@ -26,6 +26,7 @@ namespace ILP
       virtual void setConsoleOutput(bool verbose) override;
       virtual void setTimeout(long timeout) override;
       virtual void presolve(bool presolve) override;
+      virtual void setThreads(unsigned int t) override;
 
       IloEnv env;
       IloModel model;
@@ -33,6 +34,7 @@ namespace ILP
       bool verbose=true;
       long timeout=0;
       bool presolving=false;
+      unsigned int threads=0;
 
       IloRange createRange(double d, ILP::relation rel,const ILP::Term& t);
       IloRange createRange(const ILP::Term& t, ILP::relation rel,double d);

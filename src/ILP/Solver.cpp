@@ -261,6 +261,9 @@ ILP::status Solver::solve()
   // reset the backend
   back->reset();
 
+  // set the used threads
+  if(threads>0) back->setThreads(threads);
+
   // set the verbosity of the backend
   back->setConsoleOutput(!quiet);
 

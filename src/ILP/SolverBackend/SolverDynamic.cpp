@@ -132,6 +132,10 @@ class SolverDynamic : public SolverBackend
   {
     back->presolve(presolve);
   }
+  void setThreads(unsigned int t) override
+  {
+    back->setThreads(t);
+  }
 
   private:
   SolverBackend* back;

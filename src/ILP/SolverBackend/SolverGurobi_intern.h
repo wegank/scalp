@@ -25,6 +25,8 @@ namespace ILP
       virtual void setTimeout(long timeout) override;
       virtual void presolve(bool presolve) override;
       virtual void setThreads(unsigned int t) override;
+      virtual void setRelativeMIPGap(double d) override;
+      virtual void setAbsoluteMIPGap(double d) override;
 
     private:
       // map some values

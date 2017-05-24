@@ -28,6 +28,9 @@ namespace ILP
       virtual void setTimeout(long timeout);
       virtual void presolve(bool presolve);
       virtual void setThreads(unsigned int t);
+      virtual void setRelativeMIPGap(double d);
+      virtual void setAbsoluteMIPGap(double d);
+
 
       ILP::Result res;
 

@@ -261,3 +261,13 @@ void ILP::SolverGurobi::setThreads(unsigned int t)
 {
   model.getEnv().set(GRB_IntParam_Threads,t);
 }
+
+void ILP::SolverGurobi::setRelativeMIPGap(double d)
+{
+  model.getEnv().set(GRB_DoubleParam_MIPGap,d);
+}
+
+void ILP::SolverGurobi::setAbsoluteMIPGap(double d)
+{
+  model.getEnv().set(GRB_DoubleParam_MIPGapAbs,d);
+}

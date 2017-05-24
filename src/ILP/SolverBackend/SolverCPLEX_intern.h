@@ -27,6 +27,8 @@ namespace ILP
       virtual void setTimeout(long timeout) override;
       virtual void presolve(bool presolve) override;
       virtual void setThreads(unsigned int t) override;
+      virtual void setRelativeMIPGap(double d) override;
+      virtual void setAbsoluteMIPGap(double d) override;
 
       IloEnv env;
       IloModel model;
@@ -40,5 +42,8 @@ namespace ILP
       IloRange createRange(const ILP::Term& t, ILP::relation rel,double d);
       IloRange createConstraint3(const ILP::Constraint& c);
       IloExpr mapTerm(const ILP::Term& t);
+
+      double relMIPGap=-1;
+      double absMIPGap=-1;
   };
 }

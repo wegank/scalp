@@ -26,6 +26,8 @@ namespace ILP
       virtual void setConsoleOutput(bool verbose) override;
       virtual void setTimeout(long timeout) override;
       virtual void presolve(bool presolve) override;
+      virtual void setRelativeMIPGap(double d) override;
+      virtual void setAbsoluteMIPGap(double d) override;
 
     private:
       lprec* lp;

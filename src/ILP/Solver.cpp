@@ -269,6 +269,9 @@ ILP::status Solver::solve()
 
   if(timeout>0) back->setTimeout(timeout);
 
+  if(absMIPGap>=0) back->setAbsoluteMIPGap(absMIPGap);
+  if(relMIPGap>=0) back->setRelativeMIPGap(relMIPGap);
+
   // Add the Variables
   // Only add the used Variables.
   back->addVariables(extractVariables(cons,objective));
@@ -424,6 +427,38 @@ ILP::Term& ILP::operator*=(ILP::Term& tl,double d)
     p.second*=d;
   }
   return tl;
+}
+
+bool ILP::Solver::setRelativeMIPGap(double d)
+{
+  if(d>=0)
+  {
+    relMIPGap=d;
+    return true;
+  }
+  else
+  {
+    return false; // out of range
+  }
+}
+
+bool ILP::Solver::setAbsoluteMIPGap(double d)
+{
+  if(d>=0)
+  {
+    absMIPGap=d;
+    return true;
+  }
+  else
+  {
+    return false; // out of range
+  }
+}
+
+void ILP::Solver::resetMIPGap()
+{
+  absMIPGap=-1;
+  relMIPGap=-1;
 }
 
 

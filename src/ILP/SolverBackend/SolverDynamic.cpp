@@ -136,6 +136,14 @@ class SolverDynamic : public SolverBackend
   {
     back->setThreads(t);
   }
+  void setRelativeMIPGap(double d) override
+  {
+    back->setRelativeMIPGap(d);
+  }
+  void setAbsoluteMIPGap(double d) override
+  {
+    back->setAbsoluteMIPGap(d);
+  }
 
   private:
   SolverBackend* back;

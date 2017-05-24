@@ -81,3 +81,15 @@ void ILP::SolverBackend::setThreads(unsigned int t)
   (void)(t);
   std::cerr << "Scalp: a thread-limit is not supported by this backend, ignore it." << std::endl;
 }
+
+void ILP::SolverBackend::setRelativeMIPGap(double d)
+{
+  (void)(d);
+  std::cerr << "Scalp: relative MIP-Gap is not supported by this backend, ignore it." << std::endl;
+}
+
+void ILP::SolverBackend::setAbsoluteMIPGap(double d)
+{
+  (void)(d);
+  std::cerr << "Scalp: absolute MIP-Gap is not supported by this backend, ignore it." << std::endl;
+}

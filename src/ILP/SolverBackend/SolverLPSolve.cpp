@@ -233,3 +233,13 @@ void ILP::SolverLPSolve::presolve(bool presolve)
     set_presolve(lp,PRESOLVE_NONE,get_presolveloops(lp));
   }
 }
+
+void ILP::SolverLPSolve::setRelativeMIPGap(double d)
+{
+  set_mip_gap(lp,false,d);
+}
+
+void ILP::SolverLPSolve::setAbsoluteMIPGap(double d)
+{
+  set_mip_gap(lp,true,d);
+}

@@ -24,6 +24,10 @@ namespace ILP
       // The memory of the Pointer is managed by the Solver
       Solver(ILP::SolverBackend *b);
 
+      //####################
+      // general Parameters
+      //####################
+
       // set true to disable the Output of the Solver
       bool quiet = false;
 
@@ -43,10 +47,10 @@ namespace ILP
       // Threads used by the solver (0 means auto-detection)
       int threads = 0;
 
-      // pass everything to the Solver and run it
-      ILP::status solve();
 
-      ILP::Result getResult();
+      //####################
+      // Problem-Construction
+      //####################
 
       // set the (new) objective
       void setObjective(Objective o);
@@ -55,19 +59,53 @@ namespace ILP
       void addConstraint(Constraint& b);
       void addConstraint(Constraint&& b);
 
+
+      //####################
+      // Solving
+      //####################
+
+      // pass everything to the Solver and run it
+      ILP::status solve();
+
+      ILP::Result getResult();
+
+
+      //####################
+      // Backend
+      //####################
+
       // set a new backend
       void setBackend(SolverBackend *b);
 
       std::string getBackendName() const;
+
+      // reset the Solver (removes all Constraints, etc)
+      void reset();
+
+
+      //####################
+      // MIP-Parameters
+      //####################
+
+      // set the relative MIP-Gap to d (d>=0)
+      bool setRelativeMIPGap(double d);
+
+      // set the absolute MIP-Gap to d (d>=0)
+      bool setAbsoluteMIPGap(double d);
+
+      // resets the MIP-Gap to the solvers default
+      void resetMIPGap();
+
+
+      //####################
+      // miscellaneous
+      //####################
 
       // return the LP-Format-representation as a string
       std::string showLP() const;
 
       // write the LP-Format-representation in a file
       void writeLP(std::string file) const;
-
-      // reset the Solver (removes all Constraints, etc)
-      void reset();
 
       ~Solver();
 
@@ -86,6 +124,9 @@ namespace ILP
       // extract the Variables from the Constraints and the Objective
       // to avoid unused variables.
       ILP::VariableSet extractVariables(std::list<Constraint> c,Objective o) const;
+
+      double absMIPGap=-1;
+      double relMIPGap=-1;
 
   };
 

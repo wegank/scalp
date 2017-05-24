@@ -196,6 +196,16 @@ ILP::status ILP::SolverCPLEX::solve()
       cplex.presolve(IloCplex::Algorithm::NoAlg);
     }
 
+    // MIP-Gap
+    if(this->relMIPGap>=0)
+    {
+      cplex.setParam(IloCplex::EpGap, this->relMIPGap);
+    }
+    if(this->absMIPGap>=0)
+    {
+      cplex.setParam(IloCplex::EpAGap, this->absMIPGap);
+    }
+
     //cplex.exportModel("cplex.lp");
 
     if(cplex.solve())
@@ -256,4 +266,16 @@ void ILP::SolverCPLEX::presolve(bool presolve)
 void ILP::SolverCPLEX::setThreads(unsigned int t)
 {
   this->threads=t;
+}
+
+void ILP::SolverCPLEX::setRelativeMIPGap(double d)
+{
+  this->relMIPGap=d;
+  //this->absMIPGap=-1;
+}
+
+void ILP::SolverCPLEX::setAbsoluteMIPGap(double d)
+{
+  this->absMIPGap=d;
+  //this->relMIPGap=-1;
 }

@@ -217,7 +217,7 @@ ILP::status ILP::SolverCPLEX::solve()
         res.values.emplace(p.first,n);
       }
 
-      res.objectiveValue = cplex.getBestObjValue()+objectiveOffset;
+      res.objectiveValue = cplex.getObjValue()+objectiveOffset;
     }
 
     stat = mapStatus(cplex.getStatus());

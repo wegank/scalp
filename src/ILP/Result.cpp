@@ -21,12 +21,16 @@ std::string ILP::showStatus(ILP::status s)
 
 std::ostream& ILP::operator<<(std::ostream& os, const ILP::Result &r)
 {
-  std::cout << "Objective: " << r.objectiveValue << std::endl;
-  std::cout << "Variables:" << std::endl;
+  os << "Objective: " << r.objectiveValue << std::endl;
+  os << "Variables:" << std::endl;
   for(auto &p:r.values)
   {
-    std::cout << "  " << std::left << std::setw(8) << p.first << std::setw(7) << " = " << p.second << std::endl;
+    os << "  " << std::left << std::setw(8) << p.first << std::setw(7) << " = " << p.second << std::endl;
   } 
+  os << "Durations:" << std::endl;
+  os << "  preparation:  " << r.preparationTime << std::endl;
+  os << "  construction: " << r.constructionTime << std::endl;
+  os << "  solving:      " << r.solvingTime << std::endl;
   return os;
 }
 std::ostream& ILP::operator<<(std::ostream& os, const ILP::status &s)

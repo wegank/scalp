@@ -4,6 +4,7 @@
 #include <sstream>
 #include <fstream>
 #include <functional> // std::puls, std::minus
+#include <ctime>
 
 #include <ILP/Exception.h>
 #include <ILP/Solver.h>
@@ -258,6 +259,12 @@ void ILP::Solver::writeLP(std::string file) const
 
 ILP::status Solver::solve()
 {
+  double preparationTime=0;
+  double constructionTime=0;
+  double solvingTime=0;
+
+  auto timer = std::clock();
+
   // reset the backend
   back->reset();
 
@@ -272,6 +279,9 @@ ILP::status Solver::solve()
   if(absMIPGap>=0) back->setAbsoluteMIPGap(absMIPGap);
   if(relMIPGap>=0) back->setRelativeMIPGap(relMIPGap);
 
+  preparationTime = (double(std::clock()-timer))/CLOCKS_PER_SEC;
+  timer = std::clock();
+
   // Add the Variables
   // Only add the used Variables.
   back->addVariables(extractVariables(cons,objective));
@@ -282,11 +292,20 @@ ILP::status Solver::solve()
   // Add Constraints
   back->addConstraints(cons);
 
+  constructionTime = (double(std::clock()-timer))/CLOCKS_PER_SEC;
+  timer = std::clock();
+
   // use presolve?
   back->presolve(presolve);
 
   // Solve
   ILP::status stat = back->solve();
+
+  solvingTime = (double(std::clock()-timer))/CLOCKS_PER_SEC;
+
+  back->res.preparationTime=preparationTime;
+  back->res.constructionTime=constructionTime;
+  back->res.solvingTime=solvingTime;
 
   return stat;
 }

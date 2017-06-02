@@ -28,6 +28,11 @@ namespace ILP
 
       std::map<ILP::Variable,double> values;
 
+      double preparationTime=0;
+      double constructionTime=0;
+      double solvingTime=0;
+
+
     private:
   };
   std::ostream& operator<<(std::ostream& os, const ILP::Result &r);

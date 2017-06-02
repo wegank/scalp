@@ -279,6 +279,9 @@ ILP::status Solver::solve()
   if(absMIPGap>=0) back->setAbsoluteMIPGap(absMIPGap);
   if(relMIPGap>=0) back->setRelativeMIPGap(relMIPGap);
 
+  // use presolve?
+  back->presolve(presolve);
+
   preparationTime = (double(std::clock()-timer))/CLOCKS_PER_SEC;
   timer = std::clock();
 
@@ -294,9 +297,6 @@ ILP::status Solver::solve()
 
   constructionTime = (double(std::clock()-timer))/CLOCKS_PER_SEC;
   timer = std::clock();
-
-  // use presolve?
-  back->presolve(presolve);
 
   // Solve
   ILP::status stat = back->solve();

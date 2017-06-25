@@ -32,6 +32,8 @@ namespace ILP
       double constructionTime=0;
       double solvingTime=0;
 
+      std::string showSolutionVector(bool compact=false);
+      void writeSolutionVector(std::string file, bool compact=false);
 
     private:
   };

@@ -1,5 +1,7 @@
 
 #include <iostream>
+#include <sstream>
+#include <fstream>
 #include <iomanip>
 #include <ILP/Result.h>
 
@@ -36,4 +38,25 @@ std::ostream& ILP::operator<<(std::ostream& os, const ILP::Result &r)
 std::ostream& ILP::operator<<(std::ostream& os, const ILP::status &s)
 {
   return os << showStatus(s);
+}
+
+std::string ILP::Result::showSolutionVector(bool compact)
+{
+  std::stringstream ss;
+  ss << "# objective value " << this->objectiveValue << "\n";
+  ss << std::left;
+  for(auto p:this->values)
+  {
+    if((compact and p.second!=0) or (not compact)) ss << std::setw(compact?0:8) << p.first->name << " " << p.second << "\n"; 
+  }
+
+  return ss.str();
+
+}
+
+void ILP::Result::writeSolutionVector(std::string file, bool compact)
+{
+  std::ofstream ss(file);
+  ss << this->showSolutionVector(compact);
+  ss.flush();
 }

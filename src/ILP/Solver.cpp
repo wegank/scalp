@@ -1,16 +1,18 @@
 
 #include <limits>
-#include <iostream>
 #include <sstream>
 #include <fstream>
-#include <functional> // std::puls, std::minus
 #include <ctime>
+#include <cmath>
 
 #include <ILP/Exception.h>
 #include <ILP/Solver.h>
 #include <ILP/Result.h>
 
-using namespace ILP;
+static double plus(double a, double b)
+{
+  return a+b;
+}
 
 double ILP::INF()
 {
@@ -27,12 +29,12 @@ ILP::Solver::~Solver()
   delete back;
 }
 
-void Solver::setBackend(SolverBackend *b)
+void ILP::Solver::setBackend(SolverBackend *b)
 {
   this->back=b;
 }
 
-void Solver::setObjective(Objective o)
+void ILP::Solver::setObjective(Objective o)
 {
   this->objective=o;
 
@@ -40,11 +42,11 @@ void Solver::setObjective(Objective o)
   extractVariables(cons,objective);
 }
 
-void Solver::addConstraint(Constraint& b)
+void ILP::Solver::addConstraint(Constraint& b)
 {
   this->cons.push_back(b);
 }
-void Solver::addConstraint(Constraint&& b)
+void ILP::Solver::addConstraint(Constraint&& b)
 {
   this->cons.push_back(b);
 }
@@ -257,7 +259,7 @@ void ILP::Solver::writeLP(std::string file) const
   std::ofstream(file) << showLP();
 }
 
-ILP::status Solver::solve()
+ILP::status ILP::Solver::solve()
 {
   double preparationTime=0;
   double constructionTime=0;
@@ -307,15 +309,24 @@ ILP::status Solver::solve()
   back->res.constructionTime=constructionTime;
   back->res.solvingTime=solvingTime;
 
+  // round integer values
+  for(auto&p:this->back->res.values)
+  {
+    if(p.first->usedType==ILP::VariableType::INTEGER or p.first->usedType==ILP::VariableType::BINARY)
+    {
+      p.second = std::lround(p.second);
+    }
+  }
+
   return stat;
 }
 
-ILP::Result Solver::getResult()
+ILP::Result ILP::Solver::getResult()
 {
   return this->back->res;
 }
 
-void Solver::reset()
+void ILP::Solver::reset()
 {
   if(back!=nullptr) back->reset();
   objective= ILP::Objective();
@@ -323,7 +334,7 @@ void Solver::reset()
   result=ILP::Result();
 }
 
-ILP::VariableSet Solver::extractVariables(std::list<Constraint> cs,Objective o) const
+ILP::VariableSet ILP::Solver::extractVariables(std::list<Constraint> cs,Objective o) const
 {
   ILP::VariableSet vs;
 
@@ -389,7 +400,7 @@ ILP::Term ILP::operator+(ILP::Term tl,ILP::Term tr)
   n.constant+=tr.constant;
   for(auto &p:tr.sum)
   {
-    adjust(n.sum,p.first,p.second,std::plus<double>());
+    adjust(n.sum,p.first,p.second,plus);
   }
   return n;
 }
@@ -399,7 +410,7 @@ ILP::Term& ILP::operator+=(ILP::Term &tl,ILP::Term tr)
   tl.constant+=tr.constant;
   for(auto &p:tr.sum)
   {
-    adjust(tl.sum,p.first,p.second,std::plus<double>());
+    adjust(tl.sum,p.first,p.second,plus);
   }
   return tl;
 }
@@ -423,7 +434,7 @@ ILP::Term ILP::operator-(ILP::Term tl, ILP::Term tr)
   n.constant-=tr.constant;
   for(auto &p:tr.sum)
   {
-    adjust(n.sum,p.first,-p.second,std::plus<double>());
+    adjust(n.sum,p.first,-p.second,plus);
   }
   return n;
 }
@@ -433,7 +444,7 @@ ILP::Term& ILP::operator-=(ILP::Term &tl, ILP::Term tr)
   tl.constant-=tr.constant;
   for(auto &p:tr.sum)
   {
-    adjust(tl.sum,p.first,-p.second,std::plus<double>());
+    adjust(tl.sum,p.first,-p.second,plus);
   }
   return tl;
 }
@@ -502,17 +513,17 @@ ILP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, ILP::Constraint)
 ILP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, ILP::Constraint)
 ILP_RELATION_OPERATOR(==,EQUAL       , double, ILP::Constraint)
 
-Solver& ILP::operator<<(Solver &s,Objective o)
+ILP::Solver& ILP::operator<<(Solver &s,Objective o)
 {
   s.setObjective(o);
   return s;
 }
-Solver& ILP::operator<<(Solver &s,Constraint& o)
+ILP::Solver& ILP::operator<<(Solver &s,Constraint& o)
 {
   s.addConstraint(o);
   return s;
 }
-Solver& ILP::operator<<(Solver &s,Constraint&& o)
+ILP::Solver& ILP::operator<<(Solver &s,Constraint&& o)
 {
   s.addConstraint(o);
   return s;

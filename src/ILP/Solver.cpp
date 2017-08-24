@@ -139,6 +139,7 @@ static std::string showConstraint2LP(ILP::Term lhs,ILP::relation rel, ILP::Term 
   s << showTermLP(lhs) << " " << ILP::Constraint::showRelation(rel) << " " << showTermLP(rhs);
   return s.str();
 }
+
 static std::string showConstraint3LP(const ILP::Constraint& c)
 {
   std::stringstream s;
@@ -147,16 +148,50 @@ static std::string showConstraint3LP(const ILP::Constraint& c)
     << showTermLP(c.ubound);
   return s.str();
 }
+
+static ILP::relation flipRelation(ILP::relation r)
+{
+  using R = ILP::relation;
+  switch(r)
+  {
+    case R::LESS_EQ_THAN: return R::MORE_EQ_THAN;
+    case R::MORE_EQ_THAN: return R::LESS_EQ_THAN;
+    default: return R::EQUAL;
+  }
+  return R::EQUAL;
+}
+
+static void normalizeConstraint(ILP::Constraint& c)
+{
+  // remove constant from Term
+  if(c.term.constant!=0)
+  {
+    c.lbound-=c.term.constant;
+    c.ubound-=c.term.constant;
+    c.term.constant=0;
+  }
+
+  // flip Relation to get the constant to the right
+  if(c.ctype==ILP::Constraint::type::C2L)
+  {
+    c.ubound = c.lbound;
+    c.lbound = 0;
+    c.rrel   = flipRelation(c.lrel);
+    c.ctype  = ILP::Constraint::type::C2R;
+  }
+}
+
 static std::string showConstraintLP(ILP::Constraint c)
 {
+  normalizeConstraint(c);
   switch(c.ctype)
   {
-    case ILP::Constraint::type::C2L:
-      return showConstraint2LP(c.lbound,c.lrel,c.term);
+    case ILP::Constraint::type::C2L: 
+      return showConstraint2LP(c.term,flipRelation(c.lrel),c.lbound);
     case ILP::Constraint::type::C2R:
       return showConstraint2LP(c.term,c.rrel,c.ubound);
     case ILP::Constraint::type::CEQ:
-      return showConstraint2LP(c.lbound,c.lrel,c.term);
+      return showConstraint2LP(c.term,c.lrel,c.lbound);
     case ILP::Constraint::type::C3:
       return showConstraint3LP(c);
   }

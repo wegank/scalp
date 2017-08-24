@@ -14,7 +14,7 @@ std::string ILP::Constraint::showRelation(relation r)
   {
     case ILP::relation::LESS_EQ_THAN: return "<=";
     case ILP::relation::MORE_EQ_THAN: return ">=";
-    case ILP::relation::EQUAL: return "==";
+    case ILP::relation::EQUAL: return "=";
     default:return "";
   }
   return "";

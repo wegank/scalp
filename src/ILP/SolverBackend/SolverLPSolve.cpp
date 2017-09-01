@@ -206,6 +206,7 @@ void ILP::SolverLPSolve::presolve(bool presolve)
 {
   if(presolve)
   {
+    std::cerr << "Scalp: Warning: presolve for lp-solve can lead to a wrong \"all zero\"-result" << std::endl;
     // see: http://lpsolve.sourceforge.net/5.5/set_presolve.htm
     auto all = PRESOLVE_ROWS
       | PRESOLVE_COLS

@@ -12,10 +12,12 @@ namespace ILP
   , OPTIMAL
   , FEASIBLE
   , INFEASIBLE
+  , INFEASIBLE_OR_UNBOUND
   , UNBOUND
   , INVALID
   , ERROR
   , TIMEOUT
+  , UNKNOWN
   };
 
   std::string showStatus(ILP::status s);

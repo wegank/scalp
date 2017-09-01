@@ -17,6 +17,8 @@ std::string ILP::showStatus(ILP::status s)
     case ILP::status::ERROR:      return "ERROR";
     case ILP::status::TIMEOUT:    return "TIMEOUT";
     case ILP::status::NOT_SOLVED: return "NOT_SOLVED";
+    case ILP::status::INFEASIBLE_OR_UNBOUND:    return "INFEASIBLE_OR_UNBOUND";
+    case ILP::status::UNKNOWN:    return "UNKNOWN";
   }
   return "UNKNOWN";
 }

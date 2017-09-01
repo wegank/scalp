@@ -38,7 +38,7 @@ namespace ILP
       long timeout = 0;
 
       // use presolvers to simplify the model
-      bool presolve = false;
+      bool presolve = true;
 
       // enable debug-output of scalp and possibly a file with the LP-output of the backend.
       // TODO: not implemented yet.

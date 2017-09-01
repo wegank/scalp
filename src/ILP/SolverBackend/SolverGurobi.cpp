@@ -163,6 +163,7 @@ ILP::status ILP::SolverGurobi::solve()
     if(grbStatus == GRB_SUBOPTIMAL) return ILP::status::FEASIBLE;
     if(grbStatus == GRB_TIME_LIMIT) return ILP::status::TIMEOUT;
     if(grbStatus == GRB_INFEASIBLE) return ILP::status::INFEASIBLE;
+    if(grbStatus == GRB_INF_OR_UNBD) return ILP::status::INFEASIBLE_OR_UNBOUND;
   }
   catch(GRBException e)
   {

@@ -131,19 +131,20 @@ bool ILP::SolverCPLEX::addConstraints(std::list<ILP::Constraint> cons)
   return true;
 }
 
-static ILP::status mapStatus(IloAlgorithm::Status s)
+static ILP::status mapStatus(IloCplex::CplexStatus s)
 {
   switch(s)
   {
-    case IloAlgorithm::Status::Unknown:    return ILP::status::ERROR;
-    case IloAlgorithm::Status::Feasible:   return ILP::status::FEASIBLE;
-    case IloAlgorithm::Status::Optimal:    return ILP::status::OPTIMAL;
-    case IloAlgorithm::Status::Infeasible: return ILP::status::INFEASIBLE;
-    case IloAlgorithm::Status::Unbounded:  return ILP::status::UNBOUND;
-    case IloAlgorithm::Status::Error:      return ILP::status::ERROR;
-    default: return ILP::status::ERROR;
+    case IloCplex::CplexStatus::AbortTimeLim:    return ILP::status::TIMEOUT;
+    case IloCplex::CplexStatus::Optimal:    return ILP::status::OPTIMAL;
+    case IloCplex::CplexStatus::Unknown:    return ILP::status::UNKNOWN;
+    case IloCplex::CplexStatus::Feasible:   return ILP::status::FEASIBLE;
+    case IloCplex::CplexStatus::Infeasible: return ILP::status::INFEASIBLE;
+    case IloCplex::CplexStatus::Unbounded:  return ILP::status::UNBOUND;
+    case IloCplex::CplexStatus::InfOrUnbd:  return ILP::status::INFEASIBLE_OR_UNBOUND;
+    default: return ILP::status::UNKNOWN;
   }
-  return ILP::status::ERROR;
+  return ILP::status::UNKNOWN;
 }
 
 bool ILP::SolverCPLEX::setObjective(ILP::Objective o)
@@ -192,7 +193,11 @@ ILP::status ILP::SolverCPLEX::solve()
     // simplify model if possible
     if(presolving)
     {
-      cplex.setParam(IloCplex::PreInd,presolving);
+      cplex.setParam(IloCplex::PreInd,true);
+    }
+    else
+    {
+      cplex.setParam(IloCplex::PreInd,false);
       cplex.presolve(IloCplex::Algorithm::NoAlg);
     }
 
@@ -220,12 +225,20 @@ ILP::status ILP::SolverCPLEX::solve()
       res.objectiveValue = cplex.getObjValue()+objectiveOffset;
     }
 
-    stat = mapStatus(cplex.getStatus());
+    stat = mapStatus(cplex.getCplexStatus());
   }
-  catch(IloException& e)
+  catch(IloCplex::Exception& e)
   {
-    throw ILP::Exception(e.getMessage());
+    if(e.getStatus()==1117)
+    {
+      stat = ILP::status::INFEASIBLE;
+    }
+    else
+    {
+      throw ILP::Exception(e.getMessage());
+    }
   }
+
   return stat;
 }
 

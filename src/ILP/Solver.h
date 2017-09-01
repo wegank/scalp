@@ -145,6 +145,13 @@ namespace ILP
   ILP::Term operator-(ILP::Variable v);
   ILP::Term operator-(ILP::Term t);
 
+  ILP::Constraint operator<=(ILP::Variable tl,double tr);
+  ILP::Constraint operator>=(ILP::Variable tl,double tr);
+  ILP::Constraint operator==(ILP::Variable tl,double tr);
+  ILP::Constraint operator<=(double tl,ILP::Variable tr);
+  ILP::Constraint operator>=(double tl,ILP::Variable tr);
+  ILP::Constraint operator==(double tl,ILP::Variable tr);
+
   ILP::Constraint operator<=(ILP::Term tl,double tr);
   ILP::Constraint operator>=(ILP::Term tl,double tr);
   ILP::Constraint operator==(ILP::Term tl,double tr);
@@ -163,6 +170,9 @@ namespace ILP
   ILP::Solver &operator<<(ILP::Solver &s,ILP::Objective o);
   ILP::Solver &operator<<(ILP::Solver &s,ILP::Constraint& o);
   ILP::Solver &operator<<(ILP::Solver &s,ILP::Constraint&& o);
+
+  ILP::Constraint operator>>=(ILP::Constraint i,ILP::Constraint c);
+  #define then >>=
 
 }
 

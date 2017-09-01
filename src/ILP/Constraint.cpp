@@ -2,11 +2,37 @@
 #include <ILP/Constraint.h>
 #include <ILP/Exception.h>
 
-
 namespace ILP
 {
   extern double INF();
 }
+
+ILP::Constraint::~Constraint()
+{
+}
+
+static bool isIndicator(const ILP::Constraint& c)
+{
+  return c.ctype==ILP::Constraint::type::CEQ // ... == ...
+    and c.lbound==c.ubound and (c.lbound == 0 or c.lbound == 1) // ... == 1 or 0
+    and (c.term.sum.size()==1 and c.term.constant==0) // x == [1,0]
+    and c.term.sum.begin()->first->usedType==ILP::VariableType::BINARY
+    and c.term.sum.begin()->second==1; // 1*x(binary) == 1 or 0
+}
+
+ILP::Constraint::Constraint(ILP::Constraint i, ILP::Constraint c)
+: Constraint(c)
+{
+  if(isIndicator(i))
+  {
+    this->indicator = std::make_shared<Constraint>(i);
+  }
+  else
+  {
+    throw ILP::Exception("The used constraint is not an indicator. (binary variable == 0 or 1)");
+  }
+}
+
 
 std::string ILP::Constraint::showRelation(relation r)
 {

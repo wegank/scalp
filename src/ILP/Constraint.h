@@ -2,6 +2,7 @@
 #pragma once
 
 #include <string.h>
+#include <memory>
 
 #include <ILP/Term.h>
 #include <ILP/Variable.h>
@@ -41,8 +42,16 @@ namespace ILP
       Constraint(std::string n, ILP::Constraint&& c);
       Constraint(std::pair<std::string,ILP::Constraint>& p);
 
+      // indicator constraint combination
+      Constraint(ILP::Constraint i, ILP::Constraint c);
+
       // empty Constraint
       Constraint(){};
+
+      // copy-Constructor
+      Constraint(const Constraint& c) = default;
+
+      ~Constraint();
 
       void setName(std::string n);
 
@@ -58,6 +67,8 @@ namespace ILP
       , CEQ // x == d or d == x
       , C3  // d R x R d
       };
+
+      std::shared_ptr<Constraint> indicator;
 
       std::string name="";
 

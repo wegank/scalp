@@ -184,16 +184,29 @@ static void normalizeConstraint(ILP::Constraint& c)
 static std::string showConstraintLP(ILP::Constraint c)
 {
   normalizeConstraint(c);
+
+  std::string prefix="";
+
+  if(c.name!="")
+  {
+    prefix = c.name+": ";
+  }
+
+  if(c.indicator!=nullptr)
+  {
+    prefix= prefix+showConstraint2LP(c.indicator->term,c.indicator->lrel,c.indicator->lbound)+ " -> ";
+  }
+
   switch(c.ctype)
   {
     case ILP::Constraint::type::C2L: 
-      return showConstraint2LP(c.term,flipRelation(c.lrel),c.lbound);
+      return prefix+showConstraint2LP(c.term,flipRelation(c.lrel),c.lbound);
     case ILP::Constraint::type::C2R:
-      return showConstraint2LP(c.term,c.rrel,c.ubound);
+      return prefix+showConstraint2LP(c.term,c.rrel,c.ubound);
     case ILP::Constraint::type::CEQ:
-      return showConstraint2LP(c.term,c.lrel,c.lbound);
+      return prefix+showConstraint2LP(c.term,c.lrel,c.lbound);
     case ILP::Constraint::type::C3:
-      return showConstraint3LP(c);
+      return prefix+showConstraint3LP(c);
   }
   return "";
 }
@@ -532,13 +545,33 @@ void ILP::Solver::resetMIPGap()
   { \
     return ILP::Constraint(l,ILP::relation::B,r); \
   }
+#define ILP_RELATION_OPERATORVL(A,B,C,D) \
+  ILP::Constraint ILP::operator A(C l,D r) \
+  { \
+    ILP::Term t = l;\
+    return ILP::Constraint(t,ILP::relation::B,r); \
+  }
+#define ILP_RELATION_OPERATORVR(A,B,C,D) \
+  ILP::Constraint ILP::operator A(C l,D r) \
+  { \
+    ILP::Term t = r;\
+    return ILP::Constraint(l,ILP::relation::B,t); \
+  }
 
-ILP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, ILP::Term)
-ILP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, ILP::Term)
-ILP_RELATION_OPERATOR(==,EQUAL       , double, ILP::Term)
+
+ILP_RELATION_OPERATORVL(<=,LESS_EQ_THAN, ILP::Variable, double)
+ILP_RELATION_OPERATORVL(>=,MORE_EQ_THAN, ILP::Variable, double)
+ILP_RELATION_OPERATORVL(==,EQUAL       , ILP::Variable, double)
+ILP_RELATION_OPERATORVR(<=,LESS_EQ_THAN, double, ILP::Variable)
+ILP_RELATION_OPERATORVR(>=,MORE_EQ_THAN, double, ILP::Variable)
+ILP_RELATION_OPERATORVR(==,EQUAL       , double, ILP::Variable)
+
 ILP_RELATION_OPERATOR(<=,LESS_EQ_THAN, ILP::Term, double)
 ILP_RELATION_OPERATOR(>=,MORE_EQ_THAN, ILP::Term, double)
 ILP_RELATION_OPERATOR(==,EQUAL       , ILP::Term, double)
+ILP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, ILP::Term)
+ILP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, ILP::Term)
+ILP_RELATION_OPERATOR(==,EQUAL       , double, ILP::Term)
 
 ILP_RELATION_OPERATOR(<=,LESS_EQ_THAN, ILP::Constraint, double)
 ILP_RELATION_OPERATOR(>=,MORE_EQ_THAN, ILP::Constraint, double)
@@ -562,4 +595,9 @@ ILP::Solver& ILP::operator<<(Solver &s,Constraint&& o)
 {
   s.addConstraint(o);
   return s;
+}
+
+ILP::Constraint ILP::operator>>=(ILP::Constraint i,ILP::Constraint c)
+{
+  return ILP::Constraint(i,c);
 }

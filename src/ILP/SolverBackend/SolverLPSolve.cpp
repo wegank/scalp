@@ -6,6 +6,8 @@
 
 #include <ILP/Exception.h>
 
+#include <iostream>
+
 ILP::SolverBackend* newSolverLPSolve()
 {
   return new ILP::SolverLPSolve();

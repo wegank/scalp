@@ -48,7 +48,13 @@ std::string ILP::Constraint::showRelation(relation r)
 
 ILP::VariableSet ILP::Constraint::extractVariables() const
 {
-  return term.extractVariables();
+  ILP::VariableSet s{term.extractVariables()};
+  if(this->indicator!=nullptr)
+  {
+    ILP::VariableSet t{this->indicator->term.extractVariables()};
+    s.insert(t.begin(),t.end());
+  }
+  return s;
 }
 
 std::string ILP::Constraint::show() const

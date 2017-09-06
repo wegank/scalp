@@ -42,6 +42,7 @@ namespace ILP
       IloRange createRange(const ILP::Term& t, ILP::relation rel,double d);
       IloRange createConstraint3(const ILP::Constraint& c);
       IloExpr mapTerm(const ILP::Term& t);
+      IloRange convertConstraint(const ILP::Constraint &c);
 
       double relMIPGap=-1;
       double absMIPGap=-1;

@@ -95,31 +95,43 @@ IloRange ILP::SolverCPLEX::createConstraint3(const ILP::Constraint& c)
   }
 }
 
+IloRange ILP::SolverCPLEX::convertConstraint(const ILP::Constraint &c)
+{
+  IloRange constr;
+  switch(c.ctype)
+  {
+    case ILP::Constraint::type::C3:
+      constr = createConstraint3(c);
+      break;
+    case ILP::Constraint::type::C2L:
+      constr = createRange(c.lbound,c.lrel,c.term);
+      break;
+    case ILP::Constraint::type::C2R:
+      constr = createRange(c.term,c.rrel,c.ubound);
+      break;
+    case ILP::Constraint::type::CEQ:
+      constr = createRange(c.lbound,c.lrel,c.term);
+      break;
+  }
+  constr.setName(c.name.c_str());
+  return constr;
+}
+
 bool ILP::SolverCPLEX::addConstraints(std::list<ILP::Constraint> cons)
 {
   try
   {
-    IloRangeArray cc(env);
+    IloConstraintArray cc(env);
     for(const ILP::Constraint &c:cons)
     {
-      IloRange constr;
-      switch(c.ctype)
+      if(c.indicator!=nullptr)
       {
-        case ILP::Constraint::type::C3:
-          constr = createConstraint3(c);
-          break;
-        case ILP::Constraint::type::C2L:
-          constr = createRange(c.lbound,c.lrel,c.term);
-          break;
-        case ILP::Constraint::type::C2R:
-          constr = createRange(c.term,c.rrel,c.ubound);
-          break;
-        case ILP::Constraint::type::CEQ:
-          constr = createRange(c.lbound,c.lrel,c.term);
-          break;
+        cc.add(IloIfThen(env,convertConstraint(*c.indicator),convertConstraint(c)));
       }
-      constr.setName(c.name.c_str());
-      cc.add(constr);
+      else
+      {
+        cc.add(convertConstraint(c));
+      }
     }
     model.add(cc);
   }

@@ -15,7 +15,17 @@ namespace ILP
   {
     public:
       SolverCPLEX();
-      ~SolverCPLEX() = default;
+      ~SolverCPLEX()
+      {
+        try
+        {
+          env.end();
+        }
+        catch(IloCplex::Exception& e)
+        {
+          throw ILP::Exception(e.getMessage());
+        }
+      };
 
       // basic functions
       virtual bool addVariable(const ILP::Variable& v) override;

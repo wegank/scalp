@@ -15,7 +15,7 @@ else()
   set(NOT_FIRST_RUN ON CACHE INTERNAL "")
 
   # set a default build-type
-  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "The compilation type (only Debug works at the moment)" FORCE)
+  set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "The compilation type (Debug,Release,RelWithDebInfo,MinSizeRel)" FORCE)
 endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel "")
 

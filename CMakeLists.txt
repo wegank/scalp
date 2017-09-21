@@ -138,56 +138,6 @@ elseif(NOT USE_LPSOLVE)
   mark_as_advanced(FORCE LPSOLVE_LIBRARIES LPSOLVE_INCLUDE_DIRS)
 endif()
 
-# add backend-libraries
-
-set(CMAKE_INSTALL_RPATH "$ORIGIN")
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-if(USE_CPLEX)
-  include_directories(${CPLEX_INCLUDE_DIRS})
-  add_library(ILP-CPLEX ${LIBRARY_TYPE}
-    src/ILP/SolverBackend/SolverCPLEX.cpp)
-  target_link_libraries(ILP-CPLEX ${CPLEX_LIBRARIES})
-  list(APPEND BACKEND_TARGETS ILP-CPLEX)
-  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverCPLEX.h)
-endif()
-
-if(USE_GUROBI)
-  include_directories(${GUROBI_INCLUDE_DIRS})
-  add_library(ILP-Gurobi ${LIBRARY_TYPE}
-    src/ILP/SolverBackend/SolverGurobi.cpp)
-  target_link_libraries(ILP-Gurobi ${GUROBI_LIBRARIES})
-  list(APPEND BACKEND_TARGETS ILP-Gurobi)
-  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverGurobi.h)
-endif()
-
-if(USE_SCIP)
-  include_directories(${SCIP_INCLUDE_DIRS})
-  add_library(ILP-SCIP ${LIBRARY_TYPE}
-    src/ILP/SolverBackend/SolverSCIP.cpp)
-  target_link_libraries(ILP-SCIP ${SCIP_LIBRARIES})
-  list(APPEND BACKEND_TARGETS ILP-SCIP)
-  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverSCIP.h)
-endif()
-
-if(USE_LPSOLVE)
-  include_directories(${LPSOLVE_INCLUDE_DIRS})
-  add_library(ILP-LPSolve ${LIBRARY_TYPE}
-    src/ILP/SolverBackend/SolverLPSolve.cpp)
-  target_link_libraries(ILP-LPSolve ${LPSOLVE_LIBRARIES})
-  list(APPEND BACKEND_TARGETS ILP-LPSolve)
-  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverLPSolve.h)
-endif()
-
-if(USE_DYNAMIC)
-  add_library(ILP-Dynamic ${LIBRARY_TYPE}
-    src/ILP/SolverBackend/SolverDynamic.cpp)
-  target_link_libraries(ILP-Dynamic dl)
-  list(APPEND BACKEND_TARGETS ILP-Dynamic)
-  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverDynamic.h)
-endif()
-
-
 # add main library
 
 set(ILP_HEADERS
@@ -210,6 +160,57 @@ add_library(ILP ${LIBRARY_TYPE}
   src/ILP/Term.cpp
   src/ILP/Variable.cpp
 )
+
+# add backend-libraries
+
+set(CMAKE_INSTALL_RPATH "$ORIGIN")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+if(USE_CPLEX)
+  include_directories(${CPLEX_INCLUDE_DIRS})
+  add_library(ILP-CPLEX ${LIBRARY_TYPE}
+    src/ILP/SolverBackend/SolverCPLEX.cpp)
+  target_link_libraries(ILP-CPLEX ${CPLEX_LIBRARIES} ILP)
+  list(APPEND BACKEND_TARGETS ILP-CPLEX)
+  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverCPLEX.h)
+endif()
+
+if(USE_GUROBI)
+  include_directories(${GUROBI_INCLUDE_DIRS})
+  add_library(ILP-Gurobi ${LIBRARY_TYPE}
+    src/ILP/SolverBackend/SolverGurobi.cpp)
+  target_link_libraries(ILP-Gurobi ${GUROBI_LIBRARIES} ILP)
+  list(APPEND BACKEND_TARGETS ILP-Gurobi)
+  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverGurobi.h)
+endif()
+
+if(USE_SCIP)
+  include_directories(${SCIP_INCLUDE_DIRS})
+  add_library(ILP-SCIP ${LIBRARY_TYPE}
+    src/ILP/SolverBackend/SolverSCIP.cpp)
+  target_link_libraries(ILP-SCIP ${SCIP_LIBRARIES} ILP)
+  list(APPEND BACKEND_TARGETS ILP-SCIP)
+  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverSCIP.h)
+endif()
+
+if(USE_LPSOLVE)
+  include_directories(${LPSOLVE_INCLUDE_DIRS})
+  add_library(ILP-LPSolve ${LIBRARY_TYPE}
+    src/ILP/SolverBackend/SolverLPSolve.cpp)
+  target_link_libraries(ILP-LPSolve ${LPSOLVE_LIBRARIES} ILP)
+  list(APPEND BACKEND_TARGETS ILP-LPSolve)
+  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverLPSolve.h)
+endif()
+
+if(USE_DYNAMIC)
+  add_library(ILP-Dynamic ${LIBRARY_TYPE}
+    src/ILP/SolverBackend/SolverDynamic.cpp)
+  target_link_libraries(ILP-Dynamic dl ILP)
+  list(APPEND BACKEND_TARGETS ILP-Dynamic)
+  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverDynamic.h)
+endif()
+
+
 
 if(BUILD_SCALP_EXECUTABLE)
   add_executable(scalp

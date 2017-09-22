@@ -21,7 +21,7 @@ int main()
     // You can prepend additional solvers by defining the environment variable
     //   SCALP_SOLVER_LIST="name1;name2;..."
     // before you program starts.
-    ILP::Solver s = ILP::Solver(ILP::newSolverDynamic({"LPSolve","CPLEX","SCIP","Gurobi"}));
+    ILP::Solver s = ILP::Solver(ILP::newSolverDynamic({"CPLEX","SCIP","LPSolve"})); //"Gurobi",
 
     // disable solver output
     s.quiet=true;
@@ -40,7 +40,7 @@ int main()
     ILP::Variable y = ILP::newRealVariable("y",12.5,26);
 
     // Set the Objective
-    s.setObjective(ILP::maximize(x+5));
+    s.setObjective(ILP::maximize(x-y));
 
     // add the Constraints
     s << (x+y<=31) << (5<=x<=30);

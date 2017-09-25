@@ -7,6 +7,7 @@
 #include <vector>
 #include <utility>
 #include <iostream>
+#include <string>
 
 namespace ILP
 {
@@ -17,7 +18,7 @@ namespace ILP
   SCIP_RETCODE scalp_ret_code = F;\
   if(scalp_ret_code!=SCIP_OKAY)\
   {\
-    throw ILP::Exception("SCIP-Error: "+ scalp_ret_code);\
+    throw ILP::Exception(std::string("SCIP-Error: ") + std::to_string(scalp_ret_code));\
   }\
 }
 

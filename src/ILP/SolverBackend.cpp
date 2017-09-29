@@ -16,7 +16,7 @@ bool ILP::SolverBackend::addVariables(ILP::VariableSet vs)
   {
     if(!addVariable(v))
     {
-      throw ILP::Exception("Scalp: Can't add Variable \"" + v->name + "\" to the backend.");
+      throw ILP::Exception("Scalp: Can't add Variable \"" + v->getName() + "\" to the backend.");
       return false;
     }
   }

@@ -24,7 +24,7 @@ ILP::SolverCPLEX::SolverCPLEX()
 
 static IloNumVar::Type mapVariableType(const ILP::Variable& v)
 {
-  switch(v->usedType)
+  switch(v->getType())
   {
     case ILP::VariableType::BINARY: return IloNumVar::Bool;
     case ILP::VariableType::INTEGER: return IloNumVar::Int;
@@ -38,7 +38,7 @@ bool ILP::SolverCPLEX::addVariable(const ILP::Variable& v)
 {
   bool r=false;
   try{
-    auto p = variables.emplace(v,IloNumVar(env,v->lowerRange, v->upperRange,mapVariableType(v),v->name.c_str()));
+    auto p = variables.emplace(v,IloNumVar(env,v->getLowerBound(), v->getUpperBound(),mapVariableType(v),v->getName().c_str()));
     r=p.second;
   }
   catch(IloException& e)
@@ -58,7 +58,7 @@ IloExpr ILP::SolverCPLEX::mapTerm(const ILP::Term& t)
   return term;
 }
 
-IloConstraint ILP::SolverCPLEX::createRange(double d, ILP::relation rel,const ILP::Term& t)
+IloRange ILP::SolverCPLEX::createRange(double d, ILP::relation rel,const ILP::Term& t)
 {
   switch(rel)
   {
@@ -70,7 +70,7 @@ IloConstraint ILP::SolverCPLEX::createRange(double d, ILP::relation rel,const IL
       return d==mapTerm(t);
   }
 }
-IloConstraint ILP::SolverCPLEX::createRange(const ILP::Term& t, ILP::relation rel,double d)
+IloRange ILP::SolverCPLEX::createRange(const ILP::Term& t, ILP::relation rel,double d)
 {
   switch(rel)
   {
@@ -83,7 +83,7 @@ IloConstraint ILP::SolverCPLEX::createRange(const ILP::Term& t, ILP::relation re
   }
 }
 
-IloConstraint ILP::SolverCPLEX::createConstraint3(const ILP::Constraint& c)
+IloRange ILP::SolverCPLEX::createConstraint3(const ILP::Constraint& c)
 {
   if(c.lrel==ILP::relation::LESS_EQ_THAN && c.rrel==ILP::relation::LESS_EQ_THAN)
   { // a <= x <= b
@@ -95,9 +95,9 @@ IloConstraint ILP::SolverCPLEX::createConstraint3(const ILP::Constraint& c)
   }
 }
 
-IloConstraint ILP::SolverCPLEX::convertConstraint(const ILP::Constraint &c)
+IloRange ILP::SolverCPLEX::convertConstraint(const ILP::Constraint &c)
 {
-  IloConstraint constr;
+  IloRange constr;
   switch(c.ctype)
   {
     case ILP::Constraint::type::C3:
@@ -124,13 +124,13 @@ bool ILP::SolverCPLEX::addConstraints(std::list<ILP::Constraint> cons)
     IloConstraintArray cc(env);
     for(const ILP::Constraint &c:cons)
     {
-      if(c.indicator==nullptr)
+      if(c.indicator!=nullptr)
       {
-        cc.add(convertConstraint(c));
+        cc.add(IloIfThen(env,convertConstraint(*c.indicator),convertConstraint(c)));
       }
       else
       {
-        cc.add(IloIfThen(env,convertConstraint(*c.indicator),convertConstraint(c)));
+        cc.add(convertConstraint(c));
       }
     }
     model.add(cc);
@@ -164,13 +164,13 @@ bool ILP::SolverCPLEX::setObjective(ILP::Objective o)
   try
   {
     IloExpr obj(env);
-    for(auto&p:o.usedTerm.sum)
+    for(auto&p:o.getTerm().sum)
     {
       obj += variables.at(p.first) * p.second;
     }
-    objectiveOffset=o.usedTerm.constant;
+    objectiveOffset=o.getTerm().constant;
 
-    if(o.usedType==ILP::Objective::type::MINIMIZE)
+    if(o.getType()==ILP::Objective::type::MINIMIZE)
     {
       model.add(IloMinimize(env, obj));
     }

@@ -7,7 +7,6 @@
 #include <vector>
 #include <utility>
 #include <iostream>
-#include <string>
 
 namespace ILP
 {
@@ -18,7 +17,7 @@ namespace ILP
   SCIP_RETCODE scalp_ret_code = F;\
   if(scalp_ret_code!=SCIP_OKAY)\
   {\
-    throw ILP::Exception(std::string("SCIP-Error: ") + std::to_string(scalp_ret_code));\
+    throw ILP::Exception("SCIP-Error: "+ scalp_ret_code);\
   }\
 }
 
@@ -62,9 +61,9 @@ static SCIP_VARTYPE mapVariableType(ILP::VariableType t)
 bool ILP::SolverSCIP::addVariable(const ILP::Variable& v)
 {
   SCIP_VAR* var;
-  SCALP_SCIP_EXC(SCIPcreateVarBasic(scip,&var,v->name.c_str(),
-        v->lowerRange, v->upperRange,
-        0.0, mapVariableType(v->usedType)));
+  SCALP_SCIP_EXC(SCIPcreateVarBasic(scip,&var,v->getName().c_str(),
+        v->getLowerBound(), v->getUpperBound(),
+        0.0, mapVariableType(v->getType())));
   SCALP_SCIP_EXC(SCIPaddVar(scip, var));
 
   return variables.emplace(v,var).second; // inserted correctly?
@@ -111,7 +110,7 @@ bool ILP::SolverSCIP::addConstraint(const ILP::Constraint& c)
 
 bool ILP::SolverSCIP::setObjective(ILP::Objective o)
 {
-  if(o.usedType==ILP::Objective::type::MAXIMIZE)
+  if(o.getType()==ILP::Objective::type::MAXIMIZE)
   {
     SCALP_SCIP_EXC(SCIPsetObjsense(scip, SCIP_OBJSENSE_MAXIMIZE));
   }
@@ -120,12 +119,12 @@ bool ILP::SolverSCIP::setObjective(ILP::Objective o)
     SCALP_SCIP_EXC(SCIPsetObjsense(scip, SCIP_OBJSENSE_MINIMIZE));
   }
 
-  for(auto& p:o.usedTerm.sum)
+  for(auto& p:o.getTerm().sum)
   {
     SCALP_SCIP_EXC(SCIPchgVarObj(scip,variables.at(p.first),p.second));
   }
 
-  objectiveOffset=o.usedTerm.constant;
+  objectiveOffset=o.getTerm().constant;
 
   return true;
 }

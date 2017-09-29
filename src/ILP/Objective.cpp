@@ -20,10 +20,19 @@ Objective ILP::maximize(Term term)
 
 std::ostream& ILP::operator<<(std::ostream& os, const ILP::Objective& o)
 {
-  if(o.usedType==ILP::Objective::type::MAXIMIZE)
-    os << std::string("max(") << o.usedTerm << std::string(")");
+  if(o.getType()==ILP::Objective::type::MAXIMIZE)
+    os << std::string("max(") << o.getTerm() << std::string(")");
   else
-    os << std::string("min(") << o.usedTerm << std::string(")");
+    os << std::string("min(") << o.getTerm() << std::string(")");
 
   return os;
+}
+
+ILP::Objective::type ILP::Objective::getType() const
+{
+  return this->usedType;
+}
+const ILP::Term &ILP::Objective::getTerm() const
+{
+  return this->usedTerm;
 }

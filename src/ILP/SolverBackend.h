@@ -16,7 +16,9 @@ namespace ILP
   {
     public:
 
+      //####################
       // basic functions
+      //####################
       virtual bool addVariable(const ILP::Variable& v);
       virtual bool addVariables(ILP::VariableSet vs); // alternative to addVariable
       virtual bool addConstraint(const ILP::Constraint& con);

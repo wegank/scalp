@@ -48,11 +48,11 @@ namespace ILP
       bool presolving=false;
       unsigned int threads=0;
 
-      IloConstraint createRange(double d, ILP::relation rel,const ILP::Term& t);
-      IloConstraint createRange(const ILP::Term& t, ILP::relation rel,double d);
-      IloConstraint createConstraint3(const ILP::Constraint& c);
+      IloRange createRange(double d, ILP::relation rel,const ILP::Term& t);
+      IloRange createRange(const ILP::Term& t, ILP::relation rel,double d);
+      IloRange createConstraint3(const ILP::Constraint& c);
       IloExpr mapTerm(const ILP::Term& t);
-      IloConstraint convertConstraint(const ILP::Constraint &c);
+      IloRange convertConstraint(const ILP::Constraint &c);
 
       double relMIPGap=-1;
       double absMIPGap=-1;

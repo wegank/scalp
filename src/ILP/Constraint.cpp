@@ -16,7 +16,7 @@ static bool isIndicator(const ILP::Constraint& c)
   return c.ctype==ILP::Constraint::type::CEQ // ... == ...
     and c.lbound==c.ubound and (c.lbound == 0 or c.lbound == 1) // ... == 1 or 0
     and (c.term.sum.size()==1 and c.term.constant==0) // x == [1,0]
-    and c.term.sum.begin()->first->usedType==ILP::VariableType::BINARY
+    and c.term.sum.begin()->first->getType()==ILP::VariableType::BINARY
     and c.term.sum.begin()->second==1; // 1*x(binary) == 1 or 0
 }
 

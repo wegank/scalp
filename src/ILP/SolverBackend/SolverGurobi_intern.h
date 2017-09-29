@@ -30,7 +30,7 @@ namespace ILP
 
     private:
       // map some values
-      char variableType(ILP::VariableBase::type t);
+      char variableType(ILP::VariableType t);
       GRBLinExpr mapTerm(ILP::Term t);
       double mapValue(double d);
 

@@ -12,36 +12,57 @@ namespace ILP
 {
 
   // For Users ILP::new*Variable() are the only functions of interest.
+  
+  // The type of the Variables
+  enum class VariableType
+  { BINARY
+  , INTEGER
+  , REAL
+  };
 
   class VariableBase
   {
     public:
+      // TODO: remove (for backward-compatibility)
+      using type = ILP::VariableType;
 
-      // The type of the Variable
-      enum class type
-      { BINARY
-      , INTEGER
-      , REAL
-      };
+      //####################
+      // Getter
+      //####################
+      
+      VariableType getType() const;
+      double getUpperBound() const;
+      double getLowerBound() const;
+      std::string getName() const;
 
+      //####################
+      // Setter
+      //####################
+
+      void unsafeSetType(VariableType t);
+      void unsafeSetUpperBound(double d);
+      void unsafeSetLowerBound(double d);
+      void unsafeSetName(std::string s);
+
+      //####################
+      // Construction (use the smartconstructors below)
+      //####################
       VariableBase(std::string n,double a,double b,type t=type::INTEGER);
 
+    private:
+      type usedType;
       std::string name;
-      
       double lowerRange;
       double upperRange;
-
-      type usedType;
-
-    private:
   };
 
   using Variable = std::shared_ptr<VariableBase>;
-  using VariableType = VariableBase::type;
 
-  // Smartconstructors for Variables
+  //####################
+  // Smartconstructors
+  //####################
   // Generic:
-  Variable newVariable(std::string n,double a, double b,VariableBase::type t=VariableType::INTEGER);
+  Variable newVariable(std::string n,double a, double b,VariableType t=VariableType::INTEGER);
   // Specialzations:
   Variable newIntegerVariable(std::string n,double a, double b);
   Variable newIntegerVariable(std::string n); // free variable
@@ -50,13 +71,14 @@ namespace ILP
   Variable newBinaryVariable(std::string n,double a, double b);
   Variable newBinaryVariable(std::string n);
 
+
   struct variableComparator{
     bool operator()(Variable x,Variable y){
-      if(x->name==y->name && x.get()!=y.get())
+      if(x->getName()==y->getName() && x.get()!=y.get())
       { // name-collision
-        throw ILP::Exception("You defined multiple variables with the name: "+x->name);
+        throw ILP::Exception("You defined multiple variables with the name: "+x->getName());
       }
-      return x->name<y->name;
+      return x->getName()<y->getName();
     }
   };
   using VariableSet = std::set<Variable,variableComparator>;

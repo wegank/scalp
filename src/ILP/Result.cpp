@@ -49,7 +49,7 @@ std::string ILP::Result::showSolutionVector(bool compact)
   ss << std::left;
   for(auto p:this->values)
   {
-    if((compact and p.second!=0) or (not compact)) ss << std::setw(compact?0:8) << p.first->name << " " << p.second << "\n"; 
+    if((compact and p.second!=0) or (not compact)) ss << std::setw(compact?0:8) << p.first->getName() << " " << p.second << "\n"; 
   }
 
   return ss.str();

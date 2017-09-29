@@ -36,9 +36,9 @@ bool ILP::SolverLPSolve::addVariable(const ILP::Variable& v)
   bool success=true;
   ++variableCounter;
   success = success && variables.emplace(v,variableCounter).second;
-  success = success && set_col_name(lp,variableCounter,const_cast<char*>(v->name.c_str()));
-  success = success && set_bounds(lp,variableCounter,v->lowerRange,v->upperRange);
-  switch (v->usedType)
+  success = success && set_col_name(lp,variableCounter,const_cast<char*>(v->getName().c_str()));
+  success = success && set_bounds(lp,variableCounter,v->getLowerBound(),v->getUpperBound());
+  switch (v->getType())
   {
     case ILP::VariableType::INTEGER:
       success = success && set_int(lp,variableCounter,true);
@@ -133,20 +133,20 @@ bool ILP::SolverLPSolve::addConstraint(const ILP::Constraint& cons)
 
 bool ILP::SolverLPSolve::setObjective(ILP::Objective o)
 {
-  set_sense(lp,o.usedType==ILP::Objective::type::MAXIMIZE);
+  set_sense(lp,o.getType()==ILP::Objective::type::MAXIMIZE);
 
   std::vector<double> coeffs;
   std::vector<int> indices;
-  coeffs.reserve(o.usedTerm.sum.size());
-  indices.reserve(o.usedTerm.sum.size());
+  coeffs.reserve(o.getTerm().sum.size());
+  indices.reserve(o.getTerm().sum.size());
 
-  for(auto&p:o.usedTerm.sum)
+  for(auto&p:o.getTerm().sum)
   {
     coeffs.push_back(p.second);
     indices.push_back(variables.at(p.first));
   }
 
-  objectiveOffset=o.usedTerm.constant;
+  objectiveOffset=o.getTerm().constant;
 
   set_obj_fnex(lp,coeffs.size(),coeffs.data(),indices.data());
 

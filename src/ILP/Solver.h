@@ -14,7 +14,7 @@
 namespace ILP
 {
 
-  // a representation of Infinity
+  // a representation of infinity (used for variable-ranges only)
   double INF();
 
   class Solver
@@ -74,7 +74,7 @@ namespace ILP
       // Backend
       //####################
 
-      // set a new backend
+      // set a new backend (The old one is removed automatically)
       void setBackend(SolverBackend *b);
 
       std::string getBackendName() const;

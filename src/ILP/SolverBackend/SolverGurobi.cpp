@@ -23,13 +23,13 @@ ILP::SolverGurobi::SolverGurobi()
   name="Gurobi";
 }
 
-char ILP::SolverGurobi::variableType(ILP::VariableBase::type t)
+char ILP::SolverGurobi::variableType(ILP::VariableType t)
 {
   switch (t)
   {
-    case ILP::VariableBase::type::INTEGER: return GRB_INTEGER;
-    case ILP::VariableBase::type::REAL:    return GRB_CONTINUOUS;
-    case ILP::VariableBase::type::BINARY:  return GRB_BINARY;
+    case ILP::VariableType::INTEGER: return GRB_INTEGER;
+    case ILP::VariableType::REAL:    return GRB_CONTINUOUS;
+    case ILP::VariableType::BINARY:  return GRB_BINARY;
     default: return GRB_INTEGER;
   }
 }
@@ -39,11 +39,11 @@ bool ILP::SolverGurobi::addVariable(const ILP::Variable& v)
   GRBVar grbv;
   try
   {
-    grbv = model.addVar(mapValue(v->lowerRange),mapValue(v->upperRange),0,variableType(v->usedType),v->name);
+    grbv = model.addVar(mapValue(v->getLowerBound()),mapValue(v->getUpperBound()),0,variableType(v->getType()),v->getName());
   }
   catch(GRBException e)
   {
-    throw ILP::Exception("Error while adding Variable \""+ v->name + "\": " + e.getMessage());
+    throw ILP::Exception("Error while adding Variable \""+ v->getName() + "\": " + e.getMessage());
   }
   variables.emplace(v,grbv);
 
@@ -121,12 +121,12 @@ bool ILP::SolverGurobi::addConstraint(const ILP::Constraint& cons)
 
 bool ILP::SolverGurobi::setObjective(ILP::Objective o)
 {
-  int type = o.usedType==ILP::Objective::type::MAXIMIZE ? GRB_MAXIMIZE : GRB_MINIMIZE;
+  int type = o.getType()==ILP::Objective::type::MAXIMIZE ? GRB_MAXIMIZE : GRB_MINIMIZE;
   try
   {
-    GRBLinExpr t = mapTerm(o.usedTerm);
-    model.setObjective(t-o.usedTerm.constant,type);
-    objectiveOffset = o.usedTerm.constant;
+    GRBLinExpr t = mapTerm(o.getTerm());
+    model.setObjective(t-o.getTerm().constant,type);
+    objectiveOffset = o.getTerm().constant;
   }
   catch(GRBException e)
   {
@@ -188,7 +188,7 @@ GRBLinExpr ILP::SolverGurobi::mapTerm(ILP::Term t)
     }
     catch(std::out_of_range& e)
     {
-      throw ILP::Exception("Gurobi trys to access a non-existing variable, this should never happen ("+p.first->name+")");
+      throw ILP::Exception("Gurobi trys to access a non-existing variable, this should never happen ("+p.first->getName()+")");
     }
     coeffs[i] = p.second;
     ++i;

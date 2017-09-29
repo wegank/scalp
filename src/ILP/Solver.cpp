@@ -31,6 +31,7 @@ ILP::Solver::~Solver()
 
 void ILP::Solver::setBackend(SolverBackend *b)
 {
+  if(this->back!=nullptr) delete this->back;
   this->back=b;
 }
 
@@ -101,7 +102,7 @@ static std::string showTermLP(ILP::Term t)
       
     if(!first) s << " ";
 
-    s << p.first->name;
+    s << p.first->getName();
     first=false;
   }
 
@@ -120,7 +121,7 @@ static std::string showTermLP(ILP::Term t)
 static std::string showObjectiveLP(ILP::Objective o)
 {
   std::stringstream s;
-  if(o.usedType==ILP::Objective::type::MAXIMIZE)
+  if(o.getType()==ILP::Objective::type::MAXIMIZE)
   {
     s<<"MAXIMIZE";
   }
@@ -128,7 +129,7 @@ static std::string showObjectiveLP(ILP::Objective o)
   {
     s<<"MINIMIZE";
   }
-  s << "\n  " << showTermLP(o.usedTerm) << "\n";
+  s << "\n  " << showTermLP(o.getTerm()) << "\n";
 
   return s.str();
 }
@@ -217,10 +218,10 @@ static std::string variableTypesLP(ILP::VariableSet &vs)
   std::string general="GENERAL\n";
   for(const ILP::Variable v:vs)
   {
-    if(v->usedType==ILP::VariableType::INTEGER)
-      general+="  "+v->name+"\n";
-    else if(v->usedType==ILP::VariableType::BINARY)
-      binary+="  "+v->name+"\n";
+    if(v->getType()==ILP::VariableType::INTEGER)
+      general+="  "+v->getName()+"\n";
+    else if(v->getType()==ILP::VariableType::BINARY)
+      binary+="  "+v->getName()+"\n";
 
   }
   return binary+general;
@@ -231,8 +232,12 @@ static std::string boundsLP(ILP::VariableSet &vs)
   std::stringstream s;
   for(const auto &v:vs)
   {
+    auto lb   = v->getLowerBound();
+    auto ub   = v->getUpperBound();
+    auto name = v->getName();
+
     // default
-    if(v->lowerRange==0 && v->upperRange==ILP::INF())
+    if(lb==0 and ub==ILP::INF())
     {
       continue;
     }
@@ -241,28 +246,27 @@ static std::string boundsLP(ILP::VariableSet &vs)
     s << "  ";
 
     // free
-    if(v->lowerRange==-ILP::INF() && v->upperRange==ILP::INF())
+    if(lb==-ILP::INF() and ub==ILP::INF())
     {
-      s << v->name << " FREE";
+      s << name << " FREE";
     }
 
     // x <= b
-    else if(v->lowerRange==0 && v->upperRange!=ILP::INF())
+    else if(lb==0 and ub!=ILP::INF())
     {
-      s << v->name << " <= " << v->upperRange;
+      s << name << " <= " << ub;
     }
 
     // a <= x
-    else if(v->lowerRange!=0 && v->upperRange==ILP::INF())
+    else if(lb!=0 && ub==ILP::INF())
     {
-      s << v->lowerRange << " <= " << v->name;
+      s << lb << " <= " << name;
     }
 
     // a <= x <= b
-    //if(v->lowerRange!=0 && v->upperRange!=ILP::INF())
     else
     {
-      s << v->lowerRange << " <= " << v->name << " <= " << v->upperRange;
+      s << lb << " <= " << name << " <= " << ub;
     }
 
     // end of entry
@@ -360,7 +364,7 @@ ILP::status ILP::Solver::solve()
   // round integer values
   for(auto&p:this->back->res.values)
   {
-    if(p.first->usedType==ILP::VariableType::INTEGER or p.first->usedType==ILP::VariableType::BINARY)
+    if(p.first->getType()==ILP::VariableType::INTEGER or p.first->getType()==ILP::VariableType::BINARY)
     {
       p.second = std::lround(p.second);
     }
@@ -386,7 +390,7 @@ ILP::VariableSet ILP::Solver::extractVariables(std::list<Constraint> cs,Objectiv
 {
   ILP::VariableSet vs;
 
-  ILP::VariableSet ovs = o.usedTerm.extractVariables();
+  ILP::VariableSet ovs = o.getTerm().extractVariables();
   vs.insert(ovs.begin(),ovs.end());
 
   for(ILP::Constraint& c:cs)

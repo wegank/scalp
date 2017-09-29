@@ -164,7 +164,7 @@ std::ostream& ILP::operator<<(std::ostream& os, const ILP::Term &t)
 {
   for(auto &p:t.sum)
   {
-    os << p.first->name << "*" << p.second << " + ";
+    os << p.first->getName() << "*" << p.second << " + ";
   }
 
   //if(t.constant!=0)

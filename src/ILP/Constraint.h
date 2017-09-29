@@ -49,7 +49,7 @@ namespace ILP
       Constraint(){};
 
       // copy-Constructor
-      Constraint(const Constraint& c) = default;
+      Constraint(const Constraint&) = default;
 
       ~Constraint();
 

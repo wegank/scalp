@@ -58,7 +58,7 @@ IloExpr ILP::SolverCPLEX::mapTerm(const ILP::Term& t)
   return term;
 }
 
-IloRange ILP::SolverCPLEX::createRange(double d, ILP::relation rel,const ILP::Term& t)
+IloConstraint ILP::SolverCPLEX::createRange(double d, ILP::relation rel,const ILP::Term& t)
 {
   switch(rel)
   {
@@ -70,7 +70,7 @@ IloRange ILP::SolverCPLEX::createRange(double d, ILP::relation rel,const ILP::Te
       return d==mapTerm(t);
   }
 }
-IloRange ILP::SolverCPLEX::createRange(const ILP::Term& t, ILP::relation rel,double d)
+IloConstraint ILP::SolverCPLEX::createRange(const ILP::Term& t, ILP::relation rel,double d)
 {
   switch(rel)
   {
@@ -83,7 +83,7 @@ IloRange ILP::SolverCPLEX::createRange(const ILP::Term& t, ILP::relation rel,dou
   }
 }
 
-IloRange ILP::SolverCPLEX::createConstraint3(const ILP::Constraint& c)
+IloConstraint ILP::SolverCPLEX::createConstraint3(const ILP::Constraint& c)
 {
   if(c.lrel==ILP::relation::LESS_EQ_THAN && c.rrel==ILP::relation::LESS_EQ_THAN)
   { // a <= x <= b
@@ -95,9 +95,9 @@ IloRange ILP::SolverCPLEX::createConstraint3(const ILP::Constraint& c)
   }
 }
 
-IloRange ILP::SolverCPLEX::convertConstraint(const ILP::Constraint &c)
+IloConstraint ILP::SolverCPLEX::convertConstraint(const ILP::Constraint &c)
 {
-  IloRange constr;
+  IloConstraint constr;
   switch(c.ctype)
   {
     case ILP::Constraint::type::C3:
@@ -124,13 +124,13 @@ bool ILP::SolverCPLEX::addConstraints(std::list<ILP::Constraint> cons)
     IloConstraintArray cc(env);
     for(const ILP::Constraint &c:cons)
     {
-      if(c.indicator!=nullptr)
+      if(c.indicator==nullptr)
       {
-        cc.add(IloIfThen(env,convertConstraint(*c.indicator),convertConstraint(c)));
+        cc.add(convertConstraint(c));
       }
       else
       {
-        cc.add(convertConstraint(c));
+        cc.add(IloIfThen(env,convertConstraint(*c.indicator),convertConstraint(c)));
       }
     }
     model.add(cc);

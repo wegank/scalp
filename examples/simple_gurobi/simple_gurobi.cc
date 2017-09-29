@@ -1,33 +1,33 @@
 
 #include <iostream>
 
-#include <ILP/Solver.h>
-#include <ILP/Exception.h>    // ILP::Exception
-#include <ILP/SolverGurobi.h> // ILP::newSolverGurobi
+#include <ScaLP/Solver.h>
+#include <ScaLP/Exception.h>    // ScaLP::Exception
+#include <ScaLP/SolverGurobi.h> // ScaLP::newSolverGurobi
 
 int main()
 {
   try
   {
-    ILP::Solver s = ILP::Solver(ILP::newSolverGurobi());
+    ScaLP::Solver s = ScaLP::Solver(ScaLP::newSolverGurobi());
     s.quiet=true; // disable solver output
 
     // declare the Variables
-    ILP::Variable x = ILP::newIntegerVariable("x"); // x is free
-    // ILP::Variable x = ILP::newIntegerVariable("x",-ILP::INF(),ILP::INF()); // alternate
-    ILP::Variable y = ILP::newRealVariable("y",12.5,26);
+    ScaLP::Variable x = ScaLP::newIntegerVariable("x"); // x is free
+    // ScaLP::Variable x = ScaLP::newIntegerVariable("x",-ScaLP::INF(),ScaLP::INF()); // alternate
+    ScaLP::Variable y = ScaLP::newRealVariable("y",12.5,26);
 
     // Set the Objective
-    ILP::Term t = x;
-    ILP::Objective o = ILP::maximize(t);
+    ScaLP::Term t = x;
+    ScaLP::Objective o = ScaLP::maximize(t);
     s.setObjective(o); // alternate: s<<o;
 
     // print objective
     std::cout << "Objective: " << o << std::endl;
 
     // add the Constraints
-    ILP::Constraint c1 = x+y<=30;
-    ILP::Constraint c2 = 5<=x<=30;
+    ScaLP::Constraint c1 = x+y<=30;
+    ScaLP::Constraint c2 = 5<=x<=30;
     s<<c1<<c2;
     //s.addConstraint(c1); // alternate
     
@@ -36,23 +36,23 @@ int main()
     s.writeLP("simple_gurobi.lp");
 
     // Try to solve
-    ILP::status stat = s.solve();
+    ScaLP::status stat = s.solve();
 
     // print results
     std::cout << "The result is " << stat << std::endl;
-    if(stat==ILP::status::OPTIMAL || stat==ILP::status::FEASIBLE)
+    if(stat==ScaLP::status::OPTIMAL || stat==ScaLP::status::FEASIBLE)
     {
-      ILP::Result r = s.getResult();
+      ScaLP::Result r = s.getResult();
       std::cout << r << std::endl;
 
-      //for(std::pair<const ILP::Variable,double> &p:r.values)
+      //for(std::pair<const ScaLP::Variable,double> &p:r.values)
       //{
       //  std::cout << p.first << "=" << p.second << std::endl;
       //}
     }
 
   }
-  catch(ILP::Exception &e)
+  catch(ScaLP::Exception &e)
   {
     std::cerr << "Error: " << e << std::endl;
   }

@@ -1,18 +1,18 @@
 
-#include <ILP/Term.h>
-#include <ILP/Variable.h>
-#include <ILP/Solver.h>
+#include <ScaLP/Term.h>
+#include <ScaLP/Variable.h>
+#include <ScaLP/Solver.h>
 
 
 int main(int argc, char** argv)
 {
-  ILP::Variable x = ILP::newIntegerVariable("x");
-  ILP::Variable y = ILP::newIntegerVariable("y");
-  ILP::Variable z = ILP::newIntegerVariable("z");
+  ScaLP::Variable x = ScaLP::newIntegerVariable("x");
+  ScaLP::Variable y = ScaLP::newIntegerVariable("y");
+  ScaLP::Variable z = ScaLP::newIntegerVariable("z");
 
   // TODO: add more
-  ILP::Term t = 1*x-x+2*x-(2*x-x)+y+z;
-  ILP::Term r = x+y+z;
+  ScaLP::Term t = 1*x-x+2*x-(2*x-x)+y+z;
+  ScaLP::Term r = x+y+z;
 
   if(t==r)
     return 0;

@@ -1,7 +1,7 @@
 
-# remove "ILP-"-prefix
+# remove "ScaLP-"-prefix
 foreach(I IN LISTS BACKEND_TARGETS)
-  string(REPLACE "ILP-" "" NI "${I}")
+  string(REPLACE "ScaLP-" "" NI "${I}")
   list(APPEND BACKENDS ${NI})
 endforeach()
 
@@ -15,7 +15,7 @@ foreach(I IN LISTS V)
   string(REGEX MATCH "([^/]*)\\.cpp$" T ${I})
   set(basename ${CMAKE_MATCH_1})
   add_executable(${basename} "${T}")
-  target_link_libraries(${basename} ILP ILP-Dynamic)
+  target_link_libraries(${basename} ScaLP ScaLP-Dynamic)
 
   # add the test(s)
   string(REGEX MATCH ".*(_ALL)$" ALL ${basename})

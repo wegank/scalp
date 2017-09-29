@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
-project (ILP)
+project (ScaLP)
 
 # Syntax errors are fatal
 cmake_policy(SET CMP0010 NEW)
@@ -140,25 +140,25 @@ endif()
 
 # add main library
 
-set(ILP_HEADERS
-  src/ILP/Constraint.h
-  src/ILP/Exception.h
-  src/ILP/Objective.h
-  src/ILP/Result.h
-  src/ILP/Solver.h
-  src/ILP/SolverBackend.h
-  src/ILP/Term.h
-  src/ILP/Variable.h
+set(ScaLP_HEADERS
+  src/ScaLP/Constraint.h
+  src/ScaLP/Exception.h
+  src/ScaLP/Objective.h
+  src/ScaLP/Result.h
+  src/ScaLP/Solver.h
+  src/ScaLP/SolverBackend.h
+  src/ScaLP/Term.h
+  src/ScaLP/Variable.h
   )
-add_library(ILP ${LIBRARY_TYPE}
-  src/ILP/Constraint.cpp
-  src/ILP/Exception.cpp
-  src/ILP/Objective.cpp
-  src/ILP/Result.cpp
-  src/ILP/Solver.cpp
-  src/ILP/SolverBackend.cpp
-  src/ILP/Term.cpp
-  src/ILP/Variable.cpp
+add_library(ScaLP ${LIBRARY_TYPE}
+  src/ScaLP/Constraint.cpp
+  src/ScaLP/Exception.cpp
+  src/ScaLP/Objective.cpp
+  src/ScaLP/Result.cpp
+  src/ScaLP/Solver.cpp
+  src/ScaLP/SolverBackend.cpp
+  src/ScaLP/Term.cpp
+  src/ScaLP/Variable.cpp
 )
 
 # add backend-libraries
@@ -168,46 +168,46 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 if(USE_CPLEX)
   include_directories(${CPLEX_INCLUDE_DIRS})
-  add_library(ILP-CPLEX ${LIBRARY_TYPE}
-    src/ILP/SolverBackend/SolverCPLEX.cpp)
-  target_link_libraries(ILP-CPLEX ${CPLEX_LIBRARIES} ILP)
-  list(APPEND BACKEND_TARGETS ILP-CPLEX)
-  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverCPLEX.h)
+  add_library(ScaLP-CPLEX ${LIBRARY_TYPE}
+    src/ScaLP/SolverBackend/SolverCPLEX.cpp)
+  target_link_libraries(ScaLP-CPLEX ${CPLEX_LIBRARIES} ScaLP)
+  list(APPEND BACKEND_TARGETS ScaLP-CPLEX)
+  list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverCPLEX.h)
 endif()
 
 if(USE_GUROBI)
   include_directories(${GUROBI_INCLUDE_DIRS})
-  add_library(ILP-Gurobi ${LIBRARY_TYPE}
-    src/ILP/SolverBackend/SolverGurobi.cpp)
-  target_link_libraries(ILP-Gurobi ${GUROBI_LIBRARIES} ILP)
-  list(APPEND BACKEND_TARGETS ILP-Gurobi)
-  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverGurobi.h)
+  add_library(ScaLP-Gurobi ${LIBRARY_TYPE}
+    src/ScaLP/SolverBackend/SolverGurobi.cpp)
+  target_link_libraries(ScaLP-Gurobi ${GUROBI_LIBRARIES} ScaLP)
+  list(APPEND BACKEND_TARGETS ScaLP-Gurobi)
+  list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverGurobi.h)
 endif()
 
 if(USE_SCIP)
   include_directories(${SCIP_INCLUDE_DIRS})
-  add_library(ILP-SCIP ${LIBRARY_TYPE}
-    src/ILP/SolverBackend/SolverSCIP.cpp)
-  target_link_libraries(ILP-SCIP ${SCIP_LIBRARIES} ILP)
-  list(APPEND BACKEND_TARGETS ILP-SCIP)
-  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverSCIP.h)
+  add_library(ScaLP-SCIP ${LIBRARY_TYPE}
+    src/ScaLP/SolverBackend/SolverSCIP.cpp)
+  target_link_libraries(ScaLP-SCIP ${SCIP_LIBRARIES} ScaLP)
+  list(APPEND BACKEND_TARGETS ScaLP-SCIP)
+  list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverSCIP.h)
 endif()
 
 if(USE_LPSOLVE)
   include_directories(${LPSOLVE_INCLUDE_DIRS})
-  add_library(ILP-LPSolve ${LIBRARY_TYPE}
-    src/ILP/SolverBackend/SolverLPSolve.cpp)
-  target_link_libraries(ILP-LPSolve ${LPSOLVE_LIBRARIES} ILP)
-  list(APPEND BACKEND_TARGETS ILP-LPSolve)
-  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverLPSolve.h)
+  add_library(ScaLP-LPSolve ${LIBRARY_TYPE}
+    src/ScaLP/SolverBackend/SolverLPSolve.cpp)
+  target_link_libraries(ScaLP-LPSolve ${LPSOLVE_LIBRARIES} ScaLP)
+  list(APPEND BACKEND_TARGETS ScaLP-LPSolve)
+  list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverLPSolve.h)
 endif()
 
 if(USE_DYNAMIC)
-  add_library(ILP-Dynamic ${LIBRARY_TYPE}
-    src/ILP/SolverBackend/SolverDynamic.cpp)
-  target_link_libraries(ILP-Dynamic dl ILP)
-  list(APPEND BACKEND_TARGETS ILP-Dynamic)
-  list(APPEND BACKEND_HEADERS src/ILP/SolverBackend/SolverDynamic.h)
+  add_library(ScaLP-Dynamic ${LIBRARY_TYPE}
+    src/ScaLP/SolverBackend/SolverDynamic.cpp)
+  target_link_libraries(ScaLP-Dynamic dl ScaLP)
+  list(APPEND BACKEND_TARGETS ScaLP-Dynamic)
+  list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverDynamic.h)
 endif()
 
 
@@ -216,7 +216,7 @@ if(BUILD_SCALP_EXECUTABLE)
   add_executable(scalp
     src/main.cpp
   )
-  target_link_libraries(scalp ILP ILP-Dynamic)
+  target_link_libraries(scalp ScaLP ScaLP-Dynamic)
   set_target_properties(scalp PROPERTIES INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib")
 endif()
 
@@ -230,10 +230,10 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR} CACHE PATH "local installation" FORCE)
 endif()
 
-install (TARGETS ILP ${BACKEND_TARGETS} scalp
+install (TARGETS ScaLP ${BACKEND_TARGETS} scalp
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
 #INCLUDES DESTINATION include)
-install (FILES ${ILP_HEADERS} ${BACKEND_HEADERS}
-  DESTINATION include/ILP)
+install (FILES ${ScaLP_HEADERS} ${BACKEND_HEADERS}
+  DESTINATION include/ScaLP)

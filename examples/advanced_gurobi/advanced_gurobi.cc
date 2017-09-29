@@ -1,9 +1,9 @@
 
 #include <iostream>
 
-#include <ILP/Solver.h>
-#include <ILP/Exception.h>    // ILP::Exception
-#include <ILP/SolverGurobi.h> // ILP::newSolverGurobi
+#include <ScaLP/Solver.h>
+#include <ScaLP/Exception.h>    // ScaLP::Exception
+#include <ScaLP/SolverGurobi.h> // ScaLP::newSolverGurobi
 
 // This program demonstrates some advanced (but sometimes overly complicated used) usage.
 //
@@ -32,32 +32,32 @@
 
 // MAXIMIZE
 //   x1 + x2 + 2 x3 + 4 x4
-ILP::Objective createObjective(ILP::VariableMap &vs)
+ScaLP::Objective createObjective(ScaLP::VariableMap &vs)
 {
   // x1
-  ILP::Term obj = V(x1);
+  ScaLP::Term obj = V(x1);
 
   // x1 + x2
   obj+= V(x2);
 
   // 2 (x3 + x4)
-  ILP::Term tmp = 2 * (V(x3) + V(x4));
+  ScaLP::Term tmp = 2 * (V(x3) + V(x4));
 
   // (x1 + x2) + [ (2 x3 + 2 x4) + (2 x4) ]
   obj+= tmp + 2*V(x4);
 
   // max (x1 + x2 + 2 x3 + 4 x4)
-  return ILP::maximize(obj);
+  return ScaLP::maximize(obj);
 }
 
 // SUBJECT TO
 //   x1 + x2 + 2*x3 <= 50
 //   x1 + x3 + x4 <= 50
 //   x1 + x2 + x3 <= 50
-std::list<ILP::Constraint> createConstraints(ILP::VariableMap &vs)
+std::list<ScaLP::Constraint> createConstraints(ScaLP::VariableMap &vs)
 {
-  std::list<ILP::Constraint> ls;
-  ILP::Term base = V(x1) + V(x2) + V(x3) + V(x4);
+  std::list<ScaLP::Constraint> ls;
+  ScaLP::Term base = V(x1) + V(x2) + V(x3) + V(x4);
 
   ls.push_back(base - V(x4) + V(x3) <= 50);
   ls.push_back(base - V(x2) <= 50);
@@ -70,39 +70,39 @@ int main()
 {
   try
   {
-    ILP::Solver s = ILP::Solver(ILP::newSolverGurobi());
+    ScaLP::Solver s = ScaLP::Solver(ScaLP::newSolverGurobi());
     s.quiet=true; // disable solver output
 
     // create a bunch of the Variables
-    ILP::VariableMap vs = 
-    { { "x1", ILP::newIntegerVariable("x1",10,90) }
-    , { "x2", ILP::newIntegerVariable("x2",0,ILP::INF()) }
-    , { "x3", ILP::newIntegerVariable("x3",0,ILP::INF()) }
-    , { "x4", ILP::newIntegerVariable("x4",0,ILP::INF()) }
+    ScaLP::VariableMap vs = 
+    { { "x1", ScaLP::newIntegerVariable("x1",10,90) }
+    , { "x2", ScaLP::newIntegerVariable("x2",0,ScaLP::INF()) }
+    , { "x3", ScaLP::newIntegerVariable("x3",0,ScaLP::INF()) }
+    , { "x4", ScaLP::newIntegerVariable("x4",0,ScaLP::INF()) }
     };
 
     // Set the Objective
     s.setObjective(createObjective(vs));
 
     // add the Constraints
-    for(ILP::Constraint c:createConstraints(vs))
+    for(ScaLP::Constraint c:createConstraints(vs))
       s << c;
 
     std::cout << s.showLP() << std::endl;
 
     // Try to solve
-    ILP::status stat = s.solve();
+    ScaLP::status stat = s.solve();
 
     // print results
     std::cout << "The result is " << stat << std::endl;
-    if(stat==ILP::status::OPTIMAL || stat==ILP::status::FEASIBLE)
+    if(stat==ScaLP::status::OPTIMAL || stat==ScaLP::status::FEASIBLE)
     {
-      ILP::Result r = s.getResult();
+      ScaLP::Result r = s.getResult();
       std::cout << r << std::endl;
     }
 
   }
-  catch(ILP::Exception &e)
+  catch(ScaLP::Exception &e)
   {
     std::cerr << "Error: " << e << std::endl;
   }

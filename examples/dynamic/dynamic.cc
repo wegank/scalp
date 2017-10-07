@@ -21,7 +21,7 @@ int main()
     // You can prepend additional solvers by defining the environment variable
     //   SCALP_SOLVER_LIST="name1;name2;..."
     // before you program starts.
-    ScaLP::Solver s = ScaLP::Solver(ScaLP::newSolverDynamic({"CPLEX","SCIP","LPSolve"})); //"Gurobi",
+    ScaLP::Solver s{"CPLEX","SCIP","LPSolve"};
 
     // disable solver output
     s.quiet=true;

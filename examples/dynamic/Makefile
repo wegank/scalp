@@ -8,7 +8,7 @@ CXX?=clang++
 all: build run
 
 build:
-	$(CXX) dynamic.cc -std=c++11 $(OTHER_FLAGS) -o dynamic -I$(ScaLP_INC_PATH) -L$(ScaLP_LIB_PATH) -lScaLP -lScaLP-Dynamic -Wl,-rpath,$(ScaLP_LIB_PATH)
+	$(CXX) dynamic.cc -std=c++11 $(OTHER_FLAGS) -o dynamic -I$(ScaLP_INC_PATH) -L$(ScaLP_LIB_PATH) -lScaLP -Wl,-rpath,$(ScaLP_LIB_PATH)
 
 run:
 	@echo -e ""

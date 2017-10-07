@@ -11,6 +11,12 @@
 #include <sstream>
 #include <iostream>
 
+#ifdef __APPLE__
+  #define LIBRARY_SUFFIX ".dylib"
+#else
+  #define LIBRARY_SUFFIX ".so"
+#endif
+
 static std::list<std::string> getEnvironment()
 {
   std::list<std::string> ls;
@@ -28,6 +34,7 @@ static std::list<std::string> getEnvironment()
 
   return ls;
 }
+
 
 // wrapper-class to manage the library memory
 namespace ScaLP
@@ -50,7 +57,7 @@ class SolverDynamic : public SolverBackend
       if(name.empty()) continue;
 
       dlerror(); // free error message
-      handle = dlopen(("libScaLP-"+name+".so").c_str(),RTLD_NOW);
+      handle = dlopen(("libScaLP-"+name+LIBRARY_SUFFIX).c_str(),RTLD_NOW);
       
       // could not load
       if(handle==nullptr)

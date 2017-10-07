@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include <initializer_list>
 #include <string>
 
 #include <ScaLP/Constraint.h>
@@ -23,6 +24,8 @@ namespace ScaLP
 
       // The memory of the Pointer is managed by the Solver
       Solver(ScaLP::SolverBackend *b);
+      Solver(std::list<std::string> ls);
+      Solver(std::initializer_list<std::string> ls);
 
       //####################
       // general Parameters

@@ -1,4 +1,5 @@
-cmake_minimum_required (VERSION 2.8)
+#cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.0)
 project (ScaLP)
 
 # Syntax errors are fatal
@@ -26,7 +27,6 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInf
 
 # some options and values
 option(USE_GUROBI "Compile the Gurobi-Backend" OFF)
-option(USE_DYNAMIC "Compile the Dynamic-Backend (GNU/Linux-only at the moment)" ON)
 option(USE_SCIP "Compile the SCIP-Backend" OFF)
 option(USE_CPLEX "Compile the CPLEX-Backend" OFF)
 option(USE_LPSOLVE "Compile the LPSolve-Backend" OFF)
@@ -138,6 +138,10 @@ elseif(NOT USE_LPSOLVE)
   mark_as_advanced(FORCE LPSOLVE_LIBRARIES LPSOLVE_INCLUDE_DIRS)
 endif()
 
+
+set(CMAKE_INSTALL_RPATH "$ORIGIN")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 # add main library
 
 set(ScaLP_HEADERS
@@ -149,6 +153,7 @@ set(ScaLP_HEADERS
   src/ScaLP/SolverBackend.h
   src/ScaLP/Term.h
   src/ScaLP/Variable.h
+  src/ScaLP/SolverBackend/SolverDynamic.h
   )
 add_library(ScaLP ${LIBRARY_TYPE}
   src/ScaLP/Constraint.cpp
@@ -159,12 +164,12 @@ add_library(ScaLP ${LIBRARY_TYPE}
   src/ScaLP/SolverBackend.cpp
   src/ScaLP/Term.cpp
   src/ScaLP/Variable.cpp
+  src/ScaLP/SolverBackend/SolverDynamic.cpp
 )
+target_link_libraries(ScaLP dl)
+
 
 # add backend-libraries
-
-set(CMAKE_INSTALL_RPATH "$ORIGIN")
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 if(USE_CPLEX)
   include_directories(${CPLEX_INCLUDE_DIRS})
@@ -202,13 +207,14 @@ if(USE_LPSOLVE)
   list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverLPSolve.h)
 endif()
 
-if(USE_DYNAMIC)
-  add_library(ScaLP-Dynamic ${LIBRARY_TYPE}
-    src/ScaLP/SolverBackend/SolverDynamic.cpp)
-  target_link_libraries(ScaLP-Dynamic dl ScaLP)
-  list(APPEND BACKEND_TARGETS ScaLP-Dynamic)
-  list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverDynamic.h)
-endif()
+#if(USE_DYNAMIC)
+#  add_library(ScaLP-Dynamic ${LIBRARY_TYPE}
+#    src/ScaLP/SolverBackend/SolverDynamic.cpp)
+#  target_link_libraries(ScaLP-Dynamic dl ScaLP)
+#  list(APPEND BACKEND_TARGETS ScaLP-Dynamic)
+#  list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverDynamic.h)
+#endif()
+list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverDynamic.h)
 
 
 
@@ -216,7 +222,7 @@ if(BUILD_SCALP_EXECUTABLE)
   add_executable(scalp
     src/main.cpp
   )
-  target_link_libraries(scalp ScaLP ScaLP-Dynamic)
+  target_link_libraries(scalp ScaLP)
   set_target_properties(scalp PROPERTIES INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib")
 endif()
 

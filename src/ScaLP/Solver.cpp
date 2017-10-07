@@ -4,10 +4,12 @@
 #include <fstream>
 #include <ctime>
 #include <cmath>
+#include <initializer_list>
 
 #include <ScaLP/Exception.h>
 #include <ScaLP/Solver.h>
 #include <ScaLP/Result.h>
+#include <ScaLP/SolverBackend/SolverDynamic.h>
 
 static double plus(double a, double b)
 {
@@ -21,6 +23,15 @@ double ScaLP::INF()
 
 ScaLP::Solver::Solver(ScaLP::SolverBackend *b)
   :back(b)
+{
+}
+
+ScaLP::Solver::Solver(std::list<std::string> ls)
+  :back(newSolverDynamic(ls))
+{
+}
+ScaLP::Solver::Solver(std::initializer_list<std::string> ls)
+  :back(newSolverDynamic(ls))
 {
 }
 

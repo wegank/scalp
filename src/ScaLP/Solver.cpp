@@ -30,6 +30,10 @@ ScaLP::Solver::Solver(std::list<std::string> ls)
   :back(newSolverDynamic(ls))
 {
 }
+ScaLP::Solver::Solver(std::list<ScaLP::Feature>fs, std::list<std::string> ls)
+  :back(newSolverDynamic(fs,ls))
+{
+}
 ScaLP::Solver::Solver(std::initializer_list<std::string> ls)
   :back(newSolverDynamic(ls))
 {
@@ -552,6 +556,15 @@ void ScaLP::Solver::resetMIPGap()
 {
   absMIPGap=-1;
   relMIPGap=-1;
+}
+
+bool ScaLP::Solver::featureSupported(ScaLP::Feature f)
+{
+  if(back!=nullptr)
+  {
+    return back->featureSupported(f);
+  }
+  return false;
 }
 
 

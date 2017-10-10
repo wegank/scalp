@@ -12,6 +12,26 @@
 namespace ScaLP
 {
 
+  enum class Feature
+  { LP
+  , ILP
+  , QP
+  , MILP
+  , INDICATOR_CONSTRAINTS
+  , LOGICAL_OPERATORS
+  };
+
+  class Features
+  {
+    public:
+    bool lp=false;
+    bool ilp=false;
+    bool qp=false;
+    bool milp=false;
+    bool indicators=false;
+    bool logical=false;
+  };
+
   class SolverBackend
   {
     public:
@@ -33,8 +53,10 @@ namespace ScaLP
       virtual void setRelativeMIPGap(double d);
       virtual void setAbsoluteMIPGap(double d);
 
-
       ScaLP::Result res;
+
+      Features features;
+      bool featureSupported(ScaLP::Feature f);
 
       double objectiveOffset=0;
 

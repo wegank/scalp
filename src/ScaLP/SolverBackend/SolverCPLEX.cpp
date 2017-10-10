@@ -20,6 +20,12 @@ ScaLP::SolverCPLEX::SolverCPLEX()
   :env(IloEnv()), model(IloModel(env))
 {
   name="CPLEX";
+  this->features.lp=true;
+  this->features.ilp=true;
+  this->features.qp=false;
+  this->features.milp=true;
+  this->features.indicators=true;
+  this->features.logical=false;
 }
 
 static IloNumVar::Type mapVariableType(const ScaLP::Variable& v)

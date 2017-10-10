@@ -23,6 +23,12 @@ ScaLP::SolverLPSolve::SolverLPSolve()
 {
   set_infinite(lp,ScaLP::INF());
   name="LPSolve";
+  this->features.lp=true;
+  this->features.ilp=true;
+  this->features.qp=false;
+  this->features.milp=true;
+  this->features.indicators=false;
+  this->features.logical=false;
 }
 
 ScaLP::SolverLPSolve::~SolverLPSolve()

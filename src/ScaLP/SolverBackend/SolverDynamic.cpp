@@ -42,7 +42,7 @@ namespace ScaLP
 class SolverDynamic : public SolverBackend
 {
   public:
-  SolverDynamic(std::list<std::string> lsa)
+  SolverDynamic(std::list<ScaLP::Feature>fs, std::list<std::string> lsa)
   {
     std::list<std::string> ls= getEnvironment();
     ls.splice(ls.end(),lsa);
@@ -79,8 +79,28 @@ class SolverDynamic : public SolverBackend
       else
       {
         back=smartconstructor();
-        library=handle;
-        break;
+        bool supported=true;
+        for(auto f:fs)
+        {
+          if(not back->featureSupported(f))
+          {
+            supported=false;
+            break;
+          }
+        }
+        if(supported)
+        {
+          library=handle;
+          this->features=back->features;
+          break;
+        }
+        else
+        {
+          delete back;
+          back=nullptr;
+          dlclose(handle);
+          continue;
+        }
       }
     }
 
@@ -89,6 +109,11 @@ class SolverDynamic : public SolverBackend
       throw ScaLP::Exception("Could not load any backend");
     }
     name="Dynamic: "+back->name;
+  }
+
+  SolverDynamic(std::list<std::string> lsa)
+    :SolverDynamic({},lsa)
+  {
   }
 
   ~SolverDynamic()
@@ -161,7 +186,11 @@ class SolverDynamic : public SolverBackend
 
 ScaLP::SolverBackend* ScaLP::newSolverDynamic(std::list<std::string> lsa)
 {
-  return dynamic_cast<SolverBackend*>(new SolverDynamic(lsa));
+  return static_cast<SolverBackend*>(new SolverDynamic(lsa));
+}
+ScaLP::SolverBackend* ScaLP::newSolverDynamic(std::list<ScaLP::Feature> fs, std::list<std::string> lsa)
+{
+  return static_cast<SolverBackend*>(new SolverDynamic(fs,lsa));
 }
 
 ScaLP::SolverBackend* ScaLP::newSolverDynamic()

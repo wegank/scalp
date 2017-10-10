@@ -25,6 +25,7 @@ namespace ScaLP
       // The memory of the Pointer is managed by the Solver
       Solver(ScaLP::SolverBackend *b);
       Solver(std::list<std::string> ls);
+      Solver(std::list<ScaLP::Feature> fs, std::list<std::string> ls);
       Solver(std::initializer_list<std::string> ls);
 
       //####################
@@ -106,6 +107,9 @@ namespace ScaLP
 
       // return the LP-Format-representation as a string
       std::string showLP() const;
+
+      // check if the used solver supports the given feature
+      bool featureSupported(ScaLP::Feature f);
 
       // write the LP-Format-representation in a file
       void writeLP(std::string file) const;

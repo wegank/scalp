@@ -14,6 +14,7 @@ namespace ScaLP
   //   SCALP_SOLVER_LIST="name1;name2;..."
   // before you program starts.
   ScaLP::SolverBackend* newSolverDynamic(std::list<std::string> lsa);
+  ScaLP::SolverBackend* newSolverDynamic(std::list<ScaLP::Feature> fs, std::list<std::string> lsa);
 
   // like above, but you need to specify the solvers via an environment-variable.
   // (SCALP_SOLVER_LIST)

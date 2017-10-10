@@ -21,6 +21,16 @@ ScaLP::SolverGurobi::SolverGurobi()
   :environment(GRBEnv()), model(GRBModel(environment))
 {
   name="Gurobi";
+  this->features.lp=true;
+  this->features.ilp=true;
+  this->features.qp=false;
+  this->features.milp=true;
+  #if GRB_VERSION_MAJOR < 7
+  this->features.indicators=false;
+  #else
+  this->features.indicators=true;
+  #endif
+  this->features.logical=false;
 }
 
 char ScaLP::SolverGurobi::variableType(ScaLP::VariableType t)
@@ -85,31 +95,77 @@ static char mapRelation(ScaLP::relation r)
   return GRB_LESS_EQUAL;
 }
 
+static ScaLP::relation flipRelation(ScaLP::relation r)
+{
+  using R = ScaLP::relation;
+  switch(r)
+  {
+    case R::LESS_EQ_THAN: return R::MORE_EQ_THAN;
+    case R::MORE_EQ_THAN: return R::LESS_EQ_THAN;
+    default: return R::EQUAL;
+  }
+  return R::EQUAL;
+}
+
 bool ScaLP::SolverGurobi::addConstraint(const ScaLP::Constraint& cons)
 {
   try
   {
-    switch(cons.ctype)
+    // TODO: check if avoiding temporary constraints increase performance
+    if(cons.indicator==nullptr)
     {
-      case ScaLP::Constraint::type::C2L:
-        model.addConstr(cons.lbound,mapRelation(cons.lrel),mapTerm(cons.term),cons.name);
-        break;
-      case ScaLP::Constraint::type::C2R:
-        model.addConstr(mapTerm(cons.term),mapRelation(cons.rrel),cons.ubound,cons.name);
-        break;
-      case ScaLP::Constraint::type::CEQ:
-        model.addConstr(cons.lbound,mapRelation(cons.lrel),mapTerm(cons.term),cons.name);
-        break;
-      case ScaLP::Constraint::type::C3:
-        if(cons.lrel==ScaLP::relation::LESS_EQ_THAN)
-        { // d <= x <= d
-          model.addRange(mapTerm(cons.term),cons.lbound,cons.ubound,cons.name);
-        }
-        else
-        { // d >= x >= d
-          model.addRange(mapTerm(cons.term),cons.ubound,cons.lbound,cons.name);
-        }
-        break;
+      switch(cons.ctype)
+      {
+        case ScaLP::Constraint::type::C2L:
+          model.addConstr(cons.lbound,mapRelation(cons.lrel),mapTerm(cons.term),cons.name);
+          break;
+        case ScaLP::Constraint::type::C2R:
+          model.addConstr(mapTerm(cons.term),mapRelation(cons.rrel),cons.ubound,cons.name);
+          break;
+        case ScaLP::Constraint::type::CEQ:
+          model.addConstr(cons.lbound,mapRelation(cons.lrel),mapTerm(cons.term),cons.name);
+          break;
+        case ScaLP::Constraint::type::C3:
+          if(cons.lrel==ScaLP::relation::LESS_EQ_THAN)
+          { // d <= x <= d
+            model.addRange(mapTerm(cons.term),cons.lbound,cons.ubound,cons.name);
+          }
+          else
+          { // d >= x >= d
+            model.addRange(mapTerm(cons.term),cons.ubound,cons.lbound,cons.name);
+          }
+          break;
+      }
+    }
+    else
+    {
+    #if GRB_VERSION_MAJOR < 7
+      throw ScaLP::Exception("ScaLP: Gurobi version "
+        + std::to_string(GRB_VERSION_MAJOR)+ "."
+        + std::to_string(GRB_VERSION_MINOR)+ "."
+        + std::to_string(GRB_VERSION_TECHNICAL)
+        + " does not support indicator-constraints");
+    #else
+      GRBVar var = variables[cons.indicator->term.sum.begin()->first];
+      int val = cons.indicator->lbound;
+      GRBLinExpr t = mapTerm(cons.term);
+      switch(cons.ctype)
+      {
+        case ScaLP::Constraint::type::C2L:
+          model.addGenConstrIndicator(var,val,t,mapRelation(flipRelation(cons.lrel)),cons.lbound,cons.name);
+          break;
+        case ScaLP::Constraint::type::C2R:
+          model.addGenConstrIndicator(var,val,t,mapRelation(cons.rrel),cons.ubound,cons.name);
+          break;
+        case ScaLP::Constraint::type::CEQ:
+          model.addGenConstrIndicator(var,val,t,mapRelation(cons.lrel),cons.lbound,cons.name);
+          break;
+        case ScaLP::Constraint::type::C3:
+          model.addGenConstrIndicator(var,val,t,mapRelation(flipRelation(cons.lrel)),cons.lbound,cons.name+"_l");
+          model.addGenConstrIndicator(var,val,t,mapRelation(cons.rrel),cons.ubound,cons.name+"_r");
+          break;
+      }
+    #endif
     }
   }
   catch(GRBException e)

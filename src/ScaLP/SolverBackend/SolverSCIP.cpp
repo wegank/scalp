@@ -36,6 +36,12 @@ ScaLP::SolverSCIP::SolverSCIP()
 {
   name="SCIP";
   // creation is done in reset().
+  this->features.lp=true;
+  this->features.ilp=true;
+  this->features.qp=false;
+  this->features.milp=true;
+  this->features.indicators=false;
+  this->features.logical=false;
 }
 
 ScaLP::SolverSCIP::~SolverSCIP()

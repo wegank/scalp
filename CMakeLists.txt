@@ -33,7 +33,7 @@ option(USE_CPLEX "Compile the CPLEX-Backend" OFF)
 option(USE_LPSOLVE "Compile the LPSolve-Backend" OFF)
 option(BUILD_SHARED_LIBRARIES "Build as shared libraries" ON)
 option(BUILD_TESTS "Build tests" OFF)
-option(BUILD_SCALP_EXECUTABLE "Build the scalp executable (no functionality yet)" OFF)
+option(BUILD_SCALP_EXECUTABLE "Build the scalp executable (no functionality yet)" ON)
 option(OLD_CXX_ABI "Build with an old C++-abi (activate if you get undefined references with '__cxx11')" OFF)
 
 set(CPLEX_LIBRARIES "" CACHE STRING "the paths to the cplex libraries")

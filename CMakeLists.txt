@@ -33,7 +33,7 @@ option(USE_CPLEX "Compile the CPLEX-Backend" OFF)
 option(USE_LPSOLVE "Compile the LPSolve-Backend" OFF)
 option(BUILD_SHARED_LIBRARIES "Build as shared libraries" ON)
 option(BUILD_TESTS "Build tests" OFF)
-option(BUILD_SCALP_EXECUTABLE "Build the scalp executable (no functionality yet)" ON)
+option(BUILD_SCALP_EXECUTABLE "Build the scalp executable (no functionality yet)" OFF)
 option(OLD_CXX_ABI "Build with an old C++-abi (activate if you get undefined references with '__cxx11')" OFF)
 
 set(CPLEX_LIBRARIES "" CACHE STRING "the paths to the cplex libraries")
@@ -220,11 +220,15 @@ list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverDynamic.h)
 
 
 if(BUILD_SCALP_EXECUTABLE)
-  add_executable(scalp
+  add_executable(ScaLPBinary
     src/main.cpp
   )
-  target_link_libraries(scalp ScaLP)
-  set_target_properties(scalp PROPERTIES INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib")
+  target_link_libraries(ScaLPBinary ScaLP)
+  set_target_properties(ScaLPBinary PROPERTIES INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib")
+  set_target_properties(ScaLPBinary PROPERTIES OUTPUT_NAME "scalp")
+  set(EXECUTABLE_TARGET ScaLPBinary)
+else()
+  unset(EXECUTABLE_TARGET)
 endif()
 
 if(BUILD_TESTS)
@@ -237,20 +241,9 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR} CACHE PATH "local installation" FORCE)
 endif()
 
-if(BUILD_SCALP_EXECUTABLE)
-	install (TARGETS ScaLP ${BACKEND_TARGETS} scalp
-	  RUNTIME DESTINATION bin
-	  LIBRARY DESTINATION lib
-	  ARCHIVE DESTINATION lib)
-	#INCLUDES DESTINATION include)
-	install (FILES ${ScaLP_HEADERS} ${BACKEND_HEADERS}
-	  DESTINATION include/ScaLP)
-elseif(NOT BUILD_SCALP_EXECUTABLE)
-	install (TARGETS ScaLP ${BACKEND_TARGETS}
-	  RUNTIME DESTINATION bin
-	  LIBRARY DESTINATION lib
-	  ARCHIVE DESTINATION lib)
-	#INCLUDES DESTINATION include)
-	install (FILES ${ScaLP_HEADERS} ${BACKEND_HEADERS}
-	  DESTINATION include/ScaLP)
-endif()
+install (TARGETS ScaLP ${BACKEND_TARGETS} ${EXECUTABLE_TARGET}
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib)
+install (FILES ${ScaLP_HEADERS} ${BACKEND_HEADERS}
+  DESTINATION include/ScaLP)

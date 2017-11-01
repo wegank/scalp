@@ -50,6 +50,13 @@ ScaLP::SolverSCIP::~SolverSCIP()
   { // at least one run
     // FIXME: throwing in Destructor leads to warnings.
     //SCALP_SCIP_EXC(SCIPfree(&scip));
+    for(auto&p:variables)
+    {
+      SCIPreleaseVar(scip,&p.second);
+    }
+
+    auto cons = constraints.data();
+    SCIPreleaseCons(scip,cons);
     SCIPfree(&scip);
   }
 }
@@ -180,7 +187,8 @@ void ScaLP::SolverSCIP::reset()
     }
 
     auto cons = constraints.data();
-    SCIPreleaseCons(scip,cons);
+    SCALP_SCIP_EXC(SCIPreleaseCons(scip,cons));
+    SCALP_SCIP_EXC(SCIPfree(&scip));
   }
   scip=nullptr;
 

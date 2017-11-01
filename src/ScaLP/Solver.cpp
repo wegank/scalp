@@ -5,6 +5,7 @@
 #include <ctime>
 #include <cmath>
 #include <initializer_list>
+#include <functional>
 
 #include <ScaLP/Exception.h>
 #include <ScaLP/Solver.h>
@@ -326,17 +327,8 @@ void ScaLP::Solver::writeLP(std::string file) const
   std::ofstream(file) << showLP();
 }
 
-ScaLP::status ScaLP::Solver::solve()
+void ScaLP::Solver::prepare()
 {
-  double preparationTime=0;
-  double constructionTime=0;
-  double solvingTime=0;
-
-  auto timer = std::clock();
-
-  // reset the backend
-  back->reset();
-
   // set the used threads
   if(threads>0) back->setThreads(threads);
 
@@ -350,10 +342,10 @@ ScaLP::status ScaLP::Solver::solve()
 
   // use presolve?
   back->presolve(presolve);
+}
 
-  preparationTime = (double(std::clock()-timer))/CLOCKS_PER_SEC;
-  timer = std::clock();
-
+void ScaLP::Solver::construct()
+{
   // Add the Variables
   // Only add the used Variables.
   back->addVariables(extractVariables(cons,objective));
@@ -363,19 +355,14 @@ ScaLP::status ScaLP::Solver::solve()
 
   // Add Constraints
   back->addConstraints(cons);
+}
+void ScaLP::Solver::construct(const std::string& file)
+{
+  throw ScaLP::Exception("not implemented yet.");
+}
 
-  constructionTime = (double(std::clock()-timer))/CLOCKS_PER_SEC;
-  timer = std::clock();
-
-  // Solve
-  ScaLP::status stat = back->solve();
-
-  solvingTime = (double(std::clock()-timer))/CLOCKS_PER_SEC;
-
-  back->res.preparationTime=preparationTime;
-  back->res.constructionTime=constructionTime;
-  back->res.solvingTime=solvingTime;
-
+void ScaLP::Solver::postprocess()
+{
   // round integer values
   for(auto&p:this->back->res.values)
   {
@@ -384,6 +371,49 @@ ScaLP::status ScaLP::Solver::solve()
       p.second = std::lround(p.second);
     }
   }
+}
+
+template <class F>
+double time(const F& f)
+{
+  auto timer = std::clock();
+  f();
+  return (double(std::clock()-timer))/CLOCKS_PER_SEC;
+}
+
+ScaLP::status ScaLP::Solver::solve()
+{
+  // reset the backend
+  back->reset();
+
+  ScaLP::status stat;
+  double preparationTime = time([this](){prepare();});
+  double constructionTime = time([&,this](){construct();});
+  double solvingTime = time([&stat,this](){stat = back->solve();});
+
+  back->res.preparationTime = preparationTime;
+  back->res.constructionTime = constructionTime;
+  back->res.solvingTime = solvingTime;
+
+  // round integer-values in the result
+  postprocess();
+
+  return stat;
+}
+
+ScaLP::status ScaLP::Solver::solve(const std::string& file)
+{
+  ScaLP::status stat;
+  double preparationTime = time([this](){prepare();});
+  double constructionTime = time([&,this](){construct(file);});
+  double solvingTime = time([&stat,this](){stat = back->solve();});
+
+  back->res.preparationTime = preparationTime;
+  back->res.constructionTime = constructionTime;
+  back->res.solvingTime = solvingTime;
+
+  // round integer-values in the result
+  postprocess();
 
   return stat;
 }

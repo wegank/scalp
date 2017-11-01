@@ -70,6 +70,8 @@ namespace ScaLP
 
       // pass everything to the Solver and run it
       ScaLP::status solve();
+      // solve the given file
+      ScaLP::status solve(const std::string& file);
 
       ScaLP::Result getResult();
 
@@ -134,6 +136,11 @@ namespace ScaLP
 
       double absMIPGap=-1;
       double relMIPGap=-1;
+
+      void prepare();
+      void construct();
+      void construct(const std::string& file);
+      void postprocess();
 
   };
 

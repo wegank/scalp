@@ -29,7 +29,7 @@ namespace ScaLP
       virtual void presolve(bool presolve) override;
       virtual void setThreads(unsigned int t) override;
 
-      SCIP *scip;
+      SCIP *scip=nullptr;
       std::map<ScaLP::Variable,SCIP_VAR*> variables;
       std::vector<SCIP_CONS*> constraints;
   };

@@ -54,9 +54,11 @@ ScaLP::SolverSCIP::~SolverSCIP()
     {
       SCIPreleaseVar(scip,&p.second);
     }
-
     auto cons = constraints.data();
-    SCIPreleaseCons(scip,cons);
+    for(unsigned int i=0;i<constraints.size();++i)
+    {
+      SCIPreleaseCons(scip,&(cons[i]));
+    }
     SCIPfree(&scip);
   }
 }
@@ -187,10 +189,13 @@ void ScaLP::SolverSCIP::reset()
     }
 
     auto cons = constraints.data();
-    SCALP_SCIP_EXC(SCIPreleaseCons(scip,cons));
+    for(unsigned int i=0;i<constraints.size();++i)
+    {
+      SCALP_SCIP_EXC(SCIPreleaseCons(scip,&(cons[i])));
+    }
     SCALP_SCIP_EXC(SCIPfree(&scip));
+    scip=nullptr;
   }
-  scip=nullptr;
 
   // create new Instance
   SCALP_SCIP_EXC(SCIPcreate(&(this->scip)));

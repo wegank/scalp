@@ -75,7 +75,7 @@ static std::string showTermLP(ScaLP::Term t)
   // only constant
   if(t.isConstant())
   {
-    s << t.constant;
+    s << std::to_string(t.constant);
     return s.str();
   }
 

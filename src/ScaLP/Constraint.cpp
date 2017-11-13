@@ -11,6 +11,11 @@ ScaLP::Constraint::~Constraint()
 {
 }
 
+void ScaLP::Constraint::setName(std::string n)
+{
+  name=n;
+}
+
 static bool isIndicator(const ScaLP::Constraint& c)
 {
   return c.ctype==ScaLP::Constraint::type::CEQ // ... == ...

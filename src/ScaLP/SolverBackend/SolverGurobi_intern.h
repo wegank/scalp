@@ -19,7 +19,7 @@ namespace ScaLP
       virtual bool addVariables(ScaLP::VariableSet vs) override;
       virtual bool addConstraint(const ScaLP::Constraint& con) override;
       virtual bool setObjective(ScaLP::Objective o) override;
-      virtual ScaLP::status solve() override;
+      virtual std::pair<ScaLP::status,ScaLP::Result> solve() override;
       virtual void reset() override;
       virtual void setConsoleOutput(bool verbose) override;
       virtual void setTimeout(long timeout) override;

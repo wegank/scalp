@@ -192,13 +192,13 @@ bool ScaLP::SolverGurobi::setObjective(ScaLP::Objective o)
   return true;
 }
 
-ScaLP::status ScaLP::SolverGurobi::solve()
+std::pair<ScaLP::status,ScaLP::Result> ScaLP::SolverGurobi::solve()
 {
+  ScaLP::Result res;
   try
   {
-    //model.write("gurobi.lp");
-
     model.optimize();
+
   
     int grbStatus = model.get(GRB_IntAttr_Status);
 
@@ -214,19 +214,19 @@ ScaLP::status ScaLP::SolverGurobi::solve()
       }
     }
 
-    if(grbStatus == GRB_OPTIMAL) return ScaLP::status::OPTIMAL;
-    if(grbStatus == GRB_UNBOUNDED) return ScaLP::status::UNBOUND;
-    if(grbStatus == GRB_SUBOPTIMAL) return ScaLP::status::FEASIBLE;
-    if(grbStatus == GRB_TIME_LIMIT) return ScaLP::status::TIMEOUT;
-    if(grbStatus == GRB_INFEASIBLE) return ScaLP::status::INFEASIBLE;
-    if(grbStatus == GRB_INF_OR_UNBD) return ScaLP::status::INFEASIBLE_OR_UNBOUND;
+    if(grbStatus == GRB_OPTIMAL) return {ScaLP::status::OPTIMAL,res};
+    if(grbStatus == GRB_UNBOUNDED) return {ScaLP::status::UNBOUND,res};
+    if(grbStatus == GRB_SUBOPTIMAL) return {ScaLP::status::FEASIBLE,res};
+    if(grbStatus == GRB_TIME_LIMIT) return {ScaLP::status::TIMEOUT,res};
+    if(grbStatus == GRB_INFEASIBLE) return {ScaLP::status::INFEASIBLE,res};
+    if(grbStatus == GRB_INF_OR_UNBD) return {ScaLP::status::INFEASIBLE_OR_UNBOUND,res};
   }
   catch(GRBException e)
   {
     throw ScaLP::Exception("Error while solving: "+e.getMessage());
   }
 
-  return ScaLP::status::ERROR;
+  return {ScaLP::status::ERROR,res};
 }
 
 GRBLinExpr ScaLP::SolverGurobi::mapTerm(ScaLP::Term t)
@@ -262,6 +262,7 @@ void ScaLP::SolverGurobi::reset()
 {
   // clear the variables-cache
   variables.clear();
+  objectiveOffset=0;
 
   // reset Gurobi itself
   try

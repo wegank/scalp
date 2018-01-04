@@ -3,6 +3,10 @@
 
 See the Wiki: https://digidev.digi.e-technik.uni-kassel.de/scalp/wiki/DeveloperDocumentation
 
+= Migrating
+
+For migrating to a new Revision/Version of ScaLP consider the MIGRATION.txt file.
+
 = Using
 
 After installing, the libraries are found in ./lib/ and the headers are in ./include

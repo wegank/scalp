@@ -192,9 +192,10 @@ bool ScaLP::SolverCPLEX::setObjective(ScaLP::Objective o)
   return true;
 }
 
-ScaLP::status ScaLP::SolverCPLEX::solve()
+std::pair<ScaLP::status,ScaLP::Result> ScaLP::SolverCPLEX::solve()
 {
   ScaLP::status stat = ScaLP::status::ERROR;
+  ScaLP::Result res;
   try
   {
     IloCplex cplex(model);
@@ -257,11 +258,20 @@ ScaLP::status ScaLP::SolverCPLEX::solve()
     }
   }
 
-  return stat;
+  return {stat,res};
 }
 
 void ScaLP::SolverCPLEX::reset()
 {
+  variables.clear();
+  verbose=true;
+  timeout=0;
+  presolving=false;
+  threads=0;
+  relMIPGap=-1;
+  absMIPGap=-1;
+  objectiveOffset=0;
+
   try
   {
     model = IloModel(env);

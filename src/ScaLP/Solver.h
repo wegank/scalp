@@ -33,7 +33,7 @@ namespace ScaLP
       //####################
 
       // set true to disable the Output of the Solver
-      bool quiet = false;
+      bool quiet = true;
 
       // timeout for the solving progress
       // it is measured in seconds, zero is no limit.
@@ -88,6 +88,10 @@ namespace ScaLP
       // reset the Solver (removes all Constraints, etc)
       void reset();
 
+      // release the ownership for the solver
+      // useful to transfer the backend from one ScaLP::Solver to another.
+      ScaLP::SolverBackend* releaseSolver();
+
 
       //####################
       // MIP-Parameters
@@ -116,6 +120,7 @@ namespace ScaLP
       // write the LP-Format-representation in a file
       void writeLP(std::string file) const;
 
+
       ~Solver();
 
     private:
@@ -132,7 +137,7 @@ namespace ScaLP
 
       // extract the Variables from the Constraints and the Objective
       // to avoid unused variables.
-      ScaLP::VariableSet extractVariables(std::list<Constraint> c,Objective o) const;
+      ScaLP::VariableSet extractVariables(const std::list<Constraint> &c,const Objective &o) const;
 
       double absMIPGap=-1;
       double relMIPGap=-1;

@@ -44,7 +44,7 @@ namespace ScaLP
       virtual bool addConstraint(const ScaLP::Constraint& con);
       virtual bool addConstraints(std::list<ScaLP::Constraint> cons); // alternative to addConstraint
       virtual bool setObjective(ScaLP::Objective o);
-      virtual ScaLP::status solve();
+      virtual std::pair<ScaLP::status,ScaLP::Result> solve();
       virtual void reset();
       virtual void setConsoleOutput(bool verbose);
       virtual void setTimeout(long timeout);
@@ -52,8 +52,6 @@ namespace ScaLP
       virtual void setThreads(unsigned int t);
       virtual void setRelativeMIPGap(double d);
       virtual void setAbsoluteMIPGap(double d);
-
-      ScaLP::Result res;
 
       Features features;
       bool featureSupported(ScaLP::Feature f);

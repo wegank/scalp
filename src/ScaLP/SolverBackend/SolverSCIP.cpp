@@ -145,10 +145,11 @@ bool ScaLP::SolverSCIP::setObjective(ScaLP::Objective o)
   return true;
 }
 
-ScaLP::status ScaLP::SolverSCIP::solve()
+std::pair<ScaLP::status,ScaLP::Result> ScaLP::SolverSCIP::solve()
 {
   SCALP_SCIP_EXC(SCIPsolve(scip));
   SCIP_SOL* sol = SCIPgetBestSol(scip);
+  ScaLP::Result res;
 
   // Objective-value
   res.objectiveValue = SCIPgetPrimalbound(scip) + objectiveOffset;
@@ -167,16 +168,16 @@ ScaLP::status ScaLP::SolverSCIP::solve()
 
   switch(SCIPgetStatus(scip))
   {
-    case SCIP_STATUS_TIMELIMIT:     return ScaLP::status::TIMEOUT;
-    case SCIP_STATUS_OPTIMAL:       return ScaLP::status::OPTIMAL;
-    case SCIP_STATUS_INFEASIBLE:    return ScaLP::status::INFEASIBLE;
+    case SCIP_STATUS_TIMELIMIT:     return {ScaLP::status::TIMEOUT,res};
+    case SCIP_STATUS_OPTIMAL:       return {ScaLP::status::OPTIMAL,res};
+    case SCIP_STATUS_INFEASIBLE:    return {ScaLP::status::INFEASIBLE,res};
     default:
       {
         std::cerr << "Scalp: This SCIP-Status is not supported, please report with an simplified example" << std::endl;
-        return ScaLP::status::ERROR;
+        return {ScaLP::status::ERROR,res};
       }
   }
-  return ScaLP::status::ERROR;
+  return {ScaLP::status::ERROR,res};
 }
 
 void ScaLP::SolverSCIP::reset()
@@ -196,6 +197,10 @@ void ScaLP::SolverSCIP::reset()
     SCALP_SCIP_EXC(SCIPfree(&scip));
     scip=nullptr;
   }
+
+  constraints.clear();
+  variables.clear();
+  objectiveOffset=0;
 
   // create new Instance
   SCALP_SCIP_EXC(SCIPcreate(&(this->scip)));

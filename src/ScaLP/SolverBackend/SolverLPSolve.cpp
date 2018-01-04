@@ -159,12 +159,13 @@ bool ScaLP::SolverLPSolve::setObjective(ScaLP::Objective o)
   return true;
 }
 
-ScaLP::status ScaLP::SolverLPSolve::solve()
+std::pair<ScaLP::status,ScaLP::Result> ScaLP::SolverLPSolve::solve()
 {
 #undef OPTIMAL
 #undef INFEASIBLE
 #undef TIMEOUT
   ScaLP::status stat= ScaLP::status::ERROR;
+  ScaLP::Result res;
   int resType = ::solve(lp);
   // codes, see: http://lpsolve.sourceforge.net/5.5/solve.htm
   switch(resType)
@@ -188,13 +189,15 @@ ScaLP::status ScaLP::SolverLPSolve::solve()
     }
   }
 
-  return stat;
+  return {stat,res};
 }
 
 void ScaLP::SolverLPSolve::reset()
 {
   // clear the variables-cache
   variables.clear();
+  variableCounter=0;
+  objectiveOffset=0;
 
   delete_lp(lp);
   lp=make_lp(0,0);

@@ -48,9 +48,9 @@ bool ScaLP::SolverBackend::setObjective(ScaLP::Objective o)
   return false;
 }
 
-ScaLP::status ScaLP::SolverBackend::solve()
+std::pair<ScaLP::status,ScaLP::Result> ScaLP::SolverBackend::solve()
 {
-  return ScaLP::status::ERROR;
+  return {ScaLP::status::ERROR,{}};
 }
 
 void ScaLP::SolverBackend::reset()

@@ -1,0 +1,20 @@
+
+Revision 48:
+
+user interface:
+  - recompile your code
+
+solver interface:
+  - The results are not saved in ScaLP::SolverBackend::res anymore.
+    Instead create a ScaLP::Result in your solve-function and return it in a
+    pair with the status:
+
+      std::pair<ScaLP::status,ScaLP::Result> solve()
+      {
+        ScaLP::Result res;
+        ScaLP::status stat;
+        ...
+        return {stat,res};
+      }
+
+    On failure or missing results return an empty(default constructed) result.

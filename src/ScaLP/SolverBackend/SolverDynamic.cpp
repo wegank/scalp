@@ -142,15 +142,17 @@ class SolverDynamic : public SolverBackend
   {
     return back->setObjective(o);
   }
-  ScaLP::status solve() override
+  std::pair<ScaLP::status,ScaLP::Result> solve() override
   {
-    ScaLP::status s = back->solve();
-    res = back->res;
-    return s;
+    ScaLP::status s;
+    ScaLP::Result res;
+    std::tie(s,res) = back->solve();
+    return {s,res};
   }
   void reset() override
   {
     back->reset();
+    objectiveOffset=0;
   }
   void setConsoleOutput(bool verbose) override
   {

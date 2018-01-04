@@ -42,13 +42,20 @@ ScaLP::Solver::Solver(std::initializer_list<std::string> ls)
 
 ScaLP::Solver::~Solver()
 {
-  delete back;
+  if(this->back!=nullptr) delete back;
 }
 
 void ScaLP::Solver::setBackend(SolverBackend *b)
 {
   if(this->back!=nullptr) delete this->back;
   this->back=b;
+}
+
+ScaLP::SolverBackend* ScaLP::Solver::releaseSolver()
+{
+  auto* p = this->back;
+  this->back=nullptr;
+  return p;
 }
 
 void ScaLP::Solver::setObjective(Objective o)
@@ -364,7 +371,7 @@ void ScaLP::Solver::construct(const std::string& file)
 void ScaLP::Solver::postprocess()
 {
   // round integer values
-  for(auto&p:this->back->res.values)
+  for(auto&p:this->result.values)
   {
     if(p.first->getType()==ScaLP::VariableType::INTEGER or p.first->getType()==ScaLP::VariableType::BINARY)
     {
@@ -386,31 +393,43 @@ ScaLP::status ScaLP::Solver::solve()
   // reset the backend
   back->reset();
 
+  ScaLP::Result res= ScaLP::Result();
   ScaLP::status stat;
+
   double preparationTime = time([this](){prepare();});
   double constructionTime = time([&,this](){construct();});
-  double solvingTime = time([&stat,this](){stat = back->solve();});
+  double solvingTime = time([&stat,&res,this](){
+    std::tie(stat,res) = back->solve();
+  });
 
-  back->res.preparationTime = preparationTime;
-  back->res.constructionTime = constructionTime;
-  back->res.solvingTime = solvingTime;
+  res.preparationTime = preparationTime;
+  res.constructionTime = constructionTime;
+  res.solvingTime = solvingTime;
 
   // round integer-values in the result
   postprocess();
 
+  result = res;
   return stat;
 }
 
 ScaLP::status ScaLP::Solver::solve(const std::string& file)
 {
+  // reset the backend
+  back->reset();
+
   ScaLP::status stat;
+  ScaLP::Result res= ScaLP::Result();
+  
   double preparationTime = time([this](){prepare();});
   double constructionTime = time([&,this](){construct(file);});
-  double solvingTime = time([&stat,this](){stat = back->solve();});
+  double solvingTime = time([&stat,&res,this](){
+    std::tie(stat,res) = back->solve();
+  });
 
-  back->res.preparationTime = preparationTime;
-  back->res.constructionTime = constructionTime;
-  back->res.solvingTime = solvingTime;
+  result.preparationTime = preparationTime;
+  result.constructionTime = constructionTime;
+  result.solvingTime = solvingTime;
 
   // round integer-values in the result
   postprocess();
@@ -420,25 +439,25 @@ ScaLP::status ScaLP::Solver::solve(const std::string& file)
 
 ScaLP::Result ScaLP::Solver::getResult()
 {
-  return this->back->res;
+  return result;
 }
 
 void ScaLP::Solver::reset()
 {
   if(back!=nullptr) back->reset();
-  objective= ScaLP::Objective();
+  objective=ScaLP::Objective();
   cons.clear();
   result=ScaLP::Result();
 }
 
-ScaLP::VariableSet ScaLP::Solver::extractVariables(std::list<Constraint> cs,Objective o) const
+ScaLP::VariableSet ScaLP::Solver::extractVariables(const std::list<Constraint> &cs,const Objective &o) const
 {
   ScaLP::VariableSet vs;
 
   ScaLP::VariableSet ovs = o.getTerm().extractVariables();
   vs.insert(ovs.begin(),ovs.end());
 
-  for(ScaLP::Constraint& c:cs)
+  for(auto& c:cs)
   {
     ScaLP::VariableSet vvs = c.extractVariables();
     vs.insert(vvs.begin(),vvs.end());

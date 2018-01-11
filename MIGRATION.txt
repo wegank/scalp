@@ -1,5 +1,17 @@
+# Revision 49, 01-11-2018:
 
-Revision 48:
+both:
+  - ScaLP::status::TIMEOUT is now splitted into
+    ScaLP::status::TIMEOUT_FEASIBLE and
+    ScaLP::status::TIMEOUT_INFEASIBLE
+
+    TIMEOUT_FEASIBLE is a timeout with a feasible solution.
+    TIMEOUT_INFEASIBLE is a timeout without solution.
+
+    At the moment LPSolve gives FEASIBLE instead of TIMEOUT_FEASIBLE due to
+    limitations.
+
+# Revision 48, 01-04-2018:
 
 user interface:
   - recompile your code

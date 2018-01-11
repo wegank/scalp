@@ -217,7 +217,9 @@ std::pair<ScaLP::status,ScaLP::Result> ScaLP::SolverGurobi::solve()
     if(grbStatus == GRB_OPTIMAL) return {ScaLP::status::OPTIMAL,res};
     if(grbStatus == GRB_UNBOUNDED) return {ScaLP::status::UNBOUND,res};
     if(grbStatus == GRB_SUBOPTIMAL) return {ScaLP::status::FEASIBLE,res};
-    if(grbStatus == GRB_TIME_LIMIT) return {ScaLP::status::TIMEOUT,res};
+    if(grbStatus == GRB_TIME_LIMIT and model.get(GRB_IntAttr_SolCount)>0)
+      return {ScaLP::status::TIMEOUT_FEASIBLE,res};
+    if(grbStatus == GRB_TIME_LIMIT) return {ScaLP::status::TIMEOUT_INFEASIBLE,res};
     if(grbStatus == GRB_INFEASIBLE) return {ScaLP::status::INFEASIBLE,res};
     if(grbStatus == GRB_INF_OR_UNBD) return {ScaLP::status::INFEASIBLE_OR_UNBOUND,res};
   }

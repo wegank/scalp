@@ -15,9 +15,10 @@ std::string ScaLP::showStatus(ScaLP::status s)
     case ScaLP::status::UNBOUND:    return "UNBOUND";
     case ScaLP::status::INVALID:    return "INVALID";
     case ScaLP::status::ERROR:      return "ERROR";
-    case ScaLP::status::TIMEOUT:    return "TIMEOUT";
     case ScaLP::status::NOT_SOLVED: return "NOT_SOLVED";
-    case ScaLP::status::INFEASIBLE_OR_UNBOUND:    return "INFEASIBLE_OR_UNBOUND";
+    case ScaLP::status::TIMEOUT_FEASIBLE: return "TIMEOUT_FEASIBLE";
+    case ScaLP::status::TIMEOUT_INFEASIBLE: return "TIMEOUT_INFEASIBLE";
+    case ScaLP::status::INFEASIBLE_OR_UNBOUND: return "INFEASIBLE_OR_UNBOUND";
     case ScaLP::status::UNKNOWN:    return "UNKNOWN";
   }
   return "UNKNOWN";

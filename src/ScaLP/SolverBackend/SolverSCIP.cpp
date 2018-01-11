@@ -168,9 +168,13 @@ std::pair<ScaLP::status,ScaLP::Result> ScaLP::SolverSCIP::solve()
 
   switch(SCIPgetStatus(scip))
   {
-    case SCIP_STATUS_TIMELIMIT:     return {ScaLP::status::TIMEOUT,res};
-    case SCIP_STATUS_OPTIMAL:       return {ScaLP::status::OPTIMAL,res};
-    case SCIP_STATUS_INFEASIBLE:    return {ScaLP::status::INFEASIBLE,res};
+    case SCIP_STATUS_TIMELIMIT:
+      {
+        if(sol!=nullptr) return {ScaLP::status::TIMEOUT_FEASIBLE,res};
+        else             return {ScaLP::status::TIMEOUT_INFEASIBLE,res};
+      }
+    case SCIP_STATUS_OPTIMAL:    return {ScaLP::status::OPTIMAL,res};
+    case SCIP_STATUS_INFEASIBLE: return {ScaLP::status::INFEASIBLE,res};
     default:
       {
         std::cerr << "Scalp: This SCIP-Status is not supported, please report with an simplified example" << std::endl;

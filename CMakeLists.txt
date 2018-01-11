@@ -155,6 +155,7 @@ set(ScaLP_HEADERS
   src/ScaLP/Term.h
   src/ScaLP/Variable.h
   src/ScaLP/SolverBackend/SolverDynamic.h
+  src/ScaLP/Utility.h
   )
 add_library(ScaLP ${LIBRARY_TYPE}
   src/ScaLP/Constraint.cpp

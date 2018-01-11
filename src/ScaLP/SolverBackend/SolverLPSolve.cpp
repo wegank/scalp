@@ -174,7 +174,9 @@ std::pair<ScaLP::status,ScaLP::Result> ScaLP::SolverLPSolve::solve()
     case 1: stat = ScaLP::status::FEASIBLE;   break;
     case 2: stat = ScaLP::status::INFEASIBLE; break;
     case 3: stat = ScaLP::status::UNBOUND;    break;
-    case 7: stat = ScaLP::status::TIMEOUT;    break;
+    case 7: stat = ScaLP::status::TIMEOUT_INFEASIBLE; break;
+            // FIXME: detecting TIMEOUT_FEASIBLE not possible without measuring
+            // time. 
   }
 
   if(stat==ScaLP::status::OPTIMAL or stat==ScaLP::status::FEASIBLE)

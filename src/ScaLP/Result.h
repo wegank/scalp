@@ -16,7 +16,8 @@ namespace ScaLP
   , UNBOUND
   , INVALID
   , ERROR
-  , TIMEOUT
+  , TIMEOUT_FEASIBLE
+  , TIMEOUT_INFEASIBLE
   , UNKNOWN
   };
 

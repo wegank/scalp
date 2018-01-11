@@ -149,11 +149,15 @@ bool ScaLP::SolverCPLEX::addConstraints(std::list<ScaLP::Constraint> cons)
   return true;
 }
 
-static ScaLP::status mapStatus(IloCplex::CplexStatus s)
+static ScaLP::status mapStatus(IloCplex::CplexStatus s,bool solution)
 {
   switch(s)
   {
-    case IloCplex::CplexStatus::AbortTimeLim:    return ScaLP::status::TIMEOUT;
+    case IloCplex::CplexStatus::AbortTimeLim:
+      {
+        if(solution) return ScaLP::status::TIMEOUT_FEASIBLE;
+        else         return ScaLP::status::TIMEOUT_INFEASIBLE;
+      }
     case IloCplex::CplexStatus::Optimal:    return ScaLP::status::OPTIMAL;
     case IloCplex::CplexStatus::Unknown:    return ScaLP::status::UNKNOWN;
     case IloCplex::CplexStatus::Feasible:   return ScaLP::status::FEASIBLE;
@@ -242,9 +246,13 @@ std::pair<ScaLP::status,ScaLP::Result> ScaLP::SolverCPLEX::solve()
       }
 
       res.objectiveValue = cplex.getObjValue()+objectiveOffset;
+      stat = mapStatus(cplex.getCplexStatus(),true);
+    }
+    else
+    {
+      stat = mapStatus(cplex.getCplexStatus(),false);
     }
 
-    stat = mapStatus(cplex.getCplexStatus());
   }
   catch(IloCplex::Exception& e)
   {

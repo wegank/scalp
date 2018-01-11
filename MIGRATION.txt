@@ -1,4 +1,4 @@
-# Revision 49, 01-11-2018:
+# Revision 50, 01-11-2018:
 
 both:
   - ScaLP::status::TIMEOUT is now splitted into
@@ -11,7 +11,7 @@ both:
     At the moment LPSolve gives FEASIBLE instead of TIMEOUT_FEASIBLE due to
     limitations.
 
-# Revision 48, 01-04-2018:
+# Revision 49, 01-04-2018:
 
 user interface:
   - recompile your code

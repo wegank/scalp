@@ -159,6 +159,7 @@ set(ScaLP_HEADERS
   )
 add_library(ScaLP ${LIBRARY_TYPE}
   src/ScaLP/Constraint.cpp
+  src/ScaLP/ResultCache.cpp
   src/ScaLP/Exception.cpp
   src/ScaLP/Objective.cpp
   src/ScaLP/Result.cpp

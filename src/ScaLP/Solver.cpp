@@ -11,6 +11,7 @@
 #include <ScaLP/Solver.h>
 #include <ScaLP/Result.h>
 #include <ScaLP/SolverBackend/SolverDynamic.h>
+#include <ScaLP/ResultCache.h>
 
 static double plus(double a, double b)
 {
@@ -388,9 +389,8 @@ double time(const F& f)
   return (double(std::clock()-timer))/CLOCKS_PER_SEC;
 }
 
-ScaLP::status ScaLP::Solver::solve()
+ScaLP::status ScaLP::Solver::newSolve()
 {
-  // reset the backend
   back->reset();
 
   ScaLP::Result res= ScaLP::Result();
@@ -409,8 +409,36 @@ ScaLP::status ScaLP::Solver::solve()
   // round integer-values in the result
   postprocess();
 
-  result = res;
+  this->result = res;
   return stat;
+}
+
+ScaLP::status ScaLP::Solver::solve()
+{
+  if(not resultCacheDir.empty())
+  {
+    auto hash = ScaLP::hashFNV(this->showLP());
+    auto s =  extractVariables(cons,objective);
+    std::vector<ScaLP::Variable> v{s.begin(),s.end()};
+    if(ScaLP::hasOptimalSolution(resultCacheDir,hash))
+    {
+      this->result = ScaLP::getOptimalSolution(resultCacheDir,hash,v);
+      return ScaLP::status::OPTIMAL;
+    }
+    else
+    {
+      auto stat = newSolve();
+      if(stat==ScaLP::status::OPTIMAL)
+      {
+        ScaLP::writeOptimalSolution(resultCacheDir,hash,this->result,*this);
+      }
+      return stat;
+    }
+  }
+  else
+  {
+    return newSolve();
+  }
 }
 
 ScaLP::status ScaLP::Solver::solve(const std::string& file)

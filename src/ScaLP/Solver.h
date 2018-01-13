@@ -73,6 +73,9 @@ namespace ScaLP
       // solve the given file
       ScaLP::status solve(const std::string& file);
 
+      // solve without cache
+      ScaLP::status newSolve();
+
       ScaLP::Result getResult();
 
 
@@ -106,6 +109,13 @@ namespace ScaLP
       // resets the MIP-Gap to the solvers default
       void resetMIPGap();
 
+      //####################
+      // Result-Cache (experimental)
+      //####################
+
+      // set the directory for the Result-Cache
+      // an empty string disables it
+      std::string resultCacheDir="";
 
       //####################
       // miscellaneous

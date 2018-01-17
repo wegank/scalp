@@ -9,9 +9,11 @@ static bool directoryExists(const std::string& s)
   return false;
 }
 
-bool ScaLP::createDirectory(const std::string& d)
+static bool createDirectory(const std::string& d)
 {
-  return false;
+  // TODO: replace system-call
+  system(("mkdir -p \""+d+"\"").c_str());
+  return true;
 }
 
 bool ScaLP::fileExists(const std::string& s)
@@ -90,14 +92,18 @@ static ScaLP::Result createResult(std::pair<std::map<std::string,double>,double>
   return res;
 }
 
-std::string ScaLP::hashFNV(const std::string& str)
+std::pair<bool,double> ScaLP::extractObjective(const std::string& s)
 {
-    uint64_t base = 14695981039346656037U;
-    for(const char c:str)
-    {   
-        base = (base ^ c) * 1099511628211U;
-    }   
-    return std::to_string(base);
+  std::string prefix = "objective value ";
+  auto p = s.find("objective value ");
+  if(p==std::string::npos)
+  {
+    return {false,0}; // no objective
+  }
+  else
+  {
+    return {true,std::stod(s.substr(p+prefix.size()))};
+  }
 }
 
 bool ScaLP::hasOptimalSolution(const std::string& prefix, const std::string& hash)
@@ -120,8 +126,15 @@ ScaLP::Result ScaLP::getFeasibleSolution(const std::string& prefix, const std::s
 
 void ScaLP::writeOptimalSolution(const std::string& prefix, const std::string& hash,ScaLP::Result res, const ScaLP::Solver& solver)
 {
-  system(("mkdir -p "+prefix+"/"+hash).c_str());
+  createDirectory((prefix+"/"+hash));
   std::ofstream s(prefix+"/"+hash+"/optimal.sol");
+  s << res.showSolutionVector(true);
+  solver.writeLP(prefix+"/"+hash+"/model.lp");
+}
+void ScaLP::writeFeasibleSolution(const std::string& prefix, const std::string& hash,ScaLP::Result res, const ScaLP::Solver& solver)
+{
+  createDirectory((prefix+"/"+hash));
+  std::ofstream s(prefix+"/"+hash+"/feasible.sol");
   s << res.showSolutionVector(true);
   solver.writeLP(prefix+"/"+hash+"/model.lp");
 }

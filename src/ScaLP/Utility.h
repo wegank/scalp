@@ -1,3 +1,4 @@
+#pragma once 
 namespace ScaLP
 {
   // sum up Variables or Terms in a traversable container.

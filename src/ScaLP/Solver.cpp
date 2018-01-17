@@ -59,6 +59,24 @@ ScaLP::SolverBackend* ScaLP::Solver::releaseSolver()
   return p;
 }
 
+// extract the Variables from the Constraints and the Objective to avoid unused
+// variables.
+static ScaLP::VariableSet extractVariables(const std::list<ScaLP::Constraint> &cs,const ScaLP::Objective &o)
+{
+  ScaLP::VariableSet vs;
+
+  ScaLP::VariableSet ovs = o.getTerm().extractVariables();
+  vs.insert(ovs.begin(),ovs.end());
+
+  for(auto& c:cs)
+  {
+    ScaLP::VariableSet vvs = c.extractVariables();
+    vs.insert(vvs.begin(),vvs.end());
+  }
+
+  return vs;
+}
+
 void ScaLP::Solver::setObjective(Objective o)
 {
   this->objective=o;
@@ -305,34 +323,50 @@ std::string ScaLP::Solver::getBackendName() const
   return back->name;
 }
 
-std::string ScaLP::Solver::showLP() const
+static void showLPBase(const std::function<void(std::string)>& f
+  , const ScaLP::Objective& objective
+  , const std::list<ScaLP::Constraint>& cons)
 {
-  std::stringstream s;
+  f(showObjectiveLP(objective));
 
-  s << showObjectiveLP(objective);
-
-  s << "SUBJECT TO\n";
+  f("SUBJECT TO\n");
   for(auto &c:cons)
   {
-    s << "  " << showConstraintLP(c) << "\n";
+    f("  "+showConstraintLP(c)+"\n");
   }
   
   ScaLP::VariableSet vs = extractVariables(cons,objective);
 
-  s << "BOUNDS\n";
-  s << boundsLP(vs);
+  f("BOUNDS\n");
+  f(boundsLP(vs));
 
-  s << variableTypesLP(vs);
+  f(variableTypesLP(vs));
 
-  s << "END\n";
+  f("END\n");
+}
+
+std::string ScaLP::Solver::showLP() const
+{
+  std::stringstream s;
+
+  auto f = [&s](const std::string& str)
+  {
+    s<<str;
+  };
+  showLPBase(f,objective,cons);
 
   return s.str();
-
 }
 
 void ScaLP::Solver::writeLP(std::string file) const
 {
-  std::ofstream(file) << showLP();
+  std::ofstream s(file);
+
+  auto f = [&s](const std::string& str)
+  {
+    s<<str;
+  };
+  showLPBase(f,objective,cons);
 }
 
 void ScaLP::Solver::prepare()
@@ -413,11 +447,77 @@ ScaLP::status ScaLP::Solver::newSolve()
   return stat;
 }
 
+static std::string hashFNV(const ScaLP::Objective& objective, const std::list<ScaLP::Constraint>& cons)
+{
+  std::vector<uint64_t> hashBases(3,14695981039346656037U);
+  std::string reminder="";
+  auto hashFNVH = [&hashBases,&reminder](const std::string& str)
+  {
+    std::string acc = reminder+str;
+    size_t dataSize=acc.size()-acc.size()%hashBases.size();
+    reminder = acc.substr(dataSize);
+    acc.resize(dataSize);
+    for(unsigned int i=0;i<dataSize;i+=hashBases.size())
+    {
+      for(unsigned int j=0;j<hashBases.size();++j)
+      {
+        hashBases[j]= (hashBases[j]^acc[i+j])*1099511628211U;
+      }
+    }
+  };
+  
+  showLPBase(hashFNVH,objective,cons);
+  
+  // hash the reminder
+  for(unsigned int i=0;i<reminder.size();++i)
+  {
+    hashBases[i]= (hashBases[i]^reminder[i])*1099511628211U;
+  }
+  
+  // combine all hashes
+  std::string hash="";
+  for(const auto& i:hashBases)
+  {
+    hash+=std::to_string(i);
+  }
+  return hash;
+}
+
+static void updateCache(ScaLP::Solver& solver,const ScaLP::Result& result, const ScaLP::Objective objective, const std::string& hash)
+{
+  std::ifstream f((solver.resultCacheDir+"/"+hash+"/feasible.sol").c_str());
+  while(f.good())
+  {
+    std::string line="";
+    std::getline(f,line);
+    auto p = ScaLP::extractObjective(line);
+    if(p.first) // extracted
+    {
+      if(objective.getType()==ScaLP::Objective::type::MAXIMIZE)
+      {
+        if(result.objectiveValue>p.second)
+        {
+          ScaLP::writeFeasibleSolution(solver.resultCacheDir,hash,result,solver);
+          break;
+        }
+      }
+      else
+      {
+        if(result.objectiveValue<p.second)
+        {
+          ScaLP::writeFeasibleSolution(solver.resultCacheDir,hash,result,solver);
+          break;
+        }
+      }
+    }
+  }
+}
+
 ScaLP::status ScaLP::Solver::solve()
 {
   if(not resultCacheDir.empty())
   {
-    auto hash = ScaLP::hashFNV(this->showLP());
+    std::string hash=hashFNV(objective,cons);
     auto s =  extractVariables(cons,objective);
     std::vector<ScaLP::Variable> v{s.begin(),s.end()};
     if(ScaLP::hasOptimalSolution(resultCacheDir,hash))
@@ -431,6 +531,25 @@ ScaLP::status ScaLP::Solver::solve()
       if(stat==ScaLP::status::OPTIMAL)
       {
         ScaLP::writeOptimalSolution(resultCacheDir,hash,this->result,*this);
+      }
+      else if(stat==ScaLP::status::FEASIBLE or stat==ScaLP::status::TIMEOUT_FEASIBLE)
+      {
+        if(not ScaLP::hasFeasibleSolution(resultCacheDir,hash))
+        {
+          ScaLP::writeFeasibleSolution(resultCacheDir,hash,this->result,*this);
+        }
+        else
+        {
+          updateCache(*this,this->result,this->objective,hash);
+        }
+      }
+      else if(stat==ScaLP::status::TIMEOUT_INFEASIBLE)
+      {
+        if(ScaLP::hasFeasibleSolution(resultCacheDir,hash))
+        {
+          this->result = ScaLP::getFeasibleSolution(resultCacheDir,hash,v);
+          return ScaLP::status::TIMEOUT_FEASIBLE;
+        }
       }
       return stat;
     }
@@ -476,22 +595,6 @@ void ScaLP::Solver::reset()
   objective=ScaLP::Objective();
   cons.clear();
   result=ScaLP::Result();
-}
-
-ScaLP::VariableSet ScaLP::Solver::extractVariables(const std::list<Constraint> &cs,const Objective &o) const
-{
-  ScaLP::VariableSet vs;
-
-  ScaLP::VariableSet ovs = o.getTerm().extractVariables();
-  vs.insert(ovs.begin(),ovs.end());
-
-  for(auto& c:cs)
-  {
-    ScaLP::VariableSet vvs = c.extractVariables();
-    vs.insert(vvs.begin(),vvs.end());
-  }
-
-  return vs;
 }
 
 // x*d

@@ -145,10 +145,6 @@ namespace ScaLP
 
       ScaLP::Result result;
 
-      // extract the Variables from the Constraints and the Objective
-      // to avoid unused variables.
-      ScaLP::VariableSet extractVariables(const std::list<Constraint> &c,const Objective &o) const;
-
       double absMIPGap=-1;
       double relMIPGap=-1;
 

@@ -126,7 +126,7 @@ class SolverDynamic : public SolverBackend
   {
     return back->addVariable(v);
   }
-  bool addVariables(ScaLP::VariableSet vs) override
+  bool addVariables(const ScaLP::VariableSet& vs) override
   {
     return back->addVariables(vs);
   }
@@ -134,7 +134,7 @@ class SolverDynamic : public SolverBackend
   {
     return back->addConstraint(con);
   }
-  bool addConstraints(std::list<ScaLP::Constraint> cons) override
+  bool addConstraints(const std::vector<ScaLP::Constraint>& cons) override
   {
     return back->addConstraints(cons);
   }

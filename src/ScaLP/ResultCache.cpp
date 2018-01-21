@@ -24,8 +24,8 @@ bool ScaLP::fileExists(const std::string& s)
 
 static double extractObjective(const std::string& s,double d)
 {
-  std::string prefix = "objective value ";
-  auto p = s.find("objective value ");
+  const std::string prefix = "objective value ";
+  auto p = s.find(prefix);
   if(p==std::string::npos)
   {
     return d; // no objective
@@ -79,13 +79,13 @@ static std::pair<std::map<std::string,double>,double> readSolutionFile(std::stri
   return {m,objective};
 }
 
-static ScaLP::Result createResult(std::pair<std::map<std::string,double>,double> p,const std::vector<ScaLP::Variable>& vs)
+static ScaLP::Result createResult(const std::pair<std::map<std::string,double>,double>& p,const ScaLP::VariableSet& vs)
 {
   ScaLP::Result res;
   res.objectiveValue=p.second;
   for(auto& v:vs)
   {
-    double r = p.first[v->getName()];
+    double r = p.first.at(v->getName());
     res.values.emplace(v,r);
   }
 
@@ -94,8 +94,8 @@ static ScaLP::Result createResult(std::pair<std::map<std::string,double>,double>
 
 std::pair<bool,double> ScaLP::extractObjective(const std::string& s)
 {
-  std::string prefix = "objective value ";
-  auto p = s.find("objective value ");
+  const std::string prefix = "objective value ";
+  auto p = s.find(prefix);
   if(p==std::string::npos)
   {
     return {false,0}; // no objective
@@ -115,11 +115,11 @@ bool ScaLP::hasFeasibleSolution(const std::string& prefix, const std::string& ha
   return fileExists(prefix+"/"+hash+"/feasible.sol");
 }
 
-ScaLP::Result ScaLP::getOptimalSolution(const std::string& prefix, const std::string& hash,const std::vector<ScaLP::Variable>& vs)
+ScaLP::Result ScaLP::getOptimalSolution(const std::string& prefix, const std::string& hash,const ScaLP::VariableSet& vs)
 {
   return createResult(readSolutionFile(prefix+"/"+hash+"/optimal.sol"),vs);
 }
-ScaLP::Result ScaLP::getFeasibleSolution(const std::string& prefix, const std::string& hash,const std::vector<ScaLP::Variable>& vs)
+ScaLP::Result ScaLP::getFeasibleSolution(const std::string& prefix, const std::string& hash,const ScaLP::VariableSet& vs)
 {
   return createResult(readSolutionFile(prefix+"/"+hash+"/feasible.sol"),vs);
 }

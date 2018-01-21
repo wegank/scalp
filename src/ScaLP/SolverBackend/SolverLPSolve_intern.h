@@ -17,9 +17,7 @@ namespace ScaLP
 
       // basic functions
       virtual bool addVariable(const ScaLP::Variable& v) override;
-      //virtual bool addVariables(ScaLP::VariableSet vs) override;
       virtual bool addConstraint(const ScaLP::Constraint& con) override;
-      //virtual bool addConstraints(std::list<ScaLP::Constraint> cons) override;
       virtual bool setObjective(ScaLP::Objective o) override;
       virtual std::pair<ScaLP::status,ScaLP::Result> solve() override;
       virtual void reset() override;

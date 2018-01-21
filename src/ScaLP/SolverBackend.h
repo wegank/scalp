@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <list>
+#include <vector>
 
 #include <ScaLP/Variable.h>
 #include <ScaLP/Constraint.h>
@@ -40,9 +41,9 @@ namespace ScaLP
       // basic functions
       //####################
       virtual bool addVariable(const ScaLP::Variable& v);
-      virtual bool addVariables(ScaLP::VariableSet vs); // alternative to addVariable
+      virtual bool addVariables(const ScaLP::VariableSet& vs); // alternative to addVariable
       virtual bool addConstraint(const ScaLP::Constraint& con);
-      virtual bool addConstraints(std::list<ScaLP::Constraint> cons); // alternative to addConstraint
+      virtual bool addConstraints(const std::vector<ScaLP::Constraint>& cons); // alternative to addConstraint
       virtual bool setObjective(ScaLP::Objective o);
       virtual std::pair<ScaLP::status,ScaLP::Result> solve();
       virtual void reset();

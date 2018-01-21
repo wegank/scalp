@@ -123,7 +123,7 @@ IloConstraint ScaLP::SolverCPLEX::convertConstraint(const ScaLP::Constraint &c)
   return constr;
 }
 
-bool ScaLP::SolverCPLEX::addConstraints(std::list<ScaLP::Constraint> cons)
+bool ScaLP::SolverCPLEX::addConstraints(const std::vector<ScaLP::Constraint>& cons)
 {
   try
   {

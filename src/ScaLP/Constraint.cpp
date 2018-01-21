@@ -11,7 +11,7 @@ ScaLP::Constraint::~Constraint()
 {
 }
 
-void ScaLP::Constraint::setName(std::string n)
+void ScaLP::Constraint::setName(const std::string& n)
 {
   name=n;
 }
@@ -53,11 +53,11 @@ std::string ScaLP::Constraint::showRelation(relation r)
 
 ScaLP::VariableSet ScaLP::Constraint::extractVariables() const
 {
-  ScaLP::VariableSet s{term.extractVariables()};
+  auto s = term.extractVariables();
   if(this->indicator!=nullptr)
   {
-    ScaLP::VariableSet t{this->indicator->term.extractVariables()};
-    s.insert(t.begin(),t.end());
+    auto vi = this->indicator->term.extractVariables();
+    s.insert(vi.begin(),vi.end());
   }
   return s;
 }
@@ -87,7 +87,7 @@ static inline void checkRelationCompatibility(ScaLP::relation l, ScaLP::relation
 }
 
 // basic constructors
-ScaLP::Constraint::Constraint(double l, relation rel, ScaLP::Term& r)
+ScaLP::Constraint::Constraint(double l, relation rel, const ScaLP::Term& r)
   : ctype(ScaLP::Constraint::type::C2L), lbound(l), lrel(rel), term(r)
 {
   if(rel==ScaLP::relation::EQUAL)
@@ -97,7 +97,7 @@ ScaLP::Constraint::Constraint(double l, relation rel, ScaLP::Term& r)
     ubound=lbound;
   }
 }
-ScaLP::Constraint::Constraint(ScaLP::Term& l, relation rel, double r)
+ScaLP::Constraint::Constraint(const ScaLP::Term& l, relation rel, double r)
   : ctype(ScaLP::Constraint::type::C2R), term(l), rrel(rel), ubound(r)
 {
   if(rel==ScaLP::relation::EQUAL)
@@ -107,34 +107,34 @@ ScaLP::Constraint::Constraint(ScaLP::Term& l, relation rel, double r)
     lbound=ubound;
   }
 }
-ScaLP::Constraint::Constraint(double lb, relation lrel, ScaLP::Term& t, relation rrel,double ub)
+ScaLP::Constraint::Constraint(double lb, relation lrel, const ScaLP::Term& t, relation rrel,double ub)
   : ctype(ScaLP::Constraint::type::C3), lbound(lb), lrel(lrel), term(t), rrel(rrel), ubound(ub)
 {
   checkRelationCompatibility(lrel,rrel);
 }
 
 // combination constructors
-ScaLP::Constraint::Constraint(ScaLP::Constraint& lhs, relation rel, double ub)
+ScaLP::Constraint::Constraint(const ScaLP::Constraint& lhs, relation rel, double ub)
   : Constraint(lhs.lbound,lhs.lrel,lhs.term,rel,ub)
 {
 }
-ScaLP::Constraint::Constraint(double lb, relation rel, ScaLP::Constraint& rhs)
+ScaLP::Constraint::Constraint(double lb, relation rel, const ScaLP::Constraint& rhs)
   : Constraint(lb,rel,rhs.term,rhs.rrel,rhs.ubound)
 {
 }
 
 // named constraint constructors
-ScaLP::Constraint::Constraint(std::string n, ScaLP::Constraint& c)
+ScaLP::Constraint::Constraint(const std::string& n, const ScaLP::Constraint& c)
   : ScaLP::Constraint(c)
 {
   name=n;
 }
-ScaLP::Constraint::Constraint(std::string n, ScaLP::Constraint&& c)
+ScaLP::Constraint::Constraint(const std::string& n, ScaLP::Constraint&& c)
   : ScaLP::Constraint(c)
 {
   name=n;
 }
-ScaLP::Constraint::Constraint(std::pair<std::string,ScaLP::Constraint>& p)
+ScaLP::Constraint::Constraint(const std::pair<std::string,ScaLP::Constraint>& p)
   : ScaLP::Constraint(p.second)
 {
   name=p.first;

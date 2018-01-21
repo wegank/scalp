@@ -61,12 +61,9 @@ ScaLP::SolverBackend* ScaLP::Solver::releaseSolver()
 
 // extract the Variables from the Constraints and the Objective to avoid unused
 // variables.
-static ScaLP::VariableSet extractVariables(const std::list<ScaLP::Constraint> &cs,const ScaLP::Objective &o)
+static ScaLP::VariableSet extractVariables(const std::vector<ScaLP::Constraint> &cs,const ScaLP::Objective &o)
 {
-  ScaLP::VariableSet vs;
-
-  ScaLP::VariableSet ovs = o.getTerm().extractVariables();
-  vs.insert(ovs.begin(),ovs.end());
+  ScaLP::VariableSet vs = o.getTerm().extractVariables();
 
   for(auto& c:cs)
   {
@@ -77,7 +74,7 @@ static ScaLP::VariableSet extractVariables(const std::list<ScaLP::Constraint> &c
   return vs;
 }
 
-void ScaLP::Solver::setObjective(Objective o)
+void ScaLP::Solver::setObjective(const Objective& o)
 {
   this->objective=o;
 
@@ -85,7 +82,7 @@ void ScaLP::Solver::setObjective(Objective o)
   extractVariables(cons,objective);
 }
 
-void ScaLP::Solver::addConstraint(Constraint& b)
+void ScaLP::Solver::addConstraint(const Constraint& b)
 {
   this->cons.push_back(b);
 }
@@ -254,7 +251,7 @@ static std::string showConstraintLP(ScaLP::Constraint c)
   return "";
 }
 
-static std::string variableTypesLP(ScaLP::VariableSet &vs)
+static std::string variableTypesLP(const ScaLP::VariableSet &vs)
 {
   std::string binary="BINARY\n";
   std::string general="GENERAL\n";
@@ -269,7 +266,7 @@ static std::string variableTypesLP(ScaLP::VariableSet &vs)
   return binary+general;
 }
 
-static std::string boundsLP(ScaLP::VariableSet &vs)
+static std::string boundsLP(const ScaLP::VariableSet &vs)
 {
   std::stringstream s;
   for(const auto &v:vs)
@@ -325,7 +322,8 @@ std::string ScaLP::Solver::getBackendName() const
 
 static void showLPBase(const std::function<void(std::string)>& f
   , const ScaLP::Objective& objective
-  , const std::list<ScaLP::Constraint>& cons)
+  , const std::vector<ScaLP::Constraint>& cons
+  , const ScaLP::VariableSet& vs)
 {
   f(showObjectiveLP(objective));
 
@@ -334,8 +332,6 @@ static void showLPBase(const std::function<void(std::string)>& f
   {
     f("  "+showConstraintLP(c)+"\n");
   }
-  
-  ScaLP::VariableSet vs = extractVariables(cons,objective);
 
   f("BOUNDS\n");
   f(boundsLP(vs));
@@ -353,7 +349,7 @@ std::string ScaLP::Solver::showLP() const
   {
     s<<str;
   };
-  showLPBase(f,objective,cons);
+  showLPBase(f,objective,cons,extractVariables(cons,objective));
 
   return s.str();
 }
@@ -366,7 +362,7 @@ void ScaLP::Solver::writeLP(std::string file) const
   {
     s<<str;
   };
-  showLPBase(f,objective,cons);
+  showLPBase(f,objective,cons,extractVariables(cons,objective));
 }
 
 void ScaLP::Solver::prepare()
@@ -386,6 +382,18 @@ void ScaLP::Solver::prepare()
   back->presolve(presolve);
 }
 
+void ScaLP::Solver::construct(const ScaLP::VariableSet& vs)
+{
+  // Add the Variables
+  // Only add the used Variables.
+  back->addVariables(vs);
+
+  // Add Objective
+  back->setObjective(objective);
+
+  // Add Constraints
+  back->addConstraints(cons);
+}
 void ScaLP::Solver::construct()
 {
   // Add the Variables
@@ -447,7 +455,33 @@ ScaLP::status ScaLP::Solver::newSolve()
   return stat;
 }
 
-static std::string hashFNV(const ScaLP::Objective& objective, const std::list<ScaLP::Constraint>& cons)
+ScaLP::status ScaLP::Solver::newSolve(const ScaLP::VariableSet& vs)
+{
+  back->reset();
+
+  ScaLP::Result res= ScaLP::Result();
+  ScaLP::status stat;
+
+  double preparationTime = time([this](){prepare();});
+  double constructionTime = time([&,this,vs](){construct(vs);});
+  double solvingTime = time([&stat,&res,this](){
+    std::tie(stat,res) = back->solve();
+  });
+
+  res.preparationTime = preparationTime;
+  res.constructionTime = constructionTime;
+  res.solvingTime = solvingTime;
+
+  // round integer-values in the result
+  postprocess();
+
+  this->result = res;
+  return stat;
+}
+
+static std::string hashFNV(const ScaLP::Objective& objective
+  , const std::vector<ScaLP::Constraint>& cons
+  , const ScaLP::VariableSet& vs)
 {
   std::vector<uint64_t> hashBases(3,14695981039346656037U);
   std::string reminder="";
@@ -466,7 +500,7 @@ static std::string hashFNV(const ScaLP::Objective& objective, const std::list<Sc
     }
   };
   
-  showLPBase(hashFNVH,objective,cons);
+  showLPBase(hashFNVH,objective,cons,vs);
   
   // hash the reminder
   for(unsigned int i=0;i<reminder.size();++i)
@@ -515,19 +549,18 @@ static void updateCache(ScaLP::Solver& solver,const ScaLP::Result& result, const
 
 ScaLP::status ScaLP::Solver::solve()
 {
+  const ScaLP::VariableSet s = extractVariables(cons,objective);
   if(not resultCacheDir.empty())
   {
-    std::string hash=hashFNV(objective,cons);
-    auto s =  extractVariables(cons,objective);
-    std::vector<ScaLP::Variable> v{s.begin(),s.end()};
+    std::string hash=hashFNV(objective,cons,s);
     if(ScaLP::hasOptimalSolution(resultCacheDir,hash))
     {
-      this->result = ScaLP::getOptimalSolution(resultCacheDir,hash,v);
+      this->result = ScaLP::getOptimalSolution(resultCacheDir,hash,s);
       return ScaLP::status::OPTIMAL;
     }
     else
     {
-      auto stat = newSolve();
+      auto stat = newSolve(s);
       if(stat==ScaLP::status::OPTIMAL)
       {
         ScaLP::writeOptimalSolution(resultCacheDir,hash,this->result,*this);
@@ -547,7 +580,7 @@ ScaLP::status ScaLP::Solver::solve()
       {
         if(ScaLP::hasFeasibleSolution(resultCacheDir,hash))
         {
-          this->result = ScaLP::getFeasibleSolution(resultCacheDir,hash,v);
+          this->result = ScaLP::getFeasibleSolution(resultCacheDir,hash,s);
           return ScaLP::status::TIMEOUT_FEASIBLE;
         }
       }
@@ -556,7 +589,7 @@ ScaLP::status ScaLP::Solver::solve()
   }
   else
   {
-    return newSolve();
+    return newSolve(s);
   }
 }
 
@@ -598,20 +631,20 @@ void ScaLP::Solver::reset()
 }
 
 // x*d
-ScaLP::Term ScaLP::operator*(ScaLP::Variable v,double coeff)
+ScaLP::Term ScaLP::operator*(const ScaLP::Variable& v,double coeff)
 {
   ScaLP::Term t;
   t.add(v,coeff);
   return t;
 }
 // d*x
-ScaLP::Term ScaLP::operator*(double coeff, ScaLP::Variable v)
+ScaLP::Term ScaLP::operator*(double coeff, const ScaLP::Variable& v)
 {
   return v*coeff;
 }
 
 // d(ax+by) = adx+bdy
-ScaLP::Term ScaLP::operator*(double coeff, ScaLP::Term t)
+ScaLP::Term ScaLP::operator*(double coeff, const ScaLP::Term& t)
 {
   ScaLP::Term n = t;
   n.constant*=coeff;
@@ -622,13 +655,13 @@ ScaLP::Term ScaLP::operator*(double coeff, ScaLP::Term t)
   return n;
 }
 // (xa+yb)d = xad+ybd
-ScaLP::Term ScaLP::operator*(ScaLP::Term t, double coeff)
+ScaLP::Term ScaLP::operator*(const ScaLP::Term& t, double coeff)
 {
   return coeff*t;
 }
 
 // insert a {key,value}-pair to the map, adjust already present values with the function f.
-static void adjust(std::map<ScaLP::Variable,double> &m,ScaLP::Variable k,double v,std::function<double(double,double)> f)
+static void adjust(std::map<ScaLP::Variable,double> &m,const ScaLP::Variable& k,double v,const std::function<double(double,double)>& f)
 {
   auto it = m.find(k);
   if(it==m.end())
@@ -641,7 +674,7 @@ static void adjust(std::map<ScaLP::Variable,double> &m,ScaLP::Variable k,double 
   }
 }
 
-ScaLP::Term ScaLP::operator+(ScaLP::Term tl,ScaLP::Term tr)
+ScaLP::Term ScaLP::operator+(const ScaLP::Term& tl,const ScaLP::Term& tr)
 {
   Term n = tl;
   n.constant+=tr.constant;
@@ -652,7 +685,7 @@ ScaLP::Term ScaLP::operator+(ScaLP::Term tl,ScaLP::Term tr)
   return n;
 }
 
-ScaLP::Term& ScaLP::operator+=(ScaLP::Term &tl,ScaLP::Term tr)
+ScaLP::Term& ScaLP::operator+=(ScaLP::Term &tl, const ScaLP::Term& tr)
 {
   tl.constant+=tr.constant;
   for(auto &p:tr.sum)
@@ -662,7 +695,7 @@ ScaLP::Term& ScaLP::operator+=(ScaLP::Term &tl,ScaLP::Term tr)
   return tl;
 }
 
-ScaLP::Term ScaLP::operator-(ScaLP::Term t)
+ScaLP::Term ScaLP::operator-(const ScaLP::Term& t)
 {
   ScaLP::Term n = t;
   n.constant*= -1;
@@ -670,12 +703,12 @@ ScaLP::Term ScaLP::operator-(ScaLP::Term t)
   return n;
 }
 
-ScaLP::Term ScaLP::operator-(ScaLP::Variable v)
+ScaLP::Term ScaLP::operator-(const ScaLP::Variable& v)
 {
   return (-1)*v;
 }
 
-ScaLP::Term ScaLP::operator-(ScaLP::Term tl, ScaLP::Term tr)
+ScaLP::Term ScaLP::operator-(const ScaLP::Term& tl, const ScaLP::Term& tr)
 {
   Term n = tl;
   n.constant-=tr.constant;
@@ -686,7 +719,7 @@ ScaLP::Term ScaLP::operator-(ScaLP::Term tl, ScaLP::Term tr)
   return n;
 }
 
-ScaLP::Term& ScaLP::operator-=(ScaLP::Term &tl, ScaLP::Term tr)
+ScaLP::Term& ScaLP::operator-=(ScaLP::Term& tl, const ScaLP::Term& tr)
 {
   tl.constant-=tr.constant;
   for(auto &p:tr.sum)
@@ -756,45 +789,43 @@ bool ScaLP::Solver::featureSupported(ScaLP::Feature f)
 #define ScaLP_RELATION_OPERATORVL(A,B,C,D) \
   ScaLP::Constraint ScaLP::operator A(C l,D r) \
   { \
-    ScaLP::Term t = l;\
-    return ScaLP::Constraint(t,ScaLP::relation::B,r); \
+    return ScaLP::Constraint(l,ScaLP::relation::B,r); \
   }
 #define ScaLP_RELATION_OPERATORVR(A,B,C,D) \
   ScaLP::Constraint ScaLP::operator A(C l,D r) \
   { \
-    ScaLP::Term t = r;\
-    return ScaLP::Constraint(l,ScaLP::relation::B,t); \
+    return ScaLP::Constraint(l,ScaLP::relation::B,r); \
   }
 
 
-ScaLP_RELATION_OPERATORVL(<=,LESS_EQ_THAN, ScaLP::Variable, double)
-ScaLP_RELATION_OPERATORVL(>=,MORE_EQ_THAN, ScaLP::Variable, double)
-ScaLP_RELATION_OPERATORVL(==,EQUAL       , ScaLP::Variable, double)
-ScaLP_RELATION_OPERATORVR(<=,LESS_EQ_THAN, double, ScaLP::Variable)
-ScaLP_RELATION_OPERATORVR(>=,MORE_EQ_THAN, double, ScaLP::Variable)
-ScaLP_RELATION_OPERATORVR(==,EQUAL       , double, ScaLP::Variable)
+ScaLP_RELATION_OPERATORVL(<=,LESS_EQ_THAN, const ScaLP::Variable&, double)
+ScaLP_RELATION_OPERATORVL(>=,MORE_EQ_THAN, const ScaLP::Variable&, double)
+ScaLP_RELATION_OPERATORVL(==,EQUAL       , const ScaLP::Variable&, double)
+ScaLP_RELATION_OPERATORVR(<=,LESS_EQ_THAN, double, const ScaLP::Variable&)
+ScaLP_RELATION_OPERATORVR(>=,MORE_EQ_THAN, double, const ScaLP::Variable&)
+ScaLP_RELATION_OPERATORVR(==,EQUAL       , double, const ScaLP::Variable&)
 
-ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, ScaLP::Term, double)
-ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, ScaLP::Term, double)
-ScaLP_RELATION_OPERATOR(==,EQUAL       , ScaLP::Term, double)
-ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, ScaLP::Term)
-ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, ScaLP::Term)
-ScaLP_RELATION_OPERATOR(==,EQUAL       , double, ScaLP::Term)
+ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, const ScaLP::Term&, double)
+ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, const ScaLP::Term&, double)
+ScaLP_RELATION_OPERATOR(==,EQUAL       , const ScaLP::Term&, double)
+ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, const ScaLP::Term&)
+ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, const ScaLP::Term&)
+ScaLP_RELATION_OPERATOR(==,EQUAL       , double, const ScaLP::Term&)
 
-ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, ScaLP::Constraint, double)
-ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, ScaLP::Constraint, double)
-ScaLP_RELATION_OPERATOR(==,EQUAL       , ScaLP::Constraint, double)
+ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, const ScaLP::Constraint&, double)
+ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, const ScaLP::Constraint&, double)
+ScaLP_RELATION_OPERATOR(==,EQUAL       , const ScaLP::Constraint&, double)
 
-ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, ScaLP::Constraint)
-ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, ScaLP::Constraint)
-ScaLP_RELATION_OPERATOR(==,EQUAL       , double, ScaLP::Constraint)
+ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, const ScaLP::Constraint&)
+ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, const ScaLP::Constraint&)
+ScaLP_RELATION_OPERATOR(==,EQUAL       , double, const ScaLP::Constraint&)
 
-ScaLP::Solver& ScaLP::operator<<(Solver &s,Objective o)
+ScaLP::Solver& ScaLP::operator<<(Solver &s,const Objective& o)
 {
   s.setObjective(o);
   return s;
 }
-ScaLP::Solver& ScaLP::operator<<(Solver &s,Constraint& o)
+ScaLP::Solver& ScaLP::operator<<(Solver &s,const Constraint& o)
 {
   s.addConstraint(o);
   return s;
@@ -805,7 +836,7 @@ ScaLP::Solver& ScaLP::operator<<(Solver &s,Constraint&& o)
   return s;
 }
 
-ScaLP::Constraint ScaLP::operator>>=(ScaLP::Constraint i,ScaLP::Constraint c)
+ScaLP::Constraint ScaLP::operator>>=(const ScaLP::Constraint& i,const ScaLP::Constraint& c)
 {
   return ScaLP::Constraint(i,c);
 }

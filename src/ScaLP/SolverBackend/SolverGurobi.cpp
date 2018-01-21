@@ -60,7 +60,7 @@ bool ScaLP::SolverGurobi::addVariable(const ScaLP::Variable& v)
   return true;
 }
 
-bool ScaLP::SolverGurobi::addVariables(ScaLP::VariableSet vs)
+bool ScaLP::SolverGurobi::addVariables(const ScaLP::VariableSet& vs)
 {
   for(const ScaLP::Variable v:vs)
   {

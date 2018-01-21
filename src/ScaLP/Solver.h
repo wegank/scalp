@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include <vector>
 #include <initializer_list>
 #include <string>
 
@@ -57,10 +58,10 @@ namespace ScaLP
       //####################
 
       // set the (new) objective
-      void setObjective(Objective o);
+      void setObjective(const Objective& o);
 
       // add a constraint
-      void addConstraint(Constraint& b);
+      void addConstraint(const Constraint& b);
       void addConstraint(Constraint&& b);
 
 
@@ -138,7 +139,7 @@ namespace ScaLP
       Objective objective;
 
       // The used constraints
-      std::list<Constraint> cons;
+      std::vector<Constraint> cons;
 
       // The backend used to solve the objective
       ScaLP::SolverBackend *back;
@@ -148,55 +149,57 @@ namespace ScaLP
       double absMIPGap=-1;
       double relMIPGap=-1;
 
+      ScaLP::status newSolve(const ScaLP::VariableSet& vs);
       void prepare();
       void construct();
+      void construct(const ScaLP::VariableSet& vs);
       void construct(const std::string& file);
       void postprocess();
 
   };
 
-  ScaLP::Term operator*(ScaLP::Variable v,double coeff);
-  ScaLP::Term operator*(double coeff, ScaLP::Variable v);
-  ScaLP::Term operator*(double coeff, ScaLP::Term t);
-  ScaLP::Term operator*(ScaLP::Term t , double coeff);
+  ScaLP::Term operator*(const ScaLP::Variable& v,double coeff);
+  ScaLP::Term operator*(double coeff, const ScaLP::Variable& v);
+  ScaLP::Term operator*(double coeff, const ScaLP::Term& t);
+  ScaLP::Term operator*(const ScaLP::Term& t , double coeff);
 
-  ScaLP::Term operator+(ScaLP::Term tl, ScaLP::Term tr);
-  ScaLP::Term operator-(ScaLP::Term tl, ScaLP::Term tr);
+  ScaLP::Term operator+(const ScaLP::Term& tl, const ScaLP::Term& tr);
+  ScaLP::Term operator-(const ScaLP::Term& tl, const ScaLP::Term& tr);
 
-  ScaLP::Term& operator+=(ScaLP::Term& tl, ScaLP::Term tr);
-  ScaLP::Term& operator-=(ScaLP::Term& tl, ScaLP::Term tr);
+  ScaLP::Term& operator+=(ScaLP::Term& tl, const ScaLP::Term& tr);
+  ScaLP::Term& operator-=(ScaLP::Term& tl, const ScaLP::Term& tr);
   ScaLP::Term& operator*=(ScaLP::Term& tl, double d);
 
-  ScaLP::Term operator-(ScaLP::Variable v);
-  ScaLP::Term operator-(ScaLP::Term t);
+  ScaLP::Term operator-(const ScaLP::Variable& v);
+  ScaLP::Term operator-(const ScaLP::Term& t);
 
-  ScaLP::Constraint operator<=(ScaLP::Variable tl,double tr);
-  ScaLP::Constraint operator>=(ScaLP::Variable tl,double tr);
-  ScaLP::Constraint operator==(ScaLP::Variable tl,double tr);
-  ScaLP::Constraint operator<=(double tl,ScaLP::Variable tr);
-  ScaLP::Constraint operator>=(double tl,ScaLP::Variable tr);
-  ScaLP::Constraint operator==(double tl,ScaLP::Variable tr);
+  ScaLP::Constraint operator<=(const ScaLP::Variable& tl,double tr);
+  ScaLP::Constraint operator>=(const ScaLP::Variable& tl,double tr);
+  ScaLP::Constraint operator==(const ScaLP::Variable& tl,double tr);
+  ScaLP::Constraint operator<=(double tl,const ScaLP::Variable& tr);
+  ScaLP::Constraint operator>=(double tl,const ScaLP::Variable& tr);
+  ScaLP::Constraint operator==(double tl,const ScaLP::Variable& tr);
 
-  ScaLP::Constraint operator<=(ScaLP::Term tl,double tr);
-  ScaLP::Constraint operator>=(ScaLP::Term tl,double tr);
-  ScaLP::Constraint operator==(ScaLP::Term tl,double tr);
-  ScaLP::Constraint operator<=(double tl,ScaLP::Term tr);
-  ScaLP::Constraint operator>=(double tl,ScaLP::Term tr);
-  ScaLP::Constraint operator==(double tl,ScaLP::Term tr);
+  ScaLP::Constraint operator<=(const ScaLP::Term& tl,double tr);
+  ScaLP::Constraint operator>=(const ScaLP::Term& tl,double tr);
+  ScaLP::Constraint operator==(const ScaLP::Term& tl,double tr);
+  ScaLP::Constraint operator<=(double tl,const ScaLP::Term& tr);
+  ScaLP::Constraint operator>=(double tl,const ScaLP::Term& tr);
+  ScaLP::Constraint operator==(double tl,const ScaLP::Term& tr);
 
-  ScaLP::Constraint operator<=(ScaLP::Constraint tl,double tr);
-  ScaLP::Constraint operator>=(ScaLP::Constraint tl,double tr);
-  ScaLP::Constraint operator==(ScaLP::Constraint tl,double tr);
+  ScaLP::Constraint operator<=(const ScaLP::Constraint& tl,double tr);
+  ScaLP::Constraint operator>=(const ScaLP::Constraint& tl,double tr);
+  ScaLP::Constraint operator==(const ScaLP::Constraint& tl,double tr);
 
-  ScaLP::Constraint operator<=(double tl,ScaLP::Constraint tr);
-  ScaLP::Constraint operator>=(double tl,ScaLP::Constraint tr);
-  ScaLP::Constraint operator==(double tl,ScaLP::Constraint tr);
+  ScaLP::Constraint operator<=(double tl,const ScaLP::Constraint& tr);
+  ScaLP::Constraint operator>=(double tl,const ScaLP::Constraint& tr);
+  ScaLP::Constraint operator==(double tl,const ScaLP::Constraint& tr);
 
-  ScaLP::Solver &operator<<(ScaLP::Solver &s,ScaLP::Objective o);
-  ScaLP::Solver &operator<<(ScaLP::Solver &s,ScaLP::Constraint& o);
+  ScaLP::Solver &operator<<(ScaLP::Solver &s,const ScaLP::Objective& o);
+  ScaLP::Solver &operator<<(ScaLP::Solver &s,const ScaLP::Constraint& o);
   ScaLP::Solver &operator<<(ScaLP::Solver &s,ScaLP::Constraint&& o);
 
-  ScaLP::Constraint operator>>=(ScaLP::Constraint i,ScaLP::Constraint c);
+  ScaLP::Constraint operator>>=(const ScaLP::Constraint& i,const ScaLP::Constraint& c);
   #define then >>=
 
 }

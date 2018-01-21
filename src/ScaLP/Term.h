@@ -17,11 +17,11 @@ namespace ScaLP
       Term(double con);
 
       // implicit v*1
-      Term(ScaLP::Variable& v);
+      Term(const ScaLP::Variable& v);
       Term(ScaLP::Variable&& v);
 
       // an weighted Variable (v*coeff)
-      Term(ScaLP::Variable& v,double coeff);
+      Term(const ScaLP::Variable& v,double coeff);
       Term(ScaLP::Variable&& v,double coeff);
 
       // Add a constant value
@@ -29,7 +29,7 @@ namespace ScaLP
 
       // Add v*coeff to the Term.
       // If v is already present the coefficient is increased by coeff
-      void add(Variable& v,double coeff);
+      void add(const Variable& v,double coeff);
       void add(Variable&& v,double coeff);
 
       // get the coefficient of v or zero if not present.

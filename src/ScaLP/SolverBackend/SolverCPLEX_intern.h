@@ -2,7 +2,6 @@
 #pragma once
 
 #include <map>
-#include <list>
 #include <vector>
 
 #include <ilcplex/ilocplex.h>
@@ -29,7 +28,7 @@ namespace ScaLP
 
       // basic functions
       virtual bool addVariable(const ScaLP::Variable& v) override;
-      virtual bool addConstraints(std::list<ScaLP::Constraint> cons) override;
+      virtual bool addConstraints(const std::vector<ScaLP::Constraint>& cons) override;
       virtual bool setObjective(ScaLP::Objective o) override;
       virtual std::pair<ScaLP::status,ScaLP::Result> solve() override;
       virtual void reset() override;

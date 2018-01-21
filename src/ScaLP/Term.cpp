@@ -20,7 +20,7 @@ ScaLP::Term::Term(double con)
   constant=con;
 }
 
-ScaLP::Term::Term(ScaLP::Variable& v)
+ScaLP::Term::Term(const ScaLP::Variable& v)
 {
   add(v,1);
 }
@@ -29,7 +29,7 @@ ScaLP::Term::Term(ScaLP::Variable&& v)
   add(v,1);
 }
 
-ScaLP::Term::Term(ScaLP::Variable& v,double coeff)
+ScaLP::Term::Term(const ScaLP::Variable& v,double coeff)
 {
   add(v,coeff);
 }
@@ -43,7 +43,7 @@ static bool valid(double d)
   return d!= ScaLP::INF() || d!= -ScaLP::INF() || d!=NAN;
 }
 
-void ScaLP::Term::add(ScaLP::Variable& v,double coeff)
+void ScaLP::Term::add(const ScaLP::Variable& v,double coeff)
 {
   if(valid(coeff))
   {
@@ -134,7 +134,7 @@ double& ScaLP::Term::operator[](const Variable& v)
 ScaLP::VariableSet ScaLP::Term::extractVariables() const
 {
   ScaLP::VariableSet s;
-  for(auto &p:sum)
+  for(const auto &p:sum)
   {
     // extract all non-eliminated variables
     if (p.second!=0)

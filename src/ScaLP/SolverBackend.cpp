@@ -10,9 +10,9 @@ bool ScaLP::SolverBackend::addVariable(const ScaLP::Variable& v)
   return false;
 }
 
-bool ScaLP::SolverBackend::addVariables(ScaLP::VariableSet vs)
+bool ScaLP::SolverBackend::addVariables(const ScaLP::VariableSet& vs)
 {
-  for(const ScaLP::Variable v:vs)
+  for(const ScaLP::Variable& v:vs)
   {
     if(!addVariable(v))
     {
@@ -29,7 +29,7 @@ bool ScaLP::SolverBackend::addConstraint(const ScaLP::Constraint& cons)
   return false;
 }
 
-bool ScaLP::SolverBackend::addConstraints(std::list<ScaLP::Constraint> cons)
+bool ScaLP::SolverBackend::addConstraints(const std::vector<ScaLP::Constraint>& cons)
 {
   for(const ScaLP::Constraint &c:cons)
   {

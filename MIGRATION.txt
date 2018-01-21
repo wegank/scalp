@@ -1,3 +1,22 @@
+# Revision 54, 01-21-2018:
+
+user interface:
+  - Mostly changing pass-by-value to pass-by-const-reference.
+    Recompilation should be fine.
+  - getName for Variables now returns a const reference, not a copy.
+
+
+solver interface:
+  - changing the Signature of
+
+      - ScaLP::SolverBackend::addVariables
+      - ScaLP::SolverBackend::addConstraints
+
+    they take const references instead of copies.
+    Furthermore addConstraints uses std::vector instead of std::list.
+    
+  - getName for Variables now returns a const reference, not a copy.
+
 # Revision 50, 01-11-2018:
 
 both:

@@ -33,7 +33,7 @@ namespace ScaLP
       VariableType getType() const;
       double getUpperBound() const;
       double getLowerBound() const;
-      std::string getName() const;
+      const std::string& getName() const;
 
       //####################
       // Setter
@@ -47,7 +47,7 @@ namespace ScaLP
       //####################
       // Construction (use the smartconstructors below)
       //####################
-      VariableBase(std::string n,double a,double b,type t=type::INTEGER);
+      VariableBase(const std::string& n,double a,double b,type t=type::INTEGER);
 
     private:
       type usedType;
@@ -62,18 +62,18 @@ namespace ScaLP
   // Smartconstructors
   //####################
   // Generic:
-  Variable newVariable(std::string n,double a, double b,VariableType t=VariableType::INTEGER);
+  Variable newVariable(const std::string& n,double a, double b,VariableType t=VariableType::INTEGER);
   // Specialzations:
-  Variable newIntegerVariable(std::string n,double a, double b);
-  Variable newIntegerVariable(std::string n); // free variable
-  Variable newRealVariable(std::string n,double a, double b);
-  Variable newRealVariable(std::string n); // free variable
-  Variable newBinaryVariable(std::string n,double a, double b);
-  Variable newBinaryVariable(std::string n);
+  Variable newIntegerVariable(const std::string& n,double a, double b);
+  Variable newIntegerVariable(const std::string& n); // free variable
+  Variable newRealVariable(const std::string& n,double a, double b);
+  Variable newRealVariable(const std::string& n); // free variable
+  Variable newBinaryVariable(const std::string& n,double a, double b);
+  Variable newBinaryVariable(const std::string& n);
 
 
   struct variableComparator{
-    bool operator()(Variable x,Variable y){
+    bool operator()(const Variable& x,const Variable& y){
       if(x->getName()==y->getName() && x.get()!=y.get())
       { // name-collision
         throw ScaLP::Exception("You defined multiple variables with the name: "+x->getName());

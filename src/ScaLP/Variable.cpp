@@ -9,40 +9,40 @@ namespace ScaLP
   extern double INF();
 }
 
-ScaLP::Variable ScaLP::newVariable(std::string n,double a, double b, VariableType t)
+ScaLP::Variable ScaLP::newVariable(const std::string& n,double a, double b, VariableType t)
 {
   Variable v = std::make_shared<VariableBase>(n,a,b,t);
   return v;
 };
 
-ScaLP::Variable ScaLP::newIntegerVariable(std::string n,double a, double b)
+ScaLP::Variable ScaLP::newIntegerVariable(const std::string& n,double a, double b)
 {
   return ScaLP::newVariable(n,a,b);
 }
-ScaLP::Variable ScaLP::newIntegerVariable(std::string n)
+ScaLP::Variable ScaLP::newIntegerVariable(const std::string& n)
 {
   return ScaLP::newIntegerVariable(n,-ScaLP::INF(),ScaLP::INF());
 }
 
-ScaLP::Variable ScaLP::newRealVariable(std::string n,double a, double b)
+ScaLP::Variable ScaLP::newRealVariable(const std::string& n,double a, double b)
 {
   return ScaLP::newVariable(n,a,b,ScaLP::VariableType::REAL);
 }
-ScaLP::Variable ScaLP::newRealVariable(std::string n)
+ScaLP::Variable ScaLP::newRealVariable(const std::string& n)
 {
   return ScaLP::newRealVariable(n,-ScaLP::INF(),ScaLP::INF());
 }
 
-ScaLP::Variable ScaLP::newBinaryVariable(std::string n,double a, double b)
+ScaLP::Variable ScaLP::newBinaryVariable(const std::string& n,double a, double b)
 {
   return ScaLP::newVariable(n,a,b,ScaLP::VariableType::BINARY);
 }
-ScaLP::Variable ScaLP::newBinaryVariable(std::string n)
+ScaLP::Variable ScaLP::newBinaryVariable(const std::string& n)
 {
   return ScaLP::newVariable(n,false,true,ScaLP::VariableType::BINARY);
 }
 
-ScaLP::VariableBase::VariableBase(std::string n,double a,double b,ScaLP::VariableType t)
+ScaLP::VariableBase::VariableBase(const std::string& n,double a,double b,ScaLP::VariableType t)
   :name(n),lowerRange(a),upperRange(b),usedType(t)
 {
   // Illegal or flipped bounds
@@ -109,7 +109,7 @@ void ScaLP::VariableBase::unsafeSetLowerBound(double d)
 {
   this->lowerRange = d;
 }
-std::string ScaLP::VariableBase::getName() const
+const std::string& ScaLP::VariableBase::getName() const
 {
   return this->name;
 }

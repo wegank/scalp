@@ -29,18 +29,18 @@ namespace ScaLP
   {
     public:
       // construct Constraints
-      Constraint(double l, relation rel, ScaLP::Term& r);
-      Constraint(ScaLP::Term& l, relation rel, double r);
-      Constraint(double lb, relation lrel, ScaLP::Term& t, relation rrel,double ub);
+      Constraint(double l, relation rel, const ScaLP::Term& r);
+      Constraint(const ScaLP::Term& l, relation rel, double r);
+      Constraint(double lb, relation lrel, const ScaLP::Term& t, relation rrel,double ub);
 
       // combine Constraints
-      Constraint(ScaLP::Constraint& lhs, relation rel, double ub);
-      Constraint(double lb, relation rel, ScaLP::Constraint& rhs);
+      Constraint(const ScaLP::Constraint& lhs, relation rel, double ub);
+      Constraint(double lb, relation rel, const ScaLP::Constraint& rhs);
 
       // named constraint constructor
-      Constraint(std::string n, ScaLP::Constraint& c);
-      Constraint(std::string n, ScaLP::Constraint&& c);
-      Constraint(std::pair<std::string,ScaLP::Constraint>& p);
+      Constraint(const std::string& n, const ScaLP::Constraint& c);
+      Constraint(const std::string& n, ScaLP::Constraint&& c);
+      Constraint(const std::pair<std::string,ScaLP::Constraint>& p);
 
       // indicator constraint combination
       Constraint(ScaLP::Constraint i, ScaLP::Constraint c);
@@ -53,7 +53,7 @@ namespace ScaLP
 
       ~Constraint();
 
-      void setName(std::string n);
+      void setName(const std::string& n);
 
       static std::string showRelation(relation r);
 

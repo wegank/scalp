@@ -91,19 +91,21 @@ void ScaLP::Solver::addConstraint(Constraint&& b)
   this->cons.push_back(b);
 }
 
-static std::string showTermLP(ScaLP::Term t)
+static std::string showTermLP(const ScaLP::Term& t)
 {
-  std::stringstream s;
+  std::string s;
 
   // only constant
   if(t.isConstant())
   {
-    s << std::to_string(t.constant);
-    return s.str();
+    return std::to_string(t.constant);
   }
 
+  // TODO: this is a hotfix
+  const std::map<ScaLP::Variable,double,ScaLP::variableComparator> tt(t.sum.begin(),t.sum.end());
+
   bool first=true; // first iteration
-  for(auto &p:t.sum)
+  for(const auto &p:tt)
   {
     // eliminated Variable
     if(p.second==0) continue;
@@ -114,16 +116,29 @@ static std::string showTermLP(ScaLP::Term t)
       if(!first)
       {
         if(p.second<0)
-          s << " - " << -p.second;
+        {
+          s += " - ";
+          s += std::to_string(-p.second);
+        }
         else
-          s << " + " << p.second;
+        {
+          s += " + ";
+          s += std::to_string(p.second);
+        }
       }
       else
       {
         if(p.second<0)
-          s << "-" << -p.second << " ";
+        {
+          s += "-";
+          s += std::to_string(-p.second);
+          s += " ";
+        }
         else
-          s << p.second << " ";
+        {
+          s += std::to_string(p.second);
+          s += " ";
+        }
       }
     }
 
@@ -131,17 +146,21 @@ static std::string showTermLP(ScaLP::Term t)
     if(p.second==-1)
     {
       if(first)
-        s << "-";
+      {
+        s += "-";
+      }
       else
-        s << " -";
+      {
+        s += " -";
+      }
     }
 
     if(p.second==1 && !first)
-      s << " +";
+      s += " +";
       
-    if(!first) s << " ";
+    if(!first) s += " ";
 
-    s << p.first->getName();
+    s += p.first->getName();
     first=false;
   }
 
@@ -149,44 +168,62 @@ static std::string showTermLP(ScaLP::Term t)
   if(t.constant!=0)
   {
     if(t.constant<0)
-      s << " - " << -t.constant;
+    {
+      s += " - ";
+      s += std::to_string(-t.constant);
+    }
     else
-      s << " + " << t.constant;
+    {
+      s += " + ";
+      s += std::to_string(t.constant);
+    }
   }
 
-  return s.str();
+  return s;
 }
 
-static std::string showObjectiveLP(ScaLP::Objective o)
+static std::string showObjectiveLP(const ScaLP::Objective& o)
 {
-  std::stringstream s;
+  std::string s;
   if(o.getType()==ScaLP::Objective::type::MAXIMIZE)
   {
-    s<<"MAXIMIZE";
+    s="MAXIMIZE";
   }
   else
   {
-    s<<"MINIMIZE";
+    s="MINIMIZE";
   }
-  s << "\n  " << showTermLP(o.getTerm()) << "\n";
+  s += "\n  ";
+  s += showTermLP(o.getTerm());
+  s += "\n";
 
-  return s.str();
+  return s;
 }
 
-static std::string showConstraint2LP(ScaLP::Term lhs,ScaLP::relation rel, ScaLP::Term rhs)
+static std::string showConstraint2LP(const ScaLP::Term& lhs,ScaLP::relation rel, const ScaLP::Term& rhs)
 {
-  std::stringstream s;
-  s << showTermLP(lhs) << " " << ScaLP::Constraint::showRelation(rel) << " " << showTermLP(rhs);
-  return s.str();
+  std::string s;
+  s += showTermLP(lhs);
+  s += " ";
+  s += ScaLP::Constraint::showRelation(rel);
+  s += " "; 
+  s += showTermLP(rhs);
+  return s;
 }
 
 static std::string showConstraint3LP(const ScaLP::Constraint& c)
 {
-  std::stringstream s;
-  s << showTermLP(c.lbound) << " " << ScaLP::Constraint::showRelation(c.lrel) << " "
-    << showTermLP(c.term)   << " " << ScaLP::Constraint::showRelation(c.rrel) << " "
-    << showTermLP(c.ubound);
-  return s.str();
+  std::string s;
+  s += showTermLP(c.lbound);
+  s += " ";
+  s += ScaLP::Constraint::showRelation(c.lrel);
+  s += " ";
+  s += showTermLP(c.term);
+  s += " ";
+  s += ScaLP::Constraint::showRelation(c.rrel);
+  s += " ";
+  s += showTermLP(c.ubound);
+  return s;
 }
 
 static ScaLP::relation flipRelation(ScaLP::relation r)
@@ -234,7 +271,7 @@ static std::string showConstraintLP(ScaLP::Constraint c)
 
   if(c.indicator!=nullptr)
   {
-    prefix= prefix+showConstraint2LP(c.indicator->term,c.indicator->lrel,c.indicator->lbound)+ " -> ";
+    prefix+= showConstraint2LP(c.indicator->term,c.indicator->lrel,c.indicator->lbound)+ " -> ";
   }
 
   switch(c.ctype)
@@ -251,11 +288,11 @@ static std::string showConstraintLP(ScaLP::Constraint c)
   return "";
 }
 
-static std::string variableTypesLP(const ScaLP::VariableSet &vs)
+static std::string variableTypesLP(const ScaLP::VariableSet& vs)
 {
   std::string binary="BINARY\n";
   std::string general="GENERAL\n";
-  for(const ScaLP::Variable v:vs)
+  for(const ScaLP::Variable& v:vs)
   {
     if(v->getType()==ScaLP::VariableType::INTEGER)
       general+="  "+v->getName()+"\n";
@@ -266,9 +303,9 @@ static std::string variableTypesLP(const ScaLP::VariableSet &vs)
   return binary+general;
 }
 
-static std::string boundsLP(const ScaLP::VariableSet &vs)
+static std::string boundsLP(const ScaLP::VariableSet& vs)
 {
-  std::stringstream s;
+  std::ostringstream s;
   for(const auto &v:vs)
   {
     auto lb   = v->getLowerBound();
@@ -287,25 +324,34 @@ static std::string boundsLP(const ScaLP::VariableSet &vs)
     // free
     if(lb==-ScaLP::INF() and ub==ScaLP::INF())
     {
-      s << name << " FREE";
+      s << name;
+      s << " FREE";
     }
 
     // x <= b
     else if(lb==0 and ub!=ScaLP::INF())
     {
-      s << name << " <= " << ub;
+      s << name;
+      s << " <= ";
+      s << ub;
     }
 
     // a <= x
     else if(lb!=0 && ub==ScaLP::INF())
     {
-      s << lb << " <= " << name;
+      s << lb;
+      s << " <= ";
+      s << name;
     }
 
     // a <= x <= b
     else
     {
-      s << lb << " <= " << name << " <= " << ub;
+      s << lb;
+      s << " <= ";
+      s << name;
+      s << " <= ";
+      s << ub;
     }
 
     // end of entry
@@ -343,15 +389,15 @@ static void showLPBase(const std::function<void(std::string)>& f
 
 std::string ScaLP::Solver::showLP() const
 {
-  std::stringstream s;
+  std::string s;
 
   auto f = [&s](const std::string& str)
   {
-    s<<str;
+    s+=str;
   };
   showLPBase(f,objective,cons,extractVariables(cons,objective));
 
-  return s.str();
+  return s;
 }
 
 void ScaLP::Solver::writeLP(std::string file) const
@@ -363,6 +409,16 @@ void ScaLP::Solver::writeLP(std::string file) const
     s<<str;
   };
   showLPBase(f,objective,cons,extractVariables(cons,objective));
+}
+void ScaLP::Solver::writeLP(std::string file, const ScaLP::VariableSet& vs) const
+{
+  std::ofstream s(file);
+
+  auto f = [&s](const std::string& str)
+  {
+    s<<str;
+  };
+  showLPBase(f,objective,cons,vs);
 }
 
 void ScaLP::Solver::prepare()
@@ -633,12 +689,19 @@ void ScaLP::Solver::reset()
 // x*d
 ScaLP::Term ScaLP::operator*(const ScaLP::Variable& v,double coeff)
 {
-  ScaLP::Term t;
-  t.add(v,coeff);
-  return t;
+
+  return ScaLP::Term(v,coeff);
+}
+ScaLP::Term ScaLP::operator*(ScaLP::Variable&& v,double coeff)
+{
+  return ScaLP::Term(v,coeff);
 }
 // d*x
 ScaLP::Term ScaLP::operator*(double coeff, const ScaLP::Variable& v)
+{
+  return v*coeff;
+}
+ScaLP::Term ScaLP::operator*(double coeff, ScaLP::Variable&& v)
 {
   return v*coeff;
 }
@@ -654,8 +717,21 @@ ScaLP::Term ScaLP::operator*(double coeff, const ScaLP::Term& t)
   }
   return n;
 }
+ScaLP::Term ScaLP::operator*(double coeff, ScaLP::Term&& n)
+{
+  n.constant*=coeff;
+  for(auto &p:n.sum)
+  {
+    p.second*=coeff;
+  }
+  return n;
+}
 // (xa+yb)d = xad+ybd
 ScaLP::Term ScaLP::operator*(const ScaLP::Term& t, double coeff)
+{
+  return coeff*t;
+}
+ScaLP::Term ScaLP::operator*(ScaLP::Term&& t, double coeff)
 {
   return coeff*t;
 }
@@ -684,6 +760,33 @@ ScaLP::Term ScaLP::operator+(const ScaLP::Term& tl,const ScaLP::Term& tr)
   }
   return n;
 }
+ScaLP::Term ScaLP::operator+(const ScaLP::Term& tl, ScaLP::Term&& n)
+{
+  n.constant+=tl.constant;
+  for(auto &p:tl.sum)
+  {
+    adjust(n.sum,p.first,p.second,plus);
+  }
+  return n;
+}
+ScaLP::Term ScaLP::operator+(ScaLP::Term&& tl, const ScaLP::Term& tr)
+{
+  tl.constant+=tr.constant;
+  for(auto &p:tr.sum)
+  {
+    adjust(tl.sum,p.first,p.second,plus);
+  }
+  return tl;
+}
+ScaLP::Term ScaLP::operator+(ScaLP::Term&& tl, ScaLP::Term&& tr)
+{
+  tl.constant+=tr.constant;
+  for(auto &p:tr.sum)
+  {
+    adjust(tl.sum,p.first,p.second,plus);
+  }
+  return tl;
+}
 
 ScaLP::Term& ScaLP::operator+=(ScaLP::Term &tl, const ScaLP::Term& tr)
 {
@@ -702,6 +805,12 @@ ScaLP::Term ScaLP::operator-(const ScaLP::Term& t)
   for(auto& p:n.sum) p.second*=-1;
   return n;
 }
+ScaLP::Term ScaLP::operator-(ScaLP::Term&& n)
+{
+  n.constant*= -1;
+  for(auto& p:n.sum) p.second*=-1;
+  return n;
+}
 
 ScaLP::Term ScaLP::operator-(const ScaLP::Variable& v)
 {
@@ -711,6 +820,33 @@ ScaLP::Term ScaLP::operator-(const ScaLP::Variable& v)
 ScaLP::Term ScaLP::operator-(const ScaLP::Term& tl, const ScaLP::Term& tr)
 {
   Term n = tl;
+  n.constant-=tr.constant;
+  for(auto &p:tr.sum)
+  {
+    adjust(n.sum,p.first,-p.second,plus);
+  }
+  return n;
+}
+ScaLP::Term ScaLP::operator-(const ScaLP::Term& tl, ScaLP::Term&& n)
+{
+  n.constant-=tl.constant;
+  for(auto &p:tl.sum)
+  {
+    adjust(n.sum,p.first,-p.second,plus);
+  }
+  return n;
+}
+ScaLP::Term ScaLP::operator-(ScaLP::Term&& n, const ScaLP::Term& tr)
+{
+  n.constant-=tr.constant;
+  for(auto &p:tr.sum)
+  {
+    adjust(n.sum,p.first,-p.second,plus);
+  }
+  return n;
+}
+ScaLP::Term ScaLP::operator-(ScaLP::Term&& n, ScaLP::Term&& tr)
+{
   n.constant-=tr.constant;
   for(auto &p:tr.sum)
   {
@@ -808,17 +944,29 @@ ScaLP_RELATION_OPERATORVR(==,EQUAL       , double, const ScaLP::Variable&)
 ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, const ScaLP::Term&, double)
 ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, const ScaLP::Term&, double)
 ScaLP_RELATION_OPERATOR(==,EQUAL       , const ScaLP::Term&, double)
+ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, ScaLP::Term&&, double)
+ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, ScaLP::Term&&, double)
+ScaLP_RELATION_OPERATOR(==,EQUAL       , ScaLP::Term&&, double)
 ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, const ScaLP::Term&)
 ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, const ScaLP::Term&)
 ScaLP_RELATION_OPERATOR(==,EQUAL       , double, const ScaLP::Term&)
+ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, ScaLP::Term&&)
+ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, ScaLP::Term&&)
+ScaLP_RELATION_OPERATOR(==,EQUAL       , double, ScaLP::Term&&)
 
 ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, const ScaLP::Constraint&, double)
 ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, const ScaLP::Constraint&, double)
 ScaLP_RELATION_OPERATOR(==,EQUAL       , const ScaLP::Constraint&, double)
+ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, ScaLP::Constraint&&, double)
+ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, ScaLP::Constraint&&, double)
+ScaLP_RELATION_OPERATOR(==,EQUAL       , ScaLP::Constraint&&, double)
 
 ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, const ScaLP::Constraint&)
 ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, const ScaLP::Constraint&)
 ScaLP_RELATION_OPERATOR(==,EQUAL       , double, const ScaLP::Constraint&)
+ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, ScaLP::Constraint&&)
+ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, ScaLP::Constraint&&)
+ScaLP_RELATION_OPERATOR(==,EQUAL       , double, ScaLP::Constraint&&)
 
 ScaLP::Solver& ScaLP::operator<<(Solver &s,const Objective& o)
 {

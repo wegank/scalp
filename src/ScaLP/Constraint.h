@@ -32,6 +32,9 @@ namespace ScaLP
       Constraint(double l, relation rel, const ScaLP::Term& r);
       Constraint(const ScaLP::Term& l, relation rel, double r);
       Constraint(double lb, relation lrel, const ScaLP::Term& t, relation rrel,double ub);
+      Constraint(double l, relation rel, ScaLP::Term&& r);
+      Constraint(ScaLP::Term&& l, relation rel, double r);
+      Constraint(double lb, relation lrel, ScaLP::Term&& t, relation rrel,double ub);
 
       // combine Constraints
       Constraint(const ScaLP::Constraint& lhs, relation rel, double ub);

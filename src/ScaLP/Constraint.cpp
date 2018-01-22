@@ -112,6 +112,31 @@ ScaLP::Constraint::Constraint(double lb, relation lrel, const ScaLP::Term& t, re
 {
   checkRelationCompatibility(lrel,rrel);
 }
+ScaLP::Constraint::Constraint(double l, relation rel, ScaLP::Term&& r)
+  : ctype(ScaLP::Constraint::type::C2L), lbound(l), lrel(rel), term(r)
+{
+  if(rel==ScaLP::relation::EQUAL)
+  {
+    ctype=ScaLP::Constraint::type::CEQ;
+    rrel=ScaLP::relation::EQUAL;
+    ubound=lbound;
+  }
+}
+ScaLP::Constraint::Constraint(ScaLP::Term&& l, relation rel, double r)
+  : ctype(ScaLP::Constraint::type::C2R), term(l), rrel(rel), ubound(r)
+{
+  if(rel==ScaLP::relation::EQUAL)
+  {
+    ctype=ScaLP::Constraint::type::CEQ;
+    lrel=ScaLP::relation::EQUAL;
+    lbound=ubound;
+  }
+}
+ScaLP::Constraint::Constraint(double lb, relation lrel, ScaLP::Term&& t, relation rrel,double ub)
+  : ctype(ScaLP::Constraint::type::C3), lbound(lb), lrel(lrel), term(t), rrel(rrel), ubound(ub)
+{
+  checkRelationCompatibility(lrel,rrel);
+}
 
 // combination constructors
 ScaLP::Constraint::Constraint(const ScaLP::Constraint& lhs, relation rel, double ub)

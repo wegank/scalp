@@ -73,7 +73,8 @@ namespace ScaLP
 
 
   struct variableComparator{
-    bool operator()(const Variable& x,const Variable& y){
+    bool operator()(const Variable& x,const Variable& y) const
+    {
       if(x->getName()==y->getName() && x.get()!=y.get())
       { // name-collision
         throw ScaLP::Exception("You defined multiple variables with the name: "+x->getName());

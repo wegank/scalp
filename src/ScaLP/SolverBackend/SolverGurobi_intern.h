@@ -23,6 +23,7 @@ namespace ScaLP
       virtual void reset() override;
       virtual void setConsoleOutput(bool verbose) override;
       virtual void setTimeout(long timeout) override;
+      virtual void setIntFeasTol(double intFeasTol) override;
       virtual void presolve(bool presolve) override;
       virtual void setThreads(unsigned int t) override;
       virtual void setRelativeMIPGap(double d) override;

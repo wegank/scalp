@@ -49,6 +49,7 @@ namespace ScaLP
       virtual void reset();
       virtual void setConsoleOutput(bool verbose);
       virtual void setTimeout(long timeout);
+      virtual void setIntFeasTol(double intFeasTol);
       virtual void presolve(bool presolve);
       virtual void setThreads(unsigned int t);
       virtual void setRelativeMIPGap(double d);

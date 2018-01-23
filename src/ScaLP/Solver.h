@@ -42,6 +42,10 @@ namespace ScaLP
       // e. g. timeout = 2_hours + 15_minutes + 30_seconds
       long timeout = 0;
 
+      //integer feasible tolerance
+      //if difference of a variable to the nearest integer value is less than intFeasTol, it is regarded as integral
+      double intFeasTol = -1;
+
       // use presolvers to simplify the model
       bool presolve = true;
 

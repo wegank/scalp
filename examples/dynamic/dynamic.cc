@@ -21,10 +21,10 @@ int main()
     // You can prepend additional solvers by defining the environment variable
     //   SCALP_SOLVER_LIST="name1;name2;..."
     // before you program starts.
-    ScaLP::Solver s{"CPLEX","SCIP","LPSolve"};
+    ScaLP::Solver s{"SCIP","CPLEX","LPSolve"};
 
     // disable solver output
-    s.quiet=true;
+    s.quiet=false;
 
     // enable presolving
     s.presolve=true;

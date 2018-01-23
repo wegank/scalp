@@ -70,6 +70,12 @@ void ScaLP::SolverBackend::setTimeout(long t)
   throw ScaLP::Exception("Scalp: You need to implement the setTimeout function in the backend.");
 }
 
+void ScaLP::SolverBackend::setIntFeasTol(double intFeasTol)
+{
+  (void)(intFeasTol);
+  throw ScaLP::Exception("Scalp: You need to implement the setIntFeasTol function in the backend.");
+}
+
 void ScaLP::SolverBackend::presolve(bool presolve)
 {
   (void)(presolve);

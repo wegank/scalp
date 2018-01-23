@@ -298,6 +298,21 @@ void ScaLP::SolverGurobi::setTimeout(long timeout)
   }
 }
 
+void ScaLP::SolverGurobi::setIntFeasTol(double intFeasTol)
+{
+  try
+  {
+    model.getEnv().set(GRB_DoubleParam_IntFeasTol,intFeasTol);
+//    model.getEnv().set(GRB_DoubleParam_FeasibilityTol,intFeasTol);
+
+    std::cout << "!!! GRB_DoubleParam_IntFeasTol=" << model.getEnv().get(GRB_DoubleParam_IntFeasTol) << std::endl;
+//    std::cout << "!!! GRB_DoubleParam_FeasibilityTol=" << model.getEnv().get(GRB_DoubleParam_FeasibilityTol) << std::endl;
+  }catch(GRBException &e)
+  {
+    throw ScaLP::Exception(std::to_string(e.getErrorCode())+" "+e.getMessage());
+  }
+}
+
 void ScaLP::SolverGurobi::presolve(bool presolve)
 {
   try

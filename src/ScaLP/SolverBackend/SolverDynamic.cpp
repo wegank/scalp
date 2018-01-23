@@ -35,7 +35,6 @@ static std::list<std::string> getEnvironment()
   return ls;
 }
 
-
 // wrapper-class to manage the library memory
 namespace ScaLP
 {
@@ -161,6 +160,10 @@ class SolverDynamic : public SolverBackend
   void setTimeout(long timeout) override
   {
     back->setTimeout(timeout);
+  }
+  void setIntFeasTol(double intFeasTol) override
+  {
+    back->setIntFeasTol(intFeasTol);
   }
   void presolve(bool presolve) override
   {

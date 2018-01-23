@@ -431,6 +431,8 @@ void ScaLP::Solver::prepare()
 
   if(timeout>0) back->setTimeout(timeout);
 
+  if(intFeasTol>=0) back->setIntFeasTol(intFeasTol);
+
   if(absMIPGap>=0) back->setAbsoluteMIPGap(absMIPGap);
   if(relMIPGap>=0) back->setRelativeMIPGap(relMIPGap);
 

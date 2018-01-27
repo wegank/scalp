@@ -2,7 +2,6 @@
 #pragma once
 
 #include <functional>
-#include <list>
 #include <vector>
 
 #include <ScaLP/Variable.h>
@@ -13,7 +12,7 @@
 namespace ScaLP
 {
 
-  enum class Feature
+  enum class Feature: char
   { LP
   , ILP
   , QP
@@ -56,7 +55,7 @@ namespace ScaLP
       virtual void setAbsoluteMIPGap(double d);
 
       Features features;
-      bool featureSupported(ScaLP::Feature f);
+      bool featureSupported(ScaLP::Feature f) const;
 
       double objectiveOffset=0;
 

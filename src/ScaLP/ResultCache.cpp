@@ -64,14 +64,14 @@ static std::pair<std::map<std::string,double>,double> readSolutionFile(std::stri
       { // p==' ', pc=='#'
         std::string name = line.substr(0,p);
         double value = std::stod(line.substr(p+1,pc));
-        m.insert({name,value});
+        m.emplace(std::move(name),value);
         objective = extractObjective(line.substr(pc+1),objective);
       }
       else
       {
         std::string name = line.substr(0,p);
         double value = std::stod(line.substr(p+1));
-        m.insert({name,value});
+        m.emplace(std::move(name),value);
       }
 
     }

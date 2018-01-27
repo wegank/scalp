@@ -100,7 +100,7 @@ void ScaLP::SolverBackend::setAbsoluteMIPGap(double d)
   std::cerr << "Scalp: absolute MIP-Gap is not supported by this backend, ignore it." << std::endl;
 }
 
-bool ScaLP::SolverBackend::featureSupported(ScaLP::Feature f)
+bool ScaLP::SolverBackend::featureSupported(ScaLP::Feature f) const
 {
   switch(f)
   {

@@ -13,7 +13,7 @@ namespace ScaLP
 {
   /** An enum-representation of relational operators
    */
-  enum class relation
+  enum class relation : char
   { LESS_EQ_THAN
   , MORE_EQ_THAN
   , EQUAL
@@ -53,6 +53,7 @@ namespace ScaLP
 
       // copy-Constructor
       Constraint(const Constraint&) = default;
+      Constraint(Constraint&&) = default;
 
       ~Constraint();
 
@@ -64,27 +65,23 @@ namespace ScaLP
 
       std::string show() const;
 
-      enum class type
+      enum class type: char
       { C2L // d R x
       , C2R // x R d
       , CEQ // x == d or d == x
       , C3  // d R x R d
       };
 
-      std::shared_ptr<Constraint> indicator;
-
-      std::string name="";
-
-      type ctype;
-
       double lbound=-ScaLP::INF();
-      relation lrel = ScaLP::relation::LESS_EQ_THAN;
-      Term term;
-      relation rrel = ScaLP::relation::LESS_EQ_THAN;
       double ubound=ScaLP::INF();
+      relation lrel = ScaLP::relation::LESS_EQ_THAN;
+      relation rrel = ScaLP::relation::LESS_EQ_THAN;
+      type ctype;
+      Term term;
+      std::string name="";
+      std::shared_ptr<Constraint> indicator=nullptr;
 
     private:
-      bool valid(); // check, if the constraint is valid
   };
   std::ostream& operator<<(std::ostream& os, const ScaLP::Constraint &c);
 

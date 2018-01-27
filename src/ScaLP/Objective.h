@@ -10,7 +10,7 @@ namespace ScaLP
   class Objective
   {
     public:
-      enum class type {MINIMIZE,MAXIMIZE};
+      enum class type: bool {MINIMIZE,MAXIMIZE};
 
       //####################
       // Construction (use minimize or maximize below)

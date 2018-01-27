@@ -45,7 +45,7 @@ std::ostream& ScaLP::operator<<(std::ostream& os, const ScaLP::status &s)
 
 std::string ScaLP::Result::showSolutionVector(bool compact)
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   ss << "# objective value " << this->objectiveValue << "\n";
   ss << std::left;
   for(auto p:this->values)

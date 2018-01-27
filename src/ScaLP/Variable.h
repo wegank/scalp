@@ -75,11 +75,12 @@ namespace ScaLP
   struct variableComparator{
     bool operator()(const Variable& x,const Variable& y) const
     {
-      if(x->getName()==y->getName() && x.get()!=y.get())
+      int c = x->getName().compare(y->getName());
+      if(c==0 && x.get()!=y.get())
       { // name-collision
         throw ScaLP::Exception("You defined multiple variables with the name: "+x->getName());
       }
-      return x->getName()<y->getName();
+      return c<0;
     }
   };
   using VariableSet = std::set<Variable,variableComparator>;

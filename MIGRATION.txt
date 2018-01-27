@@ -1,3 +1,9 @@
+# Revision 55, 56, 57:
+
+both:
+  - there was a bug in the substraction operator.
+    update to revision 58
+
 # Revision 54, 01-21-2018:
 
 user interface:

@@ -139,7 +139,7 @@ ScaLP::VariableSet ScaLP::Term::extractVariables() const
     // extract all non-eliminated variables
     if (p.second!=0)
     {
-      s.insert(p.first);
+      s.emplace(p.first);
     }
   }
   return s;

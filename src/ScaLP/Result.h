@@ -7,7 +7,7 @@
 
 namespace ScaLP
 {
-  enum class status
+  enum class status: char
   { NOT_SOLVED
   , OPTIMAL
   , FEASIBLE

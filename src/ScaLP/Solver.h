@@ -65,7 +65,7 @@ namespace ScaLP
       void setObjective(const Objective& o);
 
       // add a constraint
-      void addConstraint(const Constraint& b);
+      void addConstraint(Constraint& b);
       void addConstraint(Constraint&& b);
 
 
@@ -125,12 +125,16 @@ namespace ScaLP
       //####################
       // miscellaneous
       //####################
+      
+      // set the number of constraints potentially used.
+      // (can give a small performance-boost)
+      void setConstraintCount(unsigned int n);
 
       // return the LP-Format-representation as a string
       std::string showLP() const;
 
       // check if the used solver supports the given feature
-      bool featureSupported(ScaLP::Feature f);
+      bool featureSupported(ScaLP::Feature f) const;
 
       // write the LP-Format-representation in a file
       void writeLP(std::string file) const;
@@ -224,7 +228,7 @@ namespace ScaLP
   ScaLP::Constraint operator==(double tl,ScaLP::Constraint&& tr);
 
   ScaLP::Solver &operator<<(ScaLP::Solver &s,const ScaLP::Objective& o);
-  ScaLP::Solver &operator<<(ScaLP::Solver &s,const ScaLP::Constraint& o);
+  ScaLP::Solver &operator<<(ScaLP::Solver &s,ScaLP::Constraint& o);
   ScaLP::Solver &operator<<(ScaLP::Solver &s,ScaLP::Constraint&& o);
 
   ScaLP::Constraint operator>>=(const ScaLP::Constraint& i,const ScaLP::Constraint& c);

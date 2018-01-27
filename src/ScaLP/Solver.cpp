@@ -59,6 +59,11 @@ ScaLP::SolverBackend* ScaLP::Solver::releaseSolver()
   return p;
 }
 
+void ScaLP::Solver::setConstraintCount(unsigned int n)
+{
+  cons.reserve(n);
+}
+
 // extract the Variables from the Constraints and the Objective to avoid unused
 // variables.
 static ScaLP::VariableSet extractVariables(const std::vector<ScaLP::Constraint> &cs,const ScaLP::Objective &o)
@@ -82,24 +87,60 @@ void ScaLP::Solver::setObjective(const Objective& o)
   extractVariables(cons,objective);
 }
 
-void ScaLP::Solver::addConstraint(const Constraint& b)
+static ScaLP::relation flipRelation(ScaLP::relation r)
 {
-  this->cons.push_back(b);
+  using R = ScaLP::relation;
+  switch(r)
+  {
+    case R::LESS_EQ_THAN: return R::MORE_EQ_THAN;
+    case R::MORE_EQ_THAN: return R::LESS_EQ_THAN;
+    default: return R::EQUAL;
+  }
+  return R::EQUAL;
+}
+
+static void normalizeConstraint(ScaLP::Constraint& c)
+{
+  // remove constant from Term
+  if(c.term.constant!=0)
+  {
+    c.lbound-=c.term.constant;
+    c.ubound-=c.term.constant;
+    c.term.constant=0;
+  }
+
+  // flip Relation to get the constant to the right
+  if(c.ctype==ScaLP::Constraint::type::C2L)
+  {
+    c.ubound = c.lbound;
+    c.lbound = 0;
+    c.rrel   = flipRelation(c.lrel);
+    c.ctype  = ScaLP::Constraint::type::C2R;
+  }
+}
+
+
+void ScaLP::Solver::addConstraint(Constraint& b)
+{
+  normalizeConstraint(b);
+  this->cons.emplace_back(b);
 }
 void ScaLP::Solver::addConstraint(Constraint&& b)
 {
-  this->cons.push_back(b);
+  normalizeConstraint(b);
+  this->cons.emplace_back(b);
 }
 
 static std::string showTermLP(const ScaLP::Term& t)
 {
-  std::string s;
 
   // only constant
   if(t.isConstant())
   {
     return std::to_string(t.constant);
   }
+
+  std::string s;
 
   // TODO: this is a hotfix
   const std::map<ScaLP::Variable,double,ScaLP::variableComparator> tt(t.sum.begin(),t.sum.end());
@@ -202,8 +243,7 @@ static std::string showObjectiveLP(const ScaLP::Objective& o)
 
 static std::string showConstraint2LP(const ScaLP::Term& lhs,ScaLP::relation rel, const ScaLP::Term& rhs)
 {
-  std::string s;
-  s += showTermLP(lhs);
+  std::string s = showTermLP(lhs);
   s += " ";
   s += ScaLP::Constraint::showRelation(rel);
   s += " "; 
@@ -213,8 +253,7 @@ static std::string showConstraint2LP(const ScaLP::Term& lhs,ScaLP::relation rel,
 
 static std::string showConstraint3LP(const ScaLP::Constraint& c)
 {
-  std::string s;
-  s += showTermLP(c.lbound);
+  std::string s = showTermLP(c.lbound);
   s += " ";
   s += ScaLP::Constraint::showRelation(c.lrel);
   s += " ";
@@ -226,42 +265,8 @@ static std::string showConstraint3LP(const ScaLP::Constraint& c)
   return s;
 }
 
-static ScaLP::relation flipRelation(ScaLP::relation r)
+static std::string showConstraintLP(const ScaLP::Constraint& c)
 {
-  using R = ScaLP::relation;
-  switch(r)
-  {
-    case R::LESS_EQ_THAN: return R::MORE_EQ_THAN;
-    case R::MORE_EQ_THAN: return R::LESS_EQ_THAN;
-    default: return R::EQUAL;
-  }
-  return R::EQUAL;
-}
-
-static void normalizeConstraint(ScaLP::Constraint& c)
-{
-  // remove constant from Term
-  if(c.term.constant!=0)
-  {
-    c.lbound-=c.term.constant;
-    c.ubound-=c.term.constant;
-    c.term.constant=0;
-  }
-
-  // flip Relation to get the constant to the right
-  if(c.ctype==ScaLP::Constraint::type::C2L)
-  {
-    c.ubound = c.lbound;
-    c.lbound = 0;
-    c.rrel   = flipRelation(c.lrel);
-    c.ctype  = ScaLP::Constraint::type::C2R;
-  }
-}
-
-static std::string showConstraintLP(ScaLP::Constraint c)
-{
-  normalizeConstraint(c);
-
   std::string prefix="";
 
   if(c.name!="")
@@ -271,7 +276,7 @@ static std::string showConstraintLP(ScaLP::Constraint c)
 
   if(c.indicator!=nullptr)
   {
-    prefix+= showConstraint2LP(c.indicator->term,c.indicator->lrel,c.indicator->lbound)+ " -> ";
+    prefix += showConstraint2LP(c.indicator->term,c.indicator->lrel,c.indicator->lbound)+ " -> ";
   }
 
   switch(c.ctype)
@@ -909,7 +914,7 @@ void ScaLP::Solver::resetMIPGap()
   relMIPGap=-1;
 }
 
-bool ScaLP::Solver::featureSupported(ScaLP::Feature f)
+bool ScaLP::Solver::featureSupported(ScaLP::Feature f) const
 {
   if(back!=nullptr)
   {
@@ -975,7 +980,7 @@ ScaLP::Solver& ScaLP::operator<<(Solver &s,const Objective& o)
   s.setObjective(o);
   return s;
 }
-ScaLP::Solver& ScaLP::operator<<(Solver &s,const Constraint& o)
+ScaLP::Solver& ScaLP::operator<<(Solver &s,Constraint& o)
 {
   s.addConstraint(o);
   return s;

@@ -1,6 +1,6 @@
 
-ScaLP_LIB_PATH=../../lib
-ScaLP_INC_PATH=../../include
+ScaLP_LIB_PATH?=../../lib
+ScaLP_INC_PATH?=../../include
 OTHER_FLAGS= -O2
 CXX?=clang++
 

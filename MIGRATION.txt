@@ -2,7 +2,7 @@
 
 both:
   - there was a bug in the substraction operator.
-    update to revision 59
+    update to revision 60
 
 # Revision 54, 01-21-2018:
 

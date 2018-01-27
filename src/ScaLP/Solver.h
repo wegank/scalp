@@ -181,9 +181,9 @@ namespace ScaLP
   ScaLP::Term operator+(ScaLP::Term&& tl, const ScaLP::Term& tr);
   ScaLP::Term operator+(ScaLP::Term&& tl, ScaLP::Term&& tr);
   ScaLP::Term operator-(const ScaLP::Term& tl, const ScaLP::Term& tr);
-  ScaLP::Term operator-(ScaLP::Term&& tl, ScaLP::Term&& tr);
-  ScaLP::Term operator-(const ScaLP::Term& tl, ScaLP::Term&& tr);
-  ScaLP::Term operator-(ScaLP::Term&& tl, const ScaLP::Term& tr);
+  //ScaLP::Term operator-(ScaLP::Term&& tl, ScaLP::Term&& tr);
+  //ScaLP::Term operator-(const ScaLP::Term& tl, ScaLP::Term&& tr);
+  //ScaLP::Term operator-(ScaLP::Term&& tl, const ScaLP::Term& tr);
 
   ScaLP::Term& operator+=(ScaLP::Term& tl, const ScaLP::Term& tr);
   ScaLP::Term& operator-=(ScaLP::Term& tl, const ScaLP::Term& tr);

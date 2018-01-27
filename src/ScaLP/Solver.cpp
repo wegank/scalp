@@ -834,33 +834,33 @@ ScaLP::Term ScaLP::operator-(const ScaLP::Term& tl, const ScaLP::Term& tr)
   }
   return n;
 }
-ScaLP::Term ScaLP::operator-(const ScaLP::Term& tl, ScaLP::Term&& n)
-{
-  n.constant-=tl.constant;
-  for(auto &p:tl.sum)
-  {
-    adjust(n.sum,p.first,-p.second,plus);
-  }
-  return n;
-}
-ScaLP::Term ScaLP::operator-(ScaLP::Term&& n, const ScaLP::Term& tr)
-{
-  n.constant-=tr.constant;
-  for(auto &p:tr.sum)
-  {
-    adjust(n.sum,p.first,-p.second,plus);
-  }
-  return n;
-}
-ScaLP::Term ScaLP::operator-(ScaLP::Term&& n, ScaLP::Term&& tr)
-{
-  n.constant-=tr.constant;
-  for(auto &p:tr.sum)
-  {
-    adjust(n.sum,p.first,-p.second,plus);
-  }
-  return n;
-}
+//ScaLP::Term ScaLP::operator-(const ScaLP::Term& tl, ScaLP::Term&& n)
+//{
+//  n.constant-=tl.constant;
+//  for(auto &p:tl.sum)
+//  {
+//    adjust(n.sum,p.first,-p.second,plus);
+//  }
+//  return n;
+//}
+//ScaLP::Term ScaLP::operator-(ScaLP::Term&& n, const ScaLP::Term& tr)
+//{
+//  n.constant-=tr.constant;
+//  for(auto &p:tr.sum)
+//  {
+//    adjust(n.sum,p.first,-p.second,plus);
+//  }
+//  return n;
+//}
+//ScaLP::Term ScaLP::operator-(ScaLP::Term&& n, ScaLP::Term&& tr)
+//{
+//  n.constant-=tr.constant;
+//  for(auto &p:tr.sum)
+//  {
+//    adjust(n.sum,p.first,-p.second,plus);
+//  }
+//  return n;
+//}
 
 ScaLP::Term& ScaLP::operator-=(ScaLP::Term& tl, const ScaLP::Term& tr)
 {

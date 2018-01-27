@@ -54,6 +54,8 @@ namespace ScaLP
       // copy-Constructor
       Constraint(const Constraint&) = default;
       Constraint(Constraint&&) = default;
+      Constraint& operator=(const Constraint&) = default;
+      Constraint& operator=(Constraint&&) = default;
 
       ~Constraint();
 

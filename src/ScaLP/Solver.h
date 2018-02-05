@@ -227,6 +227,20 @@ namespace ScaLP
   ScaLP::Constraint operator>=(double tl,ScaLP::Constraint&& tr);
   ScaLP::Constraint operator==(double tl,ScaLP::Constraint&& tr);
 
+  ScaLP::Constraint operator<(const ScaLP::Variable& tl,double tr);
+  ScaLP::Constraint operator<(double tl,const ScaLP::Variable& tr);
+  ScaLP::Constraint operator<(ScaLP::Term&& tl,double tr);
+  ScaLP::Constraint operator<(const ScaLP::Term& tl,double tr);
+  ScaLP::Constraint operator<(double tl,ScaLP::Term&& tr);
+  ScaLP::Constraint operator<(double tl,const ScaLP::Term& tr);
+
+  ScaLP::Constraint operator>(const ScaLP::Variable& tl,double tr);
+  ScaLP::Constraint operator>(double tl,const ScaLP::Variable& tr);
+  ScaLP::Constraint operator>(ScaLP::Term&& tl,double tr);
+  ScaLP::Constraint operator>(const ScaLP::Term& tl,double tr);
+  ScaLP::Constraint operator>(double tl,ScaLP::Term&& tr);
+  ScaLP::Constraint operator>(double tl,const ScaLP::Term& tr);
+
   ScaLP::Solver &operator<<(ScaLP::Solver &s,const ScaLP::Objective& o);
   ScaLP::Solver &operator<<(ScaLP::Solver &s,ScaLP::Constraint& o);
   ScaLP::Solver &operator<<(ScaLP::Solver &s,ScaLP::Constraint&& o);

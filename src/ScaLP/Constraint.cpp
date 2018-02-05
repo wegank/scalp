@@ -88,7 +88,7 @@ static inline void checkRelationCompatibility(ScaLP::relation l, ScaLP::relation
 
 // basic constructors
 ScaLP::Constraint::Constraint(double l, relation rel, const ScaLP::Term& r)
-  : lbound(l), lrel(rel), ctype(ScaLP::Constraint::type::C2L), term(r)
+  : lbound(l), lrel(rel), rrel(rel), ctype(ScaLP::Constraint::type::C2L), term(r)
 {
   if(rel==ScaLP::relation::EQUAL)
   {
@@ -96,15 +96,23 @@ ScaLP::Constraint::Constraint(double l, relation rel, const ScaLP::Term& r)
     rrel=ScaLP::relation::EQUAL;
     ubound=lbound;
   }
+  else if(rel==ScaLP::relation::MORE_EQ_THAN)
+  {
+    ubound = -ScaLP::INF();
+  }
 }
 ScaLP::Constraint::Constraint(const ScaLP::Term& l, relation rel, double r)
-  : ubound(r), rrel(rel), ctype(ScaLP::Constraint::type::C2R), term(l)
+  : ubound(r), lrel(rel), rrel(rel), ctype(ScaLP::Constraint::type::C2R), term(l)
 {
   if(rel==ScaLP::relation::EQUAL)
   {
     ctype=ScaLP::Constraint::type::CEQ;
     lrel=ScaLP::relation::EQUAL;
     lbound=ubound;
+  }
+  else if(rel==ScaLP::relation::MORE_EQ_THAN)
+  {
+    lbound = ScaLP::INF();
   }
 }
 ScaLP::Constraint::Constraint(double lb, relation lrel, const ScaLP::Term& t, relation rrel,double ub)
@@ -113,7 +121,7 @@ ScaLP::Constraint::Constraint(double lb, relation lrel, const ScaLP::Term& t, re
   checkRelationCompatibility(lrel,rrel);
 }
 ScaLP::Constraint::Constraint(double l, relation rel, ScaLP::Term&& r)
-  : lbound(l), lrel(rel), ctype(ScaLP::Constraint::type::C2L), term(r)
+  : lbound(l), lrel(rel), rrel(rel), ctype(ScaLP::Constraint::type::C2L), term(r)
 {
   if(rel==ScaLP::relation::EQUAL)
   {
@@ -121,15 +129,23 @@ ScaLP::Constraint::Constraint(double l, relation rel, ScaLP::Term&& r)
     rrel=ScaLP::relation::EQUAL;
     ubound=lbound;
   }
+  else if(rel==ScaLP::relation::MORE_EQ_THAN)
+  {
+    ubound = -ScaLP::INF();
+  }
 }
 ScaLP::Constraint::Constraint(ScaLP::Term&& l, relation rel, double r)
-  : ubound(r), rrel(rel), ctype(ScaLP::Constraint::type::C2R), term(l)
+  : ubound(r), lrel(rel), rrel(rel), ctype(ScaLP::Constraint::type::C2R), term(l)
 {
   if(rel==ScaLP::relation::EQUAL)
   {
     ctype=ScaLP::Constraint::type::CEQ;
     lrel=ScaLP::relation::EQUAL;
     lbound=ubound;
+  }
+  else if(rel==ScaLP::relation::MORE_EQ_THAN)
+  {
+    lbound = ScaLP::INF();
   }
 }
 ScaLP::Constraint::Constraint(double lb, relation lrel, ScaLP::Term&& t, relation rrel,double ub)

@@ -975,6 +975,115 @@ ScaLP_RELATION_OPERATOR(<=,LESS_EQ_THAN, double, ScaLP::Constraint&&)
 ScaLP_RELATION_OPERATOR(>=,MORE_EQ_THAN, double, ScaLP::Constraint&&)
 ScaLP_RELATION_OPERATOR(==,EQUAL       , double, ScaLP::Constraint&&)
 
+#define WRONG_VARIABLE_EXCEPTION(V) ScaLP::Exception("The given Variable \""+V->getName()+"\" is not an Integer-Variable")
+static bool isIntegralType(const ScaLP::Variable& v)
+{
+  auto t = v->getType();
+  return t==ScaLP::VariableType::INTEGER or t==ScaLP::VariableType::BINARY;
+}
+
+ScaLP::Constraint ScaLP::operator<(const ScaLP::Variable& tl,double tr)
+{
+  if(isIntegralType(tl))
+    return ScaLP::Constraint(tl,ScaLP::relation::LESS_EQ_THAN,tr-1);
+  else
+    throw WRONG_VARIABLE_EXCEPTION(tl);
+}
+ScaLP::Constraint ScaLP::operator<(double tl,const ScaLP::Variable& tr)
+{
+  if(isIntegralType(tr))
+    return ScaLP::Constraint(tl+1,ScaLP::relation::LESS_EQ_THAN,tr);
+  else
+    throw WRONG_VARIABLE_EXCEPTION(tr);
+}
+ScaLP::Constraint ScaLP::operator<(ScaLP::Term&& tl,double tr)
+{
+  for(const auto& v:tl.sum)
+  {
+    if(not isIntegralType(v.first))
+      throw WRONG_VARIABLE_EXCEPTION(v.first);
+  }
+  return ScaLP::Constraint(tl,ScaLP::relation::LESS_EQ_THAN,tr-1);
+}
+ScaLP::Constraint ScaLP::operator<(const ScaLP::Term& tl,double tr)
+{
+  for(const auto& v:tl.sum)
+  {
+    if(not isIntegralType(v.first))
+      throw WRONG_VARIABLE_EXCEPTION(v.first);
+  }
+  return ScaLP::Constraint(tl,ScaLP::relation::LESS_EQ_THAN,tr-1);
+}
+ScaLP::Constraint ScaLP::operator<(double tl,ScaLP::Term&& tr)
+{
+  for(const auto& v:tr.sum)
+  {
+    if(not isIntegralType(v.first))
+      throw WRONG_VARIABLE_EXCEPTION(v.first);
+  }
+  return ScaLP::Constraint(tl+1,ScaLP::relation::LESS_EQ_THAN,tr);
+}
+ScaLP::Constraint ScaLP::operator<(double tl,const ScaLP::Term& tr)
+{
+  for(const auto& v:tr.sum)
+  {
+    if(not isIntegralType(v.first))
+      throw WRONG_VARIABLE_EXCEPTION(v.first);
+  }
+  return ScaLP::Constraint(tl+1,ScaLP::relation::LESS_EQ_THAN,tr);
+}
+
+ScaLP::Constraint ScaLP::operator>(const ScaLP::Variable& tl,double tr)
+{
+  if(isIntegralType(tl))
+    return ScaLP::Constraint(tl,ScaLP::relation::LESS_EQ_THAN,tr+1);
+  else
+    throw WRONG_VARIABLE_EXCEPTION(tl);
+}
+ScaLP::Constraint ScaLP::operator>(double tl,const ScaLP::Variable& tr)
+{
+  if(isIntegralType(tr))
+    return ScaLP::Constraint(tl-1,ScaLP::relation::LESS_EQ_THAN,tr);
+  else
+    throw WRONG_VARIABLE_EXCEPTION(tr);
+}
+ScaLP::Constraint ScaLP::operator>(ScaLP::Term&& tl,double tr)
+{
+  for(const auto& v:tl.sum)
+  {
+    if(not isIntegralType(v.first))
+      throw WRONG_VARIABLE_EXCEPTION(v.first);
+  }
+  return ScaLP::Constraint(tl,ScaLP::relation::LESS_EQ_THAN,tr+1);
+}
+ScaLP::Constraint ScaLP::operator>(const ScaLP::Term& tl,double tr)
+{
+  for(const auto& v:tl.sum)
+  {
+    if(not isIntegralType(v.first))
+      throw WRONG_VARIABLE_EXCEPTION(v.first);
+  }
+  return ScaLP::Constraint(tl,ScaLP::relation::LESS_EQ_THAN,tr+1);
+}
+ScaLP::Constraint ScaLP::operator>(double tl,ScaLP::Term&& tr)
+{
+  for(const auto& v:tr.sum)
+  {
+    if(not isIntegralType(v.first))
+      throw WRONG_VARIABLE_EXCEPTION(v.first);
+  }
+  return ScaLP::Constraint(tl-1,ScaLP::relation::LESS_EQ_THAN,tr);
+}
+ScaLP::Constraint ScaLP::operator>(double tl,const ScaLP::Term& tr)
+{
+  for(const auto& v:tr.sum)
+  {
+    if(not isIntegralType(v.first))
+      throw WRONG_VARIABLE_EXCEPTION(v.first);
+  }
+  return ScaLP::Constraint(tl-1,ScaLP::relation::LESS_EQ_THAN,tr);
+}
+
 ScaLP::Solver& ScaLP::operator<<(Solver &s,const Objective& o)
 {
   s.setObjective(o);

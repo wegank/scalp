@@ -12,6 +12,10 @@ namespace ScaLP
     public:
       // an empty term (0)
       Term();
+      Term(const Term&)=default;
+      Term(Term&&t)=default;
+      Term& operator=(const Term&)=default;
+      Term& operator=(Term&&)=default;
 
       // Constant term
       Term(double con);

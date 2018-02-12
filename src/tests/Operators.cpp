@@ -10,6 +10,8 @@ int main(int argc, char** argv)
 
   ScaLP::Solver s{argv[1]};
 
+  if(s.getBackendName()=="Dynamic: LPSolve") s.presolve=false;
+
   // print the name of the detected Solver in the log
   std::cout << s.getBackendName() << std::endl;
 
@@ -19,7 +21,6 @@ int main(int argc, char** argv)
 
   // <= operators
   {
-    s.presolve=false;
     s.setObjective(ScaLP::maximize(x+y+z));
 
     s << (x<=50) << (5<=y<=30) << (80<=z);
@@ -48,7 +49,6 @@ int main(int argc, char** argv)
 
   // >= operators
   {
-    s.presolve=false;
     s.setObjective(ScaLP::minimize(x+y+z));
 
     s << (x>=50) << (30>=y>=5) << (z>=80);
@@ -76,7 +76,6 @@ int main(int argc, char** argv)
 
   // == operator
   {
-    s.presolve=false;
     s.setObjective(ScaLP::minimize(x+y+z));
 
     s << (x==50) << (y==5) << (z==80);

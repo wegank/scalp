@@ -97,7 +97,9 @@ IloConstraint ScaLP::SolverCPLEX::createConstraint3(const ScaLP::Constraint& c)
   }
   else if(c.lrel==ScaLP::relation::MORE_EQ_THAN && c.rrel==ScaLP::relation::MORE_EQ_THAN)
   { // a >= x >= b
-    return c.lbound >= mapTerm(c.term) >= c.ubound;
+    // FIXME: does not work (bug in CPLEX?)
+    //return c.lbound >= mapTerm(c.term) >= c.ubound;
+    return c.ubound <= mapTerm(c.term) <= c.lbound;
   }
 }
 

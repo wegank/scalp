@@ -325,7 +325,6 @@ void ScaLP::SolverGurobi::presolve(bool presolve)
     {
       model.getEnv().set(GRB_IntParam_Presolve,0); // no presolve
     }
-    model.presolve(); // TODO: <+ testing +> maybe the resolved Model is discarded
   }catch(GRBException &e)
   {
     throw ScaLP::Exception(std::to_string(e.getErrorCode())+" "+e.getMessage());

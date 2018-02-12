@@ -1,3 +1,14 @@
+# Revision 63, 12.02.2018:
+
+users:
+  - if you are using greater-equal-ranges (a>=t>=b) with CPLEX you should
+    update to this version. Older versions using cplex's >=-Operator which
+    seems to be broken.
+
+  - if you encounter "Unable to create presolved model"-Exceptions with Gurobi,
+    try to update to this version.
+
+
 # Revision 55, 56, 57:
 
 both:

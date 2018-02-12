@@ -15,7 +15,7 @@ foreach(I IN LISTS V)
   string(REGEX MATCH "([^/]*)\\.cpp$" T ${I})
   set(basename ${CMAKE_MATCH_1})
   add_executable(${basename} "${T}")
-  target_link_libraries(${basename} ScaLP ScaLP-Dynamic)
+  target_link_libraries(${basename} ScaLP)
 
   # add the test(s)
   string(REGEX MATCH ".*(_ALL)$" ALL ${basename})

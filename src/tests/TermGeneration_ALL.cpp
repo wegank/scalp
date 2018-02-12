@@ -1,8 +1,5 @@
 
-#include <ScaLP/Term.h>
-#include <ScaLP/Variable.h>
 #include <ScaLP/Solver.h>
-
 
 int main(int argc, char** argv)
 {

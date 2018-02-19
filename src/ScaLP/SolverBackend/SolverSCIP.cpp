@@ -112,14 +112,54 @@ static SCIP_CONS* scipAddCons(SCIP* scip, std::map<ScaLP::Variable,SCIP_VAR*> &v
 
 bool ScaLP::SolverSCIP::addConstraint(const ScaLP::Constraint& c)
 {
-
-  if(c.lrel==ScaLP::relation::MORE_EQ_THAN and c.rrel==ScaLP::relation::MORE_EQ_THAN)
-  { // flip boundaries
-    constraints.push_back(scipAddCons(scip,variables,c.term,c.ubound,c.lbound,c.name.c_str()));
-  }
-  else
+  if(c.indicator!=nullptr)
   {
-    constraints.push_back(scipAddCons(scip,variables,c.term,c.lbound,c.ubound,c.name.c_str()));
+    throw ScaLP::Exception("Indicator-Constraints are not supported at the moment for SCIP");
+  }
+
+  switch(c.ctype)
+  {
+    case ScaLP::Constraint::type::C2L:
+    {
+      if(c.lrel==ScaLP::relation::LESS_EQ_THAN)
+      {
+        constraints.push_back(scipAddCons(scip,variables,c.term,c.lbound,ScaLP::INF(),c.name.c_str()));
+      }
+      else
+      {
+        constraints.push_back(scipAddCons(scip,variables,c.term,c.lbound,c.ubound,c.name.c_str()));
+      }
+      break;
+    }
+    case ScaLP::Constraint::type::C2R:
+    {
+      if(c.rrel==ScaLP::relation::LESS_EQ_THAN)
+      {
+        constraints.push_back(scipAddCons(scip,variables,c.term,c.lbound, c.ubound,c.name.c_str()));
+      }
+      else
+      {
+        constraints.push_back(scipAddCons(scip,variables,c.term,c.ubound,ScaLP::INF(),c.name.c_str()));
+      }
+      break;
+    }
+    case ScaLP::Constraint::type::CEQ:
+    {
+        constraints.push_back(scipAddCons(scip,variables,c.term,c.lbound, c.lbound,c.name.c_str()));
+      break;
+    }
+    case ScaLP::Constraint::type::C3:
+    {
+      if(c.lrel==ScaLP::relation::MORE_EQ_THAN and c.rrel==ScaLP::relation::MORE_EQ_THAN)
+      { // flip boundaries
+        constraints.push_back(scipAddCons(scip,variables,c.term,c.ubound,c.lbound,c.name.c_str()));
+      }
+      else
+      {
+        constraints.push_back(scipAddCons(scip,variables,c.term,c.lbound,c.ubound,c.name.c_str()));
+      }
+      break;
+    }
   }
   return true;
 }

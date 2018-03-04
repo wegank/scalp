@@ -35,6 +35,7 @@ option(BUILD_SHARED_LIBRARIES "Build as shared libraries" ON)
 option(BUILD_TESTS "Build tests" OFF)
 option(BUILD_SCALP_EXECUTABLE "Build the scalp executable (no functionality yet)" ON)
 option(OLD_CXX_ABI "Build with an old C++-abi (activate if you get undefined references with '__cxx11')" OFF)
+option(EXPERIMENTAL_PARSER "Build with a experimental lp-parser" OFF)
 
 set(CPLEX_LIBRARIES "" CACHE STRING "the paths to the cplex libraries")
 set(CPLEX_INCLUDE_DIRS "" CACHE STRING "the paths to the cplex headers")
@@ -157,6 +158,11 @@ set(ScaLP_HEADERS
   src/ScaLP/SolverBackend/SolverDynamic.h
   src/ScaLP/Utility.h
   )
+if(EXPERIMENTAL_PARSER)
+  set(PARSER_SOURCES "src/parse.cpp")
+else()
+  unset(PARSER_SOURCES)
+endif()
 add_library(ScaLP ${LIBRARY_TYPE}
   src/ScaLP/Constraint.cpp
   src/ScaLP/ResultCache.cpp
@@ -168,8 +174,12 @@ add_library(ScaLP ${LIBRARY_TYPE}
   src/ScaLP/Term.cpp
   src/ScaLP/Variable.cpp
   src/ScaLP/SolverBackend/SolverDynamic.cpp
+  ${PARSER_SOURCES}
 )
 target_link_libraries(ScaLP dl)
+if(EXPERIMENTAL_PARSER)
+  target_compile_definitions(ScaLP PRIVATE "LP_PARSER")
+endif()
 
 
 # add backend-libraries
@@ -231,6 +241,10 @@ if(BUILD_SCALP_EXECUTABLE)
   set(EXECUTABLE_TARGET ScaLPBinary)
 else()
   unset(EXECUTABLE_TARGET)
+endif()
+
+if(EXPERIMENTAL_PARSER)
+  target_compile_definitions(ScaLPBinary PRIVATE "LP_PARSER")
 endif()
 
 if(BUILD_TESTS)

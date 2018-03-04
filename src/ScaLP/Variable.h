@@ -14,7 +14,7 @@ namespace ScaLP
   // For Users ScaLP::new*Variable() are the only functions of interest.
   
   // The type of the Variables
-  enum class VariableType
+  enum class VariableType : char
   { BINARY
   , INTEGER
   , REAL

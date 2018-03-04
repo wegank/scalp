@@ -12,6 +12,9 @@
 #include <ScaLP/Result.h>
 #include <ScaLP/SolverBackend/SolverDynamic.h>
 #include <ScaLP/ResultCache.h>
+#ifdef LP_PARSER
+#include "parse.h"
+#endif
 
 static double plus(double a, double b)
 {
@@ -57,6 +60,15 @@ ScaLP::SolverBackend* ScaLP::Solver::releaseSolver()
   auto* p = this->back;
   this->back=nullptr;
   return p;
+}
+
+bool ScaLP::Solver::load(const std::string& file)
+{
+#ifdef LP_PARSER
+  return ScaLP::ParserLP::parse(file,*this);
+#else
+  return false;
+#endif
 }
 
 void ScaLP::Solver::setConstraintCount(unsigned int n)

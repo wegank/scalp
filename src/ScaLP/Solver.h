@@ -68,6 +68,8 @@ namespace ScaLP
       void addConstraint(Constraint& b);
       void addConstraint(Constraint&& b);
 
+      bool load(const std::string& file);
+
 
       //####################
       // Solving

@@ -1,14 +1,10 @@
 
 #include "parse.h"
 
-#include <regex>
 #include <fstream>
-#include <sstream>
 #include <iostream>
 #include <algorithm>
 #include <string>
-#include <list>
-#include <locale>
 #include <cmath>
 
 #include "ScaLP/Exception.h"
@@ -35,12 +31,31 @@ static bool isMax(const std::string& s)
 {
   return s[1]=='a' or s[1]=='A';
 }
-static const std::string objectiveSection  = "(minimize|maximize|min|max)(.*)";
-static const std::string constraintSection = "(subject to|st|s\\.t\\.|st\\.)(.*)";
-static const std::string boundariesSection = "(bounds|bound)(.*)";
-static const std::string variableSection   = "(binaries|general)(.*)";
-static const std::string end               = "(end)";
-
+static bool isChar(char c)
+{
+  return (c>=65 and c<=90) or (c>=97 and c<=122);
+}
+static bool isDigit(char c)
+{
+  return c>=48 and c<=57;
+}
+static bool isSymbol(char c)
+{
+  std::string s = "!\"#$%&(),.;?@_‘’{}~";
+  return s.find(c)!=std::string::npos;
+}
+static bool isVariableName(const std::string& s)
+{
+  if(s.empty()) return false;
+  if(isChar(s.front()))
+  {
+    return std::all_of(s.begin()+1,s.end(),[](char c){return isChar(c) or isDigit(c) or isSymbol(c);});
+  }
+  else
+  {
+    return false;
+  }
+}
 
 static std::string strip(const char* line)
 {
@@ -87,110 +102,119 @@ static bool isBinaries(const std::string& s)
   return s=="binary";
 }
 
-static const std::string spaces = "\\s*";
-// a number (x or x.y)
-static const std::string number = "(\\d*\\.?\\d*)";
-// a variable name
-static const std::string variableName = "([a-zA-Z]\\w*)";
-// a objective or constraint name
-static const std::string name = variableName+":";
-// + or -
-static const std::string plusMinus = "(\\-|\\+)";
-
-// (coefficient) (variable)
-static const std::string unsignedMonomial
-  = spaces
-  + number // maybe a number
-  + spaces
-  + "\\*?" // maybe *
-  + spaces
-  + "(?:"+variableName+"?)"; // maybe an variable
-
-// (+|-) (coefficient) (variable)
-static const std::string monomial
-  = spaces
-  + plusMinus
-  + unsignedMonomial;
-
-// (-) (coefficient) (variable)
-static const std::string firstMonomial
-  = spaces
-  + "(\\-?)" // maybe -
-  + unsignedMonomial;
-
-// (R)
-static const std::string relation
-  = spaces
-  + "([<>=]=)"
-  + spaces;
-
-static std::pair<std::vector<std::string>,std::string> tokenizeTerm(std::string str)
+static std::pair<bool,ScaLP::Term> parseMonominal(std::map<std::string,ScaLP::Variable>& variables, const std::string& s)
 {
-  std::smatch m;
-
-  // term-tokens
-  std::vector<std::string> ls;
-
-  // tokenize the term
-  if(std::regex_search(str,m,std::regex(firstMonomial)))
+  auto f = [&variables](const std::string& s) -> std::pair<bool,ScaLP::Term>
   {
-    std::regex n(monomial);
-    do
+    if(isVariableName(s))
     {
-      for(size_t i=1;i<m.size();++i)
+      auto var = variables.find(s);
+      if(var != variables.end())
       {
-        ls.push_back(m[i]);
+        return {true,ScaLP::Term(var->second)};
       }
-      str=m.suffix();
-
+      else
+      {
+        ScaLP::Variable v = ScaLP::newIntegerVariable(s);
+        variables.emplace(s,v);
+        return {true,ScaLP::Term(v)};
+      }
     }
-    while(std::regex_search(str,m,n));
+    else
+    {
+      try
+      {
+        double  c = std::stod(s);
+        return {true,ScaLP::Term(c)};
+      }
+      catch(std::exception e)
+      {
+        std::cerr << e.what() << std::endl;
+      }
+    }
+  };
+  auto it = s.find("*");
+  if(it == std::string::npos)
+  {
+    return f(strip(s.c_str()));
   }
   else
   {
-    std::cout << "no Term found" << std::endl;
+    auto a = f(strip(s.substr(0,it).c_str()));
+    auto b = f(strip(s.substr(it+1).c_str()));
+    if(a.first and b.first)
+    {
+      if(a.second.isConstant())
+      {
+        return {true,a.second.constant*b.second};
+      }
+      else if(b.second.isConstant())
+      {
+        return {true,b.second.constant*a.second};
+      }
+      else
+      {
+        return {false,{}};
+      }
+    }
   }
-
-  return {ls,str};
+  return {false,{}};
 }
 
-static ScaLP::Term parseTerm(std::map<std::string,ScaLP::Variable>& variables, std::vector<std::string>& ls)
+static std::pair<bool,ScaLP::Term> parseTerm(std::map<std::string,ScaLP::Variable>& variables, std::string s)
 {
   ScaLP::Term t;
 
-  if(ls.size()%3==0)
+  auto it = s.find_first_of("+-");
+
+  if(it==std::string::npos)
   {
-    for(unsigned int i=0;i<ls.size();i+=3)
-    {
-      std::string sign = ls[i];
-      double num = ls[i+1].empty()?1:std::stod(ls[i+1]); // default: 1
-      std::string var = ls[i+2];
-
-      if(sign=="-") num = -1*num;
-
-      if(not var.empty())
-      { // add coeff*variable
-        auto p = variables.emplace(var,ScaLP::newRealVariable(var)); // add as a dummy variable
-        t+=num*(p.first->second);
-      }
-      else
-      { // add constant
-        t+=num;
-      }
-    }
+    return parseMonominal(variables,s);
   }
   else
   {
-    std::cout << "some tokens are missing" << std::endl;
-    throw ScaLP::Exception("some tokens are missing");
+    bool lastSign=false; // false + , true -
+    if(it==0 and s[it]=='-')
+    {
+      lastSign=true;
+      it = s.find_first_of("+-",1);
+    }
+
+    do
+    {
+      auto p = parseMonominal(variables,strip(s.substr(0,it).c_str()));
+      if(p.first)
+      {
+        if(lastSign) t-= p.second;
+        else t+= p.second;
+        s = strip(s.substr(it+1).c_str());
+        lastSign= s[it]=='-';
+        it = s.find_first_of("+-");
+      }
+      else
+      {
+        return {false,{}};
+      }
+    }
+    while(it!=std::string::npos);
+
+    // last Monominal
+    auto p = parseMonominal(variables,strip(s.c_str()));
+    if(not p.first) return {false,{}};
+    else
+    {
+        if(lastSign) t-= p.second;
+        else t+= p.second;
+    }
+    return {true,t};
   }
 
-  return t;
+  return {false,t};
 }
 
 static ScaLP::relation parseRelation(std::string s)
 {
-  if(s=="==") return ScaLP::relation::EQUAL;
+  if(s=="=") return ScaLP::relation::EQUAL;
   else if(s=="<=") return ScaLP::relation::LESS_EQ_THAN;
   else if(s==">=") return ScaLP::relation::MORE_EQ_THAN;
   else throw ScaLP::Exception("can't parse relation "+s);
@@ -207,100 +231,137 @@ std::pair<bool,ScaLP::Constraint> parse3(std::map<std::string,ScaLP::Variable>& 
   }
   catch(std::invalid_argument& e)
   {
-    std::cout << e.what() << "Could not parse number \"" << lhs << "\" or \"" << rhs << "\"." << std::endl;
+    std::cerr << e.what() << "Could not parse number \"" << lhs << "\" or \"" << rhs << "\"." << std::endl;
     return {false,{}};
   }
+  
+  auto p = parseTerm(variables,t);
 
-  auto p = tokenizeTerm(t);
-
-  if(not p.first.empty())
+  if(p.first)
   {
-    ScaLP::Term term = parseTerm(variables,p.first);
-    return {true,ScaLP::Constraint(lhs,parseRelation(r1),term,parseRelation(r2),rhs)};
+    return {true,ScaLP::Constraint(lhs,parseRelation(r1),p.second,parseRelation(r2),rhs)};
   }
   else
   {
-    std::cout << "can't parse constraint3" << std::endl;
     return {false,{}};
   }
-
 
 }
 
 
 std::pair<bool,ScaLP::Constraint> parse2(std::map<std::string,ScaLP::Variable>& variables, std::string l, std::string rel, std::string r)
 {
-  auto tl = tokenizeTerm(l);
-  auto ll = parseTerm(variables,tl.first);
+  auto ll = parseTerm(variables,l);
+  if(not ll.first) return {false,{}};
   auto re = parseRelation(rel);
-  auto tr = tokenizeTerm(r);
-  auto rr = parseTerm(variables,tr.first);
+  auto rr = parseTerm(variables,r);
+  if(not rr.first) return {false,{}};
 
-  if(rr.isConstant() and ll.isConstant())
+  if(rr.second.isConstant() and ll.second.isConstant())
   {
-    std::cout << "there is no constant part in this constraint:" << std::endl;
-    std::cout << "    " << l << " " << rel << " " << r << std::endl;
+    std::cerr << "there is no constant part in this constraint:" << std::endl;
     return {false,{}};
   }
-  else if(ll.isConstant())
+  else if(ll.second.isConstant())
   {
-    return {true,ScaLP::Constraint(ll.constant,re,rr)};
+    return {true,ScaLP::Constraint(ll.second.constant,re,rr.second)};
   }
-  else
+  else if(rr.second.isConstant())
   {
-    return {true,ScaLP::Constraint(ll,re,rr.constant)};
-
+    return {true,ScaLP::Constraint(ll.second,re,rr.second.constant)};
   }
 
   return {false,{}};
 }
 
-static std::pair<bool,ScaLP::Constraint> parseConstraint(std::map<std::string,ScaLP::Variable>& variables, const std::string& str)
+static size_t findRelation(const std::string& s, size_t start=0)
 {
+  auto a = s.find_first_of('=',start);
+  if(a==std::string::npos or a==0) return std::string::npos;
+  if(s[a-1]=='<' or s[a-1]=='>') return a-1;
+  if(s[a+1]=='<' or s[a+1]=='>') return a+1;
+  else return a;
+}
+
+static std::pair<bool,ScaLP::Constraint> parseConstraint(std::map<std::string,ScaLP::Variable>& variables, const std::string& input)
+{
+  std::string name="";
+  std::string l ="";
+  std::string r1 ="";
   std::string term = "";
-  std::string rel  = "";
-  std::string val  = "";
+  std::string r2 ="";
+  std::string r ="";
+  std::string indicator="";
 
-  std::smatch m;
+  std::string str = input;
 
-  std::string reg = "^([^<>=]*)([<>=]=)([^<>]*)([<>]=)?([^<>=]*)$";
-
-  // get the objective name
-  if(std::regex_search(str,m,std::regex(reg,std::regex_constants::extended)))
   {
-    if(m.size()==6)
+    size_t collon = str.find(':');
+    if(collon!=std::string::npos)
     {
-      //std::cout << "Constraint tokenized: " << m[0] << std::endl << std::endl;
-      if(m[4]=="" and m[5]=="")
-      {
-        auto r = parse2(variables,m[1],m[2],m[3]);
-        return r;
-      }
-      else if(not (m[1]=="" or m[2]=="" or m[3]=="" or m[4]=="" or m[5]==""))
-      {
-        auto r = parse3(variables,m[1],m[2],m[3],m[4],m[5]);
-        return r;
-      }
-      else
-      {
-        std::cout << "something went wrong" << std::endl;
-      }
+      name= str.substr(0,collon);
+      str = str.substr(collon+1);
+    }
+  }
+  {
+    size_t arrow = str.find("->");
+    if(arrow!=std::string::npos)
+    {
+      indicator= str.substr(0,arrow);
+      str = str.substr(arrow+2);
+    }
+  }
+
+  size_t r1_pos = findRelation(str);
+  size_t r1_len = (str[r1_pos]=='=') ? 1 : 2;
+  if(r1_pos!=std::string::npos)
+  {
+    l  = str.substr(0,r1_pos);
+    r1 = str.substr(r1_pos,r1_len);
+    size_t r2_pos = findRelation(str,r1_pos+r1_len);
+    size_t r2_len = 2; // always 2, because a = t = b is not possible
+    if(r2_pos!=std::string::npos)
+    {
+      term = str.substr(r1_pos+r1_len,r2_pos-r1_pos-r1_len);
+      r2 = str.substr(r2_pos,2);
+      r  = str.substr(r2_pos+r2_len);
     }
     else
     {
-      std::cout << "potential garbage found: " << std::endl;
-      std::cout << str << std::endl << std::endl;
+      term = str.substr(r1_pos+r1_len);
     }
-
-
   }
   else
   {
-    std::cout << "not recognized constraint: " << str << std::endl;
+    return {false,{}};
   }
 
-  // TODO: check rest of objstr (p.second) to be valid (empty or comment)
-
+  if(r2.empty() and r.empty())
+  {
+    auto a = parse2(variables,l,r1,term);
+    if(a.first and not name.empty()) a.second.setName(name);
+    if(not indicator.empty() and a.first)
+    {
+      auto ind = parseConstraint(variables,indicator);
+      return {ind.first,ScaLP::Constraint(ind.second,a.second)};
+    }
+    return a;
+  }
+  else
+  {
+    auto a = parse3(variables,l,r1,term,r2,r);
+    if(a.first and not name.empty()) a.second.setName(name);
+    if(not indicator.empty() and a.first)
+    {
+      auto ind = parseConstraint(variables,indicator);
+      if(ind.first)
+      {
+        ind.second.term.sum.begin()->first->unsafeSetType(ScaLP::VariableType::BINARY);
+        a.second = ScaLP::Constraint(ind.second,a.second);
+      }
+    }
+    return a;
+  }
   return {false,{}};
 }
 
@@ -309,50 +370,32 @@ static bool parseObjective(std::map<std::string,ScaLP::Variable>& variables, con
   std::string objName = "";
   std::string objstr = s;
 
-  std::smatch m;
-
-  // get the objective name
-  if(std::regex_search(objstr,m,std::regex(variableName+":")))
+  auto it = s.find(':');
+  if(it!=std::string::npos and isVariableName(objstr.substr(0,it)))
   {
-    if(m.size()==2)
-    {
-      objName=m[1];
-      objstr=m.suffix();
-    }
+    objName = objstr.substr(0,it);
   }
 
-  // term-tokens
-  auto p = tokenizeTerm(objstr);
+  objstr = s.substr(it+1);
+
+  auto p = parseTerm(variables,objstr);
 
   // TODO: objective name discarded
-  if(sense) obj = ScaLP::maximize(parseTerm(variables,p.first));
-  else      obj = ScaLP::minimize(parseTerm(variables,p.first));
-
-  return true;
-}
-
-static bool isChar(char c)
-{
-  return (c>=65 and c<=90) or (c>=97 and c<=122);
-}
-static bool isDigit(char c)
-{
-  return c>=48 and c<=57;
-}
-
-static bool isVariableName(const std::string& s)
-{
-  if(s.empty()) return false;
-  if(isChar(s.front()))
+  if(sense and p.first)
   {
-    return std::all_of(s.begin(),s.end(),[](char c){return isChar(c) or isDigit(c);});
+    obj = ScaLP::maximize(p.second);
+  }
+  else if(p.first)
+  {
+    obj = ScaLP::minimize(p.second);
   }
   else
   {
     return false;
   }
-}
 
+  return true;
+}
 
 static bool parseVariable(std::map<std::string,ScaLP::Variable>& variables, const std::string& s, ScaLP::VariableType t, double lb, double ub)
 {
@@ -408,28 +451,52 @@ static bool parseBoundary(std::map<std::string,ScaLP::Variable>& variables, cons
   if(free!="free")
   {
     const auto it = s.find("<=");
-    const auto it2 = s.find("<=",it+2);
-    if(it!=std::string::npos and it2!=std::string::npos)
+    if(it!=std::string::npos)
     {
-      lb = std::stod(s.substr(0,it-1));
-      ub = std::stod(s.substr(it2+2));
-      free = strip(s.substr(it+2,s.size()-it2-2).c_str());
+      const auto it2 = s.find("<=",it+2);
+      if(it2!=std::string::npos)
+      {
+        lb = std::stod(s.substr(0,it-1));
+        ub = std::stod(s.substr(it2+2));
+        free = strip(s.substr(it+2,s.size()-it2-2).c_str());
+      }
+      else
+      {
+
+        std::string l = strip(s.substr(0,it-1).c_str());
+        std::string r = strip(s.substr(it+2).c_str());
+
+        if(std::all_of(l.begin(),l.end(),[](char c){return isDigit(c) or c=='.';}))
+        {
+          lb = std::stod(l);
+          free = r;
+        }
+        else if(std::all_of(r.begin(),r.end(),[](char c){return isDigit(c) or c=='.';}))
+        {
+          ub = std::stod(r);
+          free = l;
+        }
+        else
+        {
+          return false;
+        }
+      }
     }
     else
     {
-      const auto it = s.find(" = ");
-      if(it!=std::string::npos)
+      const auto ite = s.find(" = ");
+      if(ite!=std::string::npos)
       {
-        if(isVariableName(s.substr(0,it)))
+        if(isVariableName(s.substr(0,ite)))
         {
-          free = s.substr(0,it);
-          lb = std::stod(s.substr(it+3));
+          free = s.substr(0,ite);
+          lb = std::stod(s.substr(ite+3));
           ub = lb;
         }
-        else if(isVariableName(s.substr(it+3)))
+        else if(isVariableName(s.substr(ite+3)))
         {
-          free = s.substr(it+3);
-          lb = std::stod(s.substr(0,it));
+          free = s.substr(ite+3);
+          lb = std::stod(s.substr(0,ite));
           ub = lb;
         }
         else
@@ -446,6 +513,8 @@ static bool parseBoundary(std::map<std::string,ScaLP::Variable>& variables, cons
   else
   {
     free = s.substr(0,s.size()-5);
+    lb = -ScaLP::INF();
+    ub = ScaLP::INF();
   }
 
   if(isVariableName(free))
@@ -464,19 +533,29 @@ static bool parseBoundary(std::map<std::string,ScaLP::Variable>& variables, cons
     }
     else
     {
-      if(lb!=std::floor(lb) or ub!=std::floor(ub))
+      v->second->unsafeSetName(free);
+      v->second->unsafeSetLowerBound(lb);
+      v->second->unsafeSetUpperBound(ub);
+      if(lb==0 and ub==1)
       {
-        v->second->unsafeSetName(free);
-        v->second->unsafeSetType(ScaLP::VariableType::REAL);
-        v->second->unsafeSetLowerBound(lb);
-        v->second->unsafeSetUpperBound(ub);
+        v->second->unsafeSetType(ScaLP::VariableType::BINARY);
       }
       else
       {
-        v->second->unsafeSetName(free);
-        v->second->unsafeSetType(ScaLP::VariableType::INTEGER);
-        v->second->unsafeSetLowerBound(lb);
-        v->second->unsafeSetUpperBound(ub);
+        if(v->second->getType()==ScaLP::VariableType::BINARY)
+        {
+          std::cerr << "Can't extend indicator-variable "
+            << free << " to integer or real." << std::endl;
+          return false;
+        }
+        if(lb!=std::floor(lb) or ub!=std::floor(ub))
+        {
+          v->second->unsafeSetType(ScaLP::VariableType::REAL);
+        }
+        else
+        {
+          v->second->unsafeSetType(ScaLP::VariableType::INTEGER);
+        }
       }
     }
     return true;
@@ -551,7 +630,6 @@ static std::pair<ScaLP::Objective,std::vector<ScaLP::Constraint>> dispatch(std::
           if(not parseObjective(variables,acc+stripped,objectiveSense,obj))
           {
             std::cerr << "Parse error in line " << lineNO << ": This is not a valid objective" << std::endl;
-
           }
           acc="";
           
@@ -569,7 +647,6 @@ static std::pair<ScaLP::Objective,std::vector<ScaLP::Constraint>> dispatch(std::
           if(not p.first)
           {
             std::cerr << "Parse error in line " << lineNO << ": This is not a valid constraint" << std::endl;
-
           }
           else
           {
@@ -583,7 +660,6 @@ static std::pair<ScaLP::Objective,std::vector<ScaLP::Constraint>> dispatch(std::
           if(not parseBoundary(variables,stripped))
           {
             std::cerr << "Parse error in line " << lineNO << ": This is not a valid variable boundary" << std::endl;
-
           }
 
           break;
@@ -593,7 +669,6 @@ static std::pair<ScaLP::Objective,std::vector<ScaLP::Constraint>> dispatch(std::
           if(not parseBinaries(variables,stripped))
           {
             std::cerr << "Parse error in line " << lineNO << ": This is not a valid variable name" << std::endl;
-
           }
           break;
         }
@@ -602,7 +677,6 @@ static std::pair<ScaLP::Objective,std::vector<ScaLP::Constraint>> dispatch(std::
           if(not parseGeneral(variables,stripped))
           {
             std::cerr << "Parse error in line " << lineNO << ": This is not a valid variable name" << std::endl;
-
           }
           break;
         }
@@ -610,8 +684,6 @@ static std::pair<ScaLP::Objective,std::vector<ScaLP::Constraint>> dispatch(std::
         {
         }
     }
-    
-
   }
   return {obj,cons};
 }

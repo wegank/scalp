@@ -11,34 +11,41 @@
 
 void printHelp()
 {
-  std::cout << "Usage:" << std::endl << "  $ scalp [-s SolverName] file.lp" << std::endl;
+  std::cout << "Usage:" << std::endl << "  $ scalp [-s SolverName] file.lp [output]" << std::endl;
 }
 
-std::pair<std::string,std::string> parseCommandLine(int argc, char** argv)
+std::tuple<std::string,std::string,std::string> parseCommandLine(int argc, char** argv)
 {
   if(argc<2)
   {
     std::cerr << "No arguments given" << std::endl;
     printHelp();
-    return {"",""};
+    return {"","",""};
   }
 
   if(argc==2)
   { // lp-file only
-    return {"",argv[1]};
+    return {"",argv[1],""};
   }
   
   if(argc==4)
   {
     if(std::string(argv[1])=="-s")
     { // solver and lp-file
-      return {argv[2],argv[3]};
+      return {argv[2],argv[3],""};
+    }
+  }
+  if(argc==5)
+  {
+    if(std::string(argv[1])=="-s")
+    { // solver and lp-file
+      return {argv[2],argv[3],argv[4]};
     }
   }
 
   std::cerr << "Wrong command line arguments" << std::endl;
   printHelp();
-  return {"",""};
+  return {"","",""};
 }
 
 void printSolution(ScaLP::status stat, ScaLP::Result& result)
@@ -51,13 +58,13 @@ int main(int argc, char** argv)
 {
 
   auto conf = parseCommandLine(argc,argv);
-  if(conf.second.empty()) return -1; // command line error (no file)
+  if(std::get<1>(conf).empty()) return -1; // command line error (no file)
 
 #ifdef LP_PARSER
   try
   {
-    ScaLP::Solver s{conf.first};
-    std::cout << s.getBackendName() << std::endl;
+    ScaLP::Solver s{std::get<0>(conf)};
+    //std::cout << s.getBackendName() << std::endl;
 
     // disable presolving for LPSolve
     s.presolve = s.getBackendName() != "Dynamic: LPSolve";
@@ -65,9 +72,9 @@ int main(int argc, char** argv)
     // hide solver output
     s.quiet = true;
 
-    s.load(conf.second);
+    s.load(std::get<1>(conf));
 
-    std::cout << s.showLP() << std::endl;
+    //std::cout << s.showLP() << std::endl;
 
     ScaLP::status stat = s.solve();
 
@@ -75,10 +82,19 @@ int main(int argc, char** argv)
     {
       auto res = s.getResult();
 
-      printSolution(stat,res);
+      if(std::get<2>(conf).empty())
+      {
+        printSolution(stat,res);
+      }
+      else if(std::get<2>(conf)=="--")
+      {
+        std::cout << res.showSolutionVector();
+      }
+      else
+      {
+        res.writeSolutionVector(std::get<2>(conf));
+      }
     }
-
-    // TODO: functionality
 
   }
   catch(ScaLP::Exception& e)

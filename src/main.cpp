@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <utility>
+#include <tuple>
 
 #include "ScaLP/Exception.h"
 #include "ScaLP/Solver.h"
@@ -20,32 +21,32 @@ std::tuple<std::string,std::string,std::string> parseCommandLine(int argc, char*
   {
     std::cerr << "No arguments given" << std::endl;
     printHelp();
-    return {"","",""};
+    return std::make_tuple("","","");
   }
 
   if(argc==2)
   { // lp-file only
-    return {"",argv[1],""};
+    return std::make_tuple("",argv[1],"");
   }
   
   if(argc==4)
   {
     if(std::string(argv[1])=="-s")
     { // solver and lp-file
-      return {argv[2],argv[3],""};
+      return std::make_tuple(argv[2],argv[3],"");
     }
   }
   if(argc==5)
   {
     if(std::string(argv[1])=="-s")
     { // solver and lp-file
-      return {argv[2],argv[3],argv[4]};
+      return std::make_tuple(argv[2],argv[3],argv[4]);
     }
   }
 
   std::cerr << "Wrong command line arguments" << std::endl;
   printHelp();
-  return {"","",""};
+  return std::make_tuple("","","");
 }
 
 void printSolution(ScaLP::status stat, ScaLP::Result& result)

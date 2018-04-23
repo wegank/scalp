@@ -215,6 +215,8 @@ std::pair<ScaLP::status,ScaLP::Result> ScaLP::SolverSCIP::solve()
       }
     case SCIP_STATUS_OPTIMAL:    return {ScaLP::status::OPTIMAL,res};
     case SCIP_STATUS_INFEASIBLE: return {ScaLP::status::INFEASIBLE,res};
+    case SCIP_STATUS_INFORUNBD:  return {ScaLP::status::INFEASIBLE_OR_UNBOUND,res};
+    case SCIP_STATUS_UNBOUNDED:  return {ScaLP::status::UNBOUND,res};
     default:
       {
         std::cerr << "Scalp: This SCIP-Status is not supported, please report with an simplified example" << std::endl;

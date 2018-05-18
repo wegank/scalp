@@ -117,7 +117,7 @@ class SolverDynamic : public SolverBackend
 
   ~SolverDynamic()
   {
-    delete back;
+    if(back!=nullptr) delete back;
     dlclose(library);
   }
 
@@ -145,7 +145,8 @@ class SolverDynamic : public SolverBackend
   {
     ScaLP::status s;
     ScaLP::Result res;
-    std::tie(s,res) = back->solve();
+    if(back==nullptr) s=ScaLP::status::NO_SOLVER_FOUND;
+    else std::tie(s,res) = back->solve();
     return {s,res};
   }
   void reset() override
@@ -183,7 +184,7 @@ class SolverDynamic : public SolverBackend
   }
 
   private:
-  SolverBackend* back;
+  SolverBackend* back=nullptr;
   void* library;
 };
 

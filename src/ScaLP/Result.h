@@ -18,6 +18,7 @@ namespace ScaLP
   , ERROR
   , TIMEOUT_FEASIBLE
   , TIMEOUT_INFEASIBLE
+  , NO_SOLVER_FOUND
   , UNKNOWN
   };
 

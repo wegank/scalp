@@ -284,6 +284,8 @@ void ScaLP::SolverCPLEX::reset()
 
   try
   {
+    env.end();
+    new (&env)IloEnv();
     model = IloModel(env);
   }
   catch(IloException& e)

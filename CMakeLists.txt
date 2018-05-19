@@ -185,36 +185,36 @@ endif()
 # add backend-libraries
 
 if(USE_CPLEX)
-  include_directories(${CPLEX_INCLUDE_DIRS})
   add_library(ScaLP-CPLEX ${LIBRARY_TYPE}
     src/ScaLP/SolverBackend/SolverCPLEX.cpp)
+  target_include_directories(ScaLP-CPLEX PUBLIC ${CPLEX_INCLUDE_DIRS})
   target_link_libraries(ScaLP-CPLEX ${CPLEX_LIBRARIES} ScaLP)
   list(APPEND BACKEND_TARGETS ScaLP-CPLEX)
   list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverCPLEX.h)
 endif()
 
 if(USE_GUROBI)
-  include_directories(${GUROBI_INCLUDE_DIRS})
   add_library(ScaLP-Gurobi ${LIBRARY_TYPE}
     src/ScaLP/SolverBackend/SolverGurobi.cpp)
+  target_include_directories(ScaLP-Gurobi PUBLIC ${GUROBI_INCLUDE_DIRS})
   target_link_libraries(ScaLP-Gurobi ${GUROBI_LIBRARIES} ScaLP)
   list(APPEND BACKEND_TARGETS ScaLP-Gurobi)
   list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverGurobi.h)
 endif()
 
 if(USE_SCIP)
-  include_directories(${SCIP_INCLUDE_DIRS})
   add_library(ScaLP-SCIP ${LIBRARY_TYPE}
     src/ScaLP/SolverBackend/SolverSCIP.cpp)
+  target_include_directories(ScaLP-SCIP PUBLIC ${SCIP_INCLUDE_DIRS})
   target_link_libraries(ScaLP-SCIP ${SCIP_LIBRARIES} ScaLP)
   list(APPEND BACKEND_TARGETS ScaLP-SCIP)
   list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverSCIP.h)
 endif()
 
 if(USE_LPSOLVE)
-  include_directories(${LPSOLVE_INCLUDE_DIRS})
   add_library(ScaLP-LPSolve ${LIBRARY_TYPE}
     src/ScaLP/SolverBackend/SolverLPSolve.cpp)
+  target_include_directories(ScaLP-LPSOLVE PUBLIC ${LPSOLVE_INCLUDE_DIRS})
   target_link_libraries(ScaLP-LPSolve ${LPSOLVE_LIBRARIES} ScaLP)
   list(APPEND BACKEND_TARGETS ScaLP-LPSolve)
   list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverLPSolve.h)

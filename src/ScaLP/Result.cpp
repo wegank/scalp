@@ -19,6 +19,7 @@ std::string ScaLP::showStatus(ScaLP::status s)
     case ScaLP::status::TIMEOUT_FEASIBLE: return "TIMEOUT_FEASIBLE";
     case ScaLP::status::TIMEOUT_INFEASIBLE: return "TIMEOUT_INFEASIBLE";
     case ScaLP::status::INFEASIBLE_OR_UNBOUND: return "INFEASIBLE_OR_UNBOUND";
+    case ScaLP::status::ALREADY_SOLVED: return "ALREADY_SOLVED";
     case ScaLP::status::UNKNOWN:    return "UNKNOWN";
   }
   return "UNKNOWN";

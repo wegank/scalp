@@ -93,6 +93,7 @@ static ScaLP::VariableSet extractVariables(const std::vector<ScaLP::Constraint> 
 
 void ScaLP::Solver::setObjective(const Objective& o)
 {
+  this->modelChanged=true;
   this->objective=o;
 
   // this should throw an exception if the Objective rises a name-collision
@@ -134,11 +135,13 @@ static void normalizeConstraint(ScaLP::Constraint& c)
 
 void ScaLP::Solver::addConstraint(Constraint& b)
 {
+  modelChanged=true;
   normalizeConstraint(b);
   this->cons.emplace_back(b);
 }
 void ScaLP::Solver::addConstraint(Constraint&& b)
 {
+  modelChanged=true;
   normalizeConstraint(b);
   this->cons.emplace_back(b);
 }
@@ -624,6 +627,8 @@ static void updateCache(ScaLP::Solver& solver,const ScaLP::Result& result, const
 
 ScaLP::status ScaLP::Solver::solve()
 {
+  if(not this->modelChanged) return ScaLP::status::ALREADY_SOLVED;
+  else this->modelChanged=false;
   const ScaLP::VariableSet s = extractVariables(cons,objective);
   if(not resultCacheDir.empty())
   {
@@ -699,6 +704,7 @@ ScaLP::Result ScaLP::Solver::getResult()
 
 void ScaLP::Solver::reset()
 {
+  modelChanged=true;
   if(back!=nullptr) back->reset();
   objective=ScaLP::Objective();
   cons.clear();

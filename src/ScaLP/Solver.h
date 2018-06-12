@@ -156,6 +156,8 @@ namespace ScaLP
 
       ScaLP::Result result;
 
+      bool modelChanged=true;
+
       double absMIPGap=-1;
       double relMIPGap=-1;
 

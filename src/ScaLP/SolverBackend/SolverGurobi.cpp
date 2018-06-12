@@ -269,7 +269,8 @@ void ScaLP::SolverGurobi::reset()
   // reset Gurobi itself
   try
   {
-    model.reset();
+    model.~GRBModel();
+    new (&model) GRBModel(environment);
   }catch(GRBException &e)
   {
     throw ScaLP::Exception(std::to_string(e.getErrorCode())+" "+e.getMessage());

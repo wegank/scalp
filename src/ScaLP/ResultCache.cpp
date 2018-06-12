@@ -85,8 +85,17 @@ static ScaLP::Result createResult(const std::pair<std::map<std::string,double>,d
   res.objectiveValue=p.second;
   for(auto& v:vs)
   {
-    double r = p.first.at(v->getName());
-    res.values.emplace(v,r);
+    auto it = p.first.find(v->getName());
+    if(it!=p.first.end())
+    {
+      double r = p.first.at(v->getName());
+      res.values.emplace(v,r);
+    }
+    else
+    {
+      //std::cerr << v->getName() << "defaults to 0" << std::endl;
+      res.values.emplace(v,0);
+    }
   }
 
   return res;

@@ -762,16 +762,21 @@ ScaLP::Term ScaLP::operator*(ScaLP::Term&& t, double coeff)
 }
 
 // insert a {key,value}-pair to the map, adjust already present values with the function f.
-static void adjust(std::map<ScaLP::Variable,double> &m,const ScaLP::Variable& k,double v,const std::function<double(double,double)>& f)
+// returns an iterator to the possibly eliminated variable
+static  std::map<ScaLP::Variable,double>::iterator adjust(std::map<ScaLP::Variable,double> &m,const ScaLP::Variable& k,double v,const std::function<double(double,double)>& f)
 {
+  if(v==0) return m.end();
   auto it = m.find(k);
   if(it==m.end())
   {
     m.emplace(k,v);
+    return it;
   }
   else
   {
     it->second = f(it->second,v);
+    if(it->second==0) return it;
+    else return m.end();
   }
 }
 
@@ -781,7 +786,8 @@ ScaLP::Term ScaLP::operator+(const ScaLP::Term& tl,const ScaLP::Term& tr)
   n.constant+=tr.constant;
   for(auto &p:tr.sum)
   {
-    adjust(n.sum,p.first,p.second,plus);
+    auto it = adjust(n.sum,p.first,p.second,plus);
+    if(it!=n.sum.end()) n.sum.erase(it);
   }
   return n;
 }
@@ -790,7 +796,8 @@ ScaLP::Term ScaLP::operator+(const ScaLP::Term& tl, ScaLP::Term&& n)
   n.constant+=tl.constant;
   for(auto &p:tl.sum)
   {
-    adjust(n.sum,p.first,p.second,plus);
+    auto it = adjust(n.sum,p.first,p.second,plus);
+    if(it!=n.sum.end()) n.sum.erase(it);
   }
   return n;
 }
@@ -799,7 +806,8 @@ ScaLP::Term ScaLP::operator+(ScaLP::Term&& tl, const ScaLP::Term& tr)
   tl.constant+=tr.constant;
   for(auto &p:tr.sum)
   {
-    adjust(tl.sum,p.first,p.second,plus);
+    auto it = adjust(tl.sum,p.first,p.second,plus);
+    if(it!=tl.sum.end()) tl.sum.erase(it);
   }
   return tl;
 }
@@ -808,7 +816,8 @@ ScaLP::Term ScaLP::operator+(ScaLP::Term&& tl, ScaLP::Term&& tr)
   tl.constant+=tr.constant;
   for(auto &p:tr.sum)
   {
-    adjust(tl.sum,p.first,p.second,plus);
+    auto it = adjust(tl.sum,p.first,p.second,plus);
+    if(it!=tl.sum.end()) tl.sum.erase(it);
   }
   return tl;
 }
@@ -818,7 +827,8 @@ ScaLP::Term& ScaLP::operator+=(ScaLP::Term &tl, const ScaLP::Term& tr)
   tl.constant+=tr.constant;
   for(auto &p:tr.sum)
   {
-    adjust(tl.sum,p.first,p.second,plus);
+    auto it = adjust(tl.sum,p.first,p.second,plus);
+    if(it!=tl.sum.end()) tl.sum.erase(it);
   }
   return tl;
 }
@@ -848,44 +858,19 @@ ScaLP::Term ScaLP::operator-(const ScaLP::Term& tl, const ScaLP::Term& tr)
   n.constant-=tr.constant;
   for(auto &p:tr.sum)
   {
-    adjust(n.sum,p.first,-p.second,plus);
+    auto it = adjust(n.sum,p.first,-p.second,plus);
+    if(it!=n.sum.end()) n.sum.erase(it);
   }
   return n;
 }
-//ScaLP::Term ScaLP::operator-(const ScaLP::Term& tl, ScaLP::Term&& n)
-//{
-//  n.constant-=tl.constant;
-//  for(auto &p:tl.sum)
-//  {
-//    adjust(n.sum,p.first,-p.second,plus);
-//  }
-//  return n;
-//}
-//ScaLP::Term ScaLP::operator-(ScaLP::Term&& n, const ScaLP::Term& tr)
-//{
-//  n.constant-=tr.constant;
-//  for(auto &p:tr.sum)
-//  {
-//    adjust(n.sum,p.first,-p.second,plus);
-//  }
-//  return n;
-//}
-//ScaLP::Term ScaLP::operator-(ScaLP::Term&& n, ScaLP::Term&& tr)
-//{
-//  n.constant-=tr.constant;
-//  for(auto &p:tr.sum)
-//  {
-//    adjust(n.sum,p.first,-p.second,plus);
-//  }
-//  return n;
-//}
 
 ScaLP::Term& ScaLP::operator-=(ScaLP::Term& tl, const ScaLP::Term& tr)
 {
   tl.constant-=tr.constant;
   for(auto &p:tr.sum)
   {
-    adjust(tl.sum,p.first,-p.second,plus);
+    auto it = adjust(tl.sum,p.first,-p.second,plus);
+    if(it!=tl.sum.end()) tl.sum.erase(it);
   }
   return tl;
 }

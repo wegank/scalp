@@ -45,12 +45,14 @@ static bool valid(double d)
 
 void ScaLP::Term::add(const ScaLP::Variable& v,double coeff)
 {
+  if(coeff==0) return;
   if(valid(coeff))
   {
     auto it = this->sum.find(v);
     if (it!=end(sum))
     {
       it->second+=coeff;
+      if(it->second==0) sum.erase(it);
     }
     else
     {
@@ -64,12 +66,14 @@ void ScaLP::Term::add(const ScaLP::Variable& v,double coeff)
 }
 void ScaLP::Term::add(ScaLP::Variable&& v,double coeff)
 {
+  if(coeff==0) return;
   if(valid(coeff))
   {
     auto it = this->sum.find(v);
     if (it!=end(sum))
     {
       it->second+=coeff;
+      if(it->second==0) sum.erase(it);
     }
     else
     {

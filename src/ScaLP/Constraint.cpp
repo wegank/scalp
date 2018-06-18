@@ -181,6 +181,70 @@ ScaLP::Constraint::Constraint(const std::pair<std::string,ScaLP::Constraint>& p)
   name=p.first;
 }
 
+static bool between(double l, double x, double r)
+{
+  return l<=x and x<=r;
+}
+
+static double reduceTerm(const ScaLP::Constraint& c, const ScaLP::Result& sol)
+{
+  double res=0;
+  for(auto&p:c.term.sum)
+  {
+    auto it = sol.values.find(p.first);
+    if(it!=sol.values.end())
+    {
+      if(not between(p.first->getLowerBound(), it->second, p.first->getUpperBound()))
+      {
+
+        throw ScaLP::Exception("The warm-start value"+std::to_string(it->second)+" of variable "+p.first->getName()+" is not in its domain.");
+      }
+      else
+      {
+        res+=p.second*(it->second);
+      }
+    }
+    else
+    {
+      throw ScaLP::Exception("There are variables in this Constraint, that aren't covered by the result.");
+    }
+  }
+  return res;
+}
+
+static bool relationTrue(double a, ScaLP::relation r, double b)
+{
+  switch(r)
+  {
+    case ScaLP::relation::LESS_EQ_THAN: return a<=b;
+    case ScaLP::relation::MORE_EQ_THAN: return a>=b;
+    case ScaLP::relation::EQUAL: return a==b;
+    default: return false;
+  }
+}
+
+bool ScaLP::Constraint::isFeasible(const ScaLP::Result& sol)
+{
+  if(indicator)
+  {
+    auto& p= *indicator->term.sum.begin();
+    if(not relationTrue(sol.values.at(p.first)*p.second,ScaLP::relation::EQUAL,indicator->lbound)) return false;
+  }
+
+  double t = reduceTerm(*this,sol);
+  switch(ctype)
+  {
+    case ScaLP::Constraint::type::C2L:
+      return relationTrue(lbound,lrel,t);
+    case ScaLP::Constraint::type::C2R:
+      return relationTrue(t,rrel,ubound);
+    case ScaLP::Constraint::type::CEQ:
+      return relationTrue(lbound,ScaLP::relation::EQUAL,t);
+    case ScaLP::Constraint::type::C3:
+      return relationTrue(lbound,lrel,t) and relationTrue(t,rrel,ubound);
+  }
+}
+
 std::ostream& ScaLP::operator<<(std::ostream& os, const ScaLP::Constraint &c)
 {
   switch(c.ctype)

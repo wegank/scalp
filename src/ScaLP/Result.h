@@ -40,6 +40,8 @@ namespace ScaLP
       std::string showSolutionVector(bool compact=false);
       void writeSolutionVector(std::string file, bool compact=false);
 
+      bool empty() const;
+
     private:
   };
   std::ostream& operator<<(std::ostream& os, const ScaLP::Result &r);

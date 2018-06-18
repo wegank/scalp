@@ -9,12 +9,21 @@ namespace ScaLP
   extern double INF();
 }
 
+ScaLP::Variable ScaLP::newVariable(const std::string& n,double a, double b, double s, VariableType t)
+{
+  Variable v = std::make_shared<VariableBase>(n,a,b,s,t);
+  return v;
+};
 ScaLP::Variable ScaLP::newVariable(const std::string& n,double a, double b, VariableType t)
 {
-  Variable v = std::make_shared<VariableBase>(n,a,b,t);
+  Variable v = std::make_shared<VariableBase>(n,a,b,NAN,t);
   return v;
 };
 
+ScaLP::Variable ScaLP::newIntegerVariable(const std::string& n,double a, double b, int start)
+{
+  return ScaLP::newVariable(n,a,b,start);
+}
 ScaLP::Variable ScaLP::newIntegerVariable(const std::string& n,double a, double b)
 {
   return ScaLP::newVariable(n,a,b);
@@ -24,6 +33,10 @@ ScaLP::Variable ScaLP::newIntegerVariable(const std::string& n)
   return ScaLP::newIntegerVariable(n,-ScaLP::INF(),ScaLP::INF());
 }
 
+ScaLP::Variable ScaLP::newRealVariable(const std::string& n,double a, double b, double start)
+{
+  return ScaLP::newVariable(n,a,b,start,ScaLP::VariableType::REAL);
+}
 ScaLP::Variable ScaLP::newRealVariable(const std::string& n,double a, double b)
 {
   return ScaLP::newVariable(n,a,b,ScaLP::VariableType::REAL);
@@ -33,6 +46,10 @@ ScaLP::Variable ScaLP::newRealVariable(const std::string& n)
   return ScaLP::newRealVariable(n,-ScaLP::INF(),ScaLP::INF());
 }
 
+ScaLP::Variable ScaLP::newBinaryVariable(const std::string& n,double a, double b, bool start)
+{
+  return ScaLP::newVariable(n,a,b,start,ScaLP::VariableType::BINARY);
+}
 ScaLP::Variable ScaLP::newBinaryVariable(const std::string& n,double a, double b)
 {
   return ScaLP::newVariable(n,a,b,ScaLP::VariableType::BINARY);
@@ -42,8 +59,8 @@ ScaLP::Variable ScaLP::newBinaryVariable(const std::string& n)
   return ScaLP::newVariable(n,false,true,ScaLP::VariableType::BINARY);
 }
 
-ScaLP::VariableBase::VariableBase(const std::string& n,double a,double b,ScaLP::VariableType t)
-  :name(n),lowerRange(a),upperRange(b),usedType(t)
+ScaLP::VariableBase::VariableBase(const std::string& n,double a,double b,double s,ScaLP::VariableType t)
+  : usedType(t), name(n), lowerRange(a), upperRange(b), start(s)
 {
   // Illegal or flipped bounds
   if(a==ScaLP::INF() || b==-ScaLP::INF() || a>b)
@@ -112,6 +129,10 @@ void ScaLP::VariableBase::unsafeSetLowerBound(double d)
 const std::string& ScaLP::VariableBase::getName() const
 {
   return this->name;
+}
+double ScaLP::VariableBase::getStart() const
+{
+  return this->start;
 }
 void ScaLP::VariableBase::unsafeSetName(std::string s)
 {

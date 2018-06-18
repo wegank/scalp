@@ -19,6 +19,7 @@ namespace ScaLP
   , MILP
   , INDICATOR_CONSTRAINTS
   , LOGICAL_OPERATORS
+  , WARMSTART
   };
 
   class Features
@@ -30,6 +31,7 @@ namespace ScaLP
     bool milp=false;
     bool indicators=false;
     bool logical=false;
+    bool warmstart=false;
   };
 
   class SolverBackend
@@ -53,6 +55,7 @@ namespace ScaLP
       virtual void setThreads(unsigned int t);
       virtual void setRelativeMIPGap(double d);
       virtual void setAbsoluteMIPGap(double d);
+      virtual void setStartValues(const ScaLP::Result& start);
 
       Features features;
       bool featureSupported(ScaLP::Feature f) const;

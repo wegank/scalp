@@ -460,29 +460,44 @@ void ScaLP::Solver::prepare()
   back->presolve(presolve);
 }
 
-void ScaLP::Solver::construct(const ScaLP::VariableSet& vs)
+static void construction(ScaLP::SolverBackend* back, const ScaLP::VariableSet& vs, const ScaLP::Objective& obj, const std::vector<ScaLP::Constraint>& cons)
 {
   // Add the Variables
   // Only add the used Variables.
   back->addVariables(vs);
 
   // Add Objective
-  back->setObjective(objective);
+  back->setObjective(obj);
 
   // Add Constraints
   back->addConstraints(cons);
 }
+static void construction(ScaLP::SolverBackend* back, const ScaLP::VariableSet& vs, const ScaLP::Objective& obj, const std::vector<ScaLP::Constraint>& cons, ScaLP::Result& start)
+{
+  construction(back,vs,obj,cons);
+  if(start.empty())
+  {
+    for(auto&p:vs)
+    {
+      if(p->getStart()!=NAN)
+      {
+        start.values.emplace(p,p->getStart());
+      }
+    }
+  }
+  if(not start.empty()) back->setStartValues(start);
+}
+
+void ScaLP::Solver::construct(const ScaLP::VariableSet& vs)
+{
+  if(warmStart) construction(back,vs,objective,cons,warmStartValues);
+  else construction(back,vs,objective,cons);
+}
 void ScaLP::Solver::construct()
 {
-  // Add the Variables
-  // Only add the used Variables.
-  back->addVariables(extractVariables(cons,objective));
-
-  // Add Objective
-  back->setObjective(objective);
-
-  // Add Constraints
-  back->addConstraints(cons);
+  auto vs = extractVariables(cons,objective);
+  if(warmStart) construction(back,vs,objective,cons,warmStartValues);
+  else construction(back,vs,objective,cons);
 }
 void ScaLP::Solver::construct(const std::string& file)
 {
@@ -629,6 +644,7 @@ ScaLP::status ScaLP::Solver::solve()
 {
   if(not this->modelChanged) return ScaLP::status::ALREADY_SOLVED;
   else this->modelChanged=false;
+
   const ScaLP::VariableSet s = extractVariables(cons,objective);
   if(not resultCacheDir.empty())
   {
@@ -673,6 +689,12 @@ ScaLP::status ScaLP::Solver::solve()
   }
 }
 
+ScaLP::status ScaLP::Solver::solve(const ScaLP::Result& start)
+{
+  this->warmStartValues=start;
+  return solve();
+}
+
 ScaLP::status ScaLP::Solver::solve(const std::string& file)
 {
   // reset the backend
@@ -709,6 +731,8 @@ void ScaLP::Solver::reset()
   objective=ScaLP::Objective();
   cons.clear();
   result=ScaLP::Result();
+  warmStartValues=ScaLP::Result();
+  warmStart=false;
 }
 
 // x*d
@@ -924,6 +948,15 @@ bool ScaLP::Solver::featureSupported(ScaLP::Feature f) const
     return back->featureSupported(f);
   }
   return false;
+}
+
+bool ScaLP::Solver::isFeasible(const ScaLP::Result& sol)
+{
+  for(auto&c:cons)
+  {
+    if(not c.isFeasible(sol)) return false;
+  }
+  return true;
 }
 
 

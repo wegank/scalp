@@ -64,3 +64,8 @@ void ScaLP::Result::writeSolutionVector(std::string file, bool compact)
   ss << this->showSolutionVector(compact);
   ss.flush();
 }
+
+bool ScaLP::Result::empty() const
+{
+  return this->values.empty();
+}

@@ -34,6 +34,7 @@ namespace ScaLP
       double getUpperBound() const;
       double getLowerBound() const;
       const std::string& getName() const;
+      double getStart() const;
 
       //####################
       // Setter
@@ -47,13 +48,14 @@ namespace ScaLP
       //####################
       // Construction (use the smartconstructors below)
       //####################
-      VariableBase(const std::string& n,double a,double b,type t=type::INTEGER);
+      VariableBase(const std::string& n,double a,double b, double start, type t=type::INTEGER);
 
     private:
       type usedType;
       std::string name;
       double lowerRange;
       double upperRange;
+      double start; // entry-point for warm-start
   };
 
   using Variable = std::shared_ptr<VariableBase>;
@@ -62,12 +64,16 @@ namespace ScaLP
   // Smartconstructors
   //####################
   // Generic:
+  Variable newVariable(const std::string& n,double a, double b, double start, VariableType t=VariableType::INTEGER);
   Variable newVariable(const std::string& n,double a, double b,VariableType t=VariableType::INTEGER);
   // Specialzations:
+  Variable newIntegerVariable(const std::string& n,double a, double b, int start);
   Variable newIntegerVariable(const std::string& n,double a, double b);
   Variable newIntegerVariable(const std::string& n); // free variable
+  Variable newRealVariable(const std::string& n,double a, double b, double start);
   Variable newRealVariable(const std::string& n,double a, double b);
   Variable newRealVariable(const std::string& n); // free variable
+  Variable newBinaryVariable(const std::string& n,double a, double b, bool start);
   Variable newBinaryVariable(const std::string& n,double a, double b);
   Variable newBinaryVariable(const std::string& n);
 

@@ -55,6 +55,10 @@ namespace ScaLP
 
       // Threads used by the solver (0 means auto-detection)
       int threads = 0;
+      
+      // use a warm-start, if possible
+      bool warmStart = false;
+
 
 
       //####################
@@ -79,6 +83,8 @@ namespace ScaLP
       ScaLP::status solve();
       // solve the given file
       ScaLP::status solve(const std::string& file);
+      // solve, use the given solution for warm-start
+      ScaLP::status solve(const ScaLP::Result& start);
 
       // solve without cache
       ScaLP::status newSolve();
@@ -132,6 +138,9 @@ namespace ScaLP
       // (can give a small performance-boost)
       void setConstraintCount(unsigned int n);
 
+      // check, if sol is a feasible solution
+      bool isFeasible(const ScaLP::Result& sol);
+
       // return the LP-Format-representation as a string
       std::string showLP() const;
 
@@ -155,6 +164,8 @@ namespace ScaLP
       ScaLP::SolverBackend *back;
 
       ScaLP::Result result;
+
+      ScaLP::Result warmStartValues;
 
       bool modelChanged=true;
 
@@ -185,9 +196,6 @@ namespace ScaLP
   ScaLP::Term operator+(ScaLP::Term&& tl, const ScaLP::Term& tr);
   ScaLP::Term operator+(ScaLP::Term&& tl, ScaLP::Term&& tr);
   ScaLP::Term operator-(const ScaLP::Term& tl, const ScaLP::Term& tr);
-  //ScaLP::Term operator-(ScaLP::Term&& tl, ScaLP::Term&& tr);
-  //ScaLP::Term operator-(const ScaLP::Term& tl, ScaLP::Term&& tr);
-  //ScaLP::Term operator-(ScaLP::Term&& tl, const ScaLP::Term& tr);
 
   ScaLP::Term& operator+=(ScaLP::Term& tl, const ScaLP::Term& tr);
   ScaLP::Term& operator-=(ScaLP::Term& tl, const ScaLP::Term& tr);

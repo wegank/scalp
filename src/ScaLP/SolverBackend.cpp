@@ -99,6 +99,11 @@ void ScaLP::SolverBackend::setAbsoluteMIPGap(double d)
   (void)(d);
   std::cerr << "Scalp: absolute MIP-Gap is not supported by this backend, ignore it." << std::endl;
 }
+void ScaLP::SolverBackend::setStartValues(const ScaLP::Result& start)
+{
+  (void)(start);
+  std::cerr << "Scalp: Warm-start not supported by this backend, ignore it." << std::endl;
+}
 
 bool ScaLP::SolverBackend::featureSupported(ScaLP::Feature f) const
 {

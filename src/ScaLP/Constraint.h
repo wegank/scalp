@@ -6,6 +6,7 @@
 
 #include <ScaLP/Term.h>
 #include <ScaLP/Variable.h>
+#include <ScaLP/Result.h>
 
 
 
@@ -66,6 +67,8 @@ namespace ScaLP
       ScaLP::VariableSet extractVariables() const;
 
       std::string show() const;
+
+      bool isFeasible(const ScaLP::Result& sol);
 
       enum class type: char
       { C2L // d R x

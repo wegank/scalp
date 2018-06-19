@@ -31,6 +31,7 @@ ScaLP::SolverGurobi::SolverGurobi()
   this->features.indicators=true;
   #endif
   this->features.logical=false;
+  this->features.warmstart=true;
 }
 
 char ScaLP::SolverGurobi::variableType(ScaLP::VariableType t)
@@ -345,4 +346,13 @@ void ScaLP::SolverGurobi::setRelativeMIPGap(double d)
 void ScaLP::SolverGurobi::setAbsoluteMIPGap(double d)
 {
   model.getEnv().set(GRB_DoubleParam_MIPGapAbs,d);
+}
+
+void ScaLP::SolverGurobi::setStartValues(const ScaLP::Result& start)
+{
+  for(auto&p:start.values)
+  {
+    variables.at(p.first).set(GRB_DoubleAttr_Start,p.second);
+  }
+
 }

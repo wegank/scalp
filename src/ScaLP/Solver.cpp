@@ -132,18 +132,32 @@ static void normalizeConstraint(ScaLP::Constraint& c)
   }
 }
 
+static void constraintFeatureGuard(ScaLP::SolverBackend* back, const ScaLP::Constraint& c)
+{
+  if(back!=nullptr)
+  {
+    if(c.indicator!=nullptr and not back->features.indicators)
+    {
+      throw ScaLP::Exception("This ScaLP-backend \""+back->name+"\" does not support indicator-constraints");
+    }
+
+  }
+
+}
 
 void ScaLP::Solver::addConstraint(Constraint& b)
 {
-  modelChanged=true;
+  constraintFeatureGuard(this->back,b);
   normalizeConstraint(b);
   this->cons.emplace_back(b);
+  modelChanged=true;
 }
 void ScaLP::Solver::addConstraint(Constraint&& b)
 {
-  modelChanged=true;
+  constraintFeatureGuard(this->back,b);
   normalizeConstraint(b);
   this->cons.emplace_back(b);
+  modelChanged=true;
 }
 
 static std::string showTermLP(const ScaLP::Term& t)

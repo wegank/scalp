@@ -214,7 +214,7 @@ endif()
 if(USE_LPSOLVE)
   add_library(ScaLP-LPSolve ${LIBRARY_TYPE}
     src/ScaLP/SolverBackend/SolverLPSolve.cpp)
-  target_include_directories(ScaLP-LPSOLVE PUBLIC ${LPSOLVE_INCLUDE_DIRS})
+  target_include_directories(ScaLP-LPSolve PUBLIC ${LPSOLVE_INCLUDE_DIRS})
   target_link_libraries(ScaLP-LPSolve ${LPSOLVE_LIBRARIES} ScaLP)
   list(APPEND BACKEND_TARGETS ScaLP-LPSolve)
   list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverLPSolve.h)

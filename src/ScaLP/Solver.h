@@ -125,9 +125,22 @@ namespace ScaLP
       //####################
       // Result-Cache (experimental)
       //####################
+      
+      struct ResultCacheConfig
+      {
+        // The directory for the Result-Cache (activates the cache)
+        std::string directory = "";
+
+        // add the Model as a LP-file to the cache-entry
+        bool addModel = true;
+
+        // prefer cached values if possible, instead of solving
+        bool preferCachedValues = false;
+      } resultCache;
 
       // set the directory for the Result-Cache
       // an empty string disables it
+      // OBSOLETE: please use resultCache.directory instead
       std::string resultCacheDir="";
 
       //####################

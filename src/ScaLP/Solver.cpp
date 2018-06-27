@@ -16,6 +16,8 @@
 #include "parse.h"
 #endif
 
+#include <iostream>
+
 static double plus(double a, double b)
 {
   return a+b;
@@ -624,9 +626,9 @@ static std::string hashFNV(const ScaLP::Objective& objective
   return hash;
 }
 
-static void updateCache(ScaLP::Solver& solver,const ScaLP::Result& result, const ScaLP::Objective objective, const std::string& hash)
+static void updateCache(ScaLP::Solver& solver,const ScaLP::Result& result, const ScaLP::Objective objective, const std::string& hash, const std::string& cacheDir, bool writeLP)
 {
-  std::ifstream f((solver.resultCacheDir+"/"+hash+"/feasible.sol").c_str());
+  std::ifstream f((cacheDir+"/"+hash+"/feasible.sol").c_str());
   while(f.good())
   {
     std::string line="";
@@ -638,7 +640,7 @@ static void updateCache(ScaLP::Solver& solver,const ScaLP::Result& result, const
       {
         if(result.objectiveValue>p.second)
         {
-          ScaLP::writeFeasibleSolution(solver.resultCacheDir,hash,result,solver);
+          ScaLP::writeFeasibleSolution(cacheDir,hash,result,solver,writeLP);
           break;
         }
       }
@@ -646,7 +648,7 @@ static void updateCache(ScaLP::Solver& solver,const ScaLP::Result& result, const
       {
         if(result.objectiveValue<p.second)
         {
-          ScaLP::writeFeasibleSolution(solver.resultCacheDir,hash,result,solver);
+          ScaLP::writeFeasibleSolution(cacheDir,hash,result,solver,writeLP);
           break;
         }
       }
@@ -660,37 +662,49 @@ ScaLP::status ScaLP::Solver::solve()
   else this->modelChanged=false;
 
   const ScaLP::VariableSet s = extractVariables(cons,objective);
+
   if(not resultCacheDir.empty())
   {
+    std::cerr << "ScaLP: ScaLP::Solver::resultCacheDir is obsolete, please use ScaLP::Solver::resultCache.directory instead" << std::endl;
+    resultCache.directory = resultCacheDir;
+  }
+
+  if(not resultCache.directory.empty())
+  {
     std::string hash=hashFNV(objective,cons,s);
-    if(ScaLP::hasOptimalSolution(resultCacheDir,hash))
+    if(ScaLP::hasOptimalSolution(resultCache.directory,hash))
     {
-      this->result = ScaLP::getOptimalSolution(resultCacheDir,hash,s);
+      this->result = ScaLP::getOptimalSolution(resultCache.directory,hash,s);
       return ScaLP::status::OPTIMAL;
     }
     else
     {
+      if(resultCache.preferCachedValues and ScaLP::hasFeasibleSolution(resultCache.directory,hash))
+      {
+        this->result = ScaLP::getFeasibleSolution(resultCache.directory,hash,s);
+        return ScaLP::status::FEASIBLE;
+      }
       auto stat = newSolve(s);
       if(stat==ScaLP::status::OPTIMAL)
       {
-        ScaLP::writeOptimalSolution(resultCacheDir,hash,this->result,*this);
+        ScaLP::writeOptimalSolution(resultCache.directory,hash,this->result,*this,resultCache.addModel);
       }
       else if(stat==ScaLP::status::FEASIBLE or stat==ScaLP::status::TIMEOUT_FEASIBLE)
       {
-        if(not ScaLP::hasFeasibleSolution(resultCacheDir,hash))
+        if(not ScaLP::hasFeasibleSolution(resultCache.directory,hash))
         {
-          ScaLP::writeFeasibleSolution(resultCacheDir,hash,this->result,*this);
+          ScaLP::writeFeasibleSolution(resultCache.directory,hash,this->result,*this,resultCache.addModel);
         }
         else
         {
-          updateCache(*this,this->result,this->objective,hash);
+          updateCache(*this,this->result,this->objective,hash,resultCache.directory,resultCache.addModel);
         }
       }
       else if(stat==ScaLP::status::TIMEOUT_INFEASIBLE)
       {
-        if(ScaLP::hasFeasibleSolution(resultCacheDir,hash))
+        if(ScaLP::hasFeasibleSolution(resultCache.directory,hash))
         {
-          this->result = ScaLP::getFeasibleSolution(resultCacheDir,hash,s);
+          this->result = ScaLP::getFeasibleSolution(resultCache.directory,hash,s);
           return ScaLP::status::TIMEOUT_FEASIBLE;
         }
       }

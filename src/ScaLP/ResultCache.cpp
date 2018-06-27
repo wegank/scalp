@@ -133,17 +133,17 @@ ScaLP::Result ScaLP::getFeasibleSolution(const std::string& prefix, const std::s
   return createResult(readSolutionFile(prefix+"/"+hash+"/feasible.sol"),vs);
 }
 
-void ScaLP::writeOptimalSolution(const std::string& prefix, const std::string& hash,ScaLP::Result res, const ScaLP::Solver& solver)
+void ScaLP::writeOptimalSolution(const std::string& prefix, const std::string& hash,ScaLP::Result res, const ScaLP::Solver& solver, bool writeLP)
 {
   createDirectory((prefix+"/"+hash));
   std::ofstream s(prefix+"/"+hash+"/optimal.sol");
   s << res.showSolutionVector(true);
-  solver.writeLP(prefix+"/"+hash+"/model.lp");
+  if(writeLP) solver.writeLP(prefix+"/"+hash+"/model.lp");
 }
-void ScaLP::writeFeasibleSolution(const std::string& prefix, const std::string& hash,ScaLP::Result res, const ScaLP::Solver& solver)
+void ScaLP::writeFeasibleSolution(const std::string& prefix, const std::string& hash,ScaLP::Result res, const ScaLP::Solver& solver, bool writeLP)
 {
   createDirectory((prefix+"/"+hash));
   std::ofstream s(prefix+"/"+hash+"/feasible.sol");
   s << res.showSolutionVector(true);
-  solver.writeLP(prefix+"/"+hash+"/model.lp");
+  if(writeLP) solver.writeLP(prefix+"/"+hash+"/model.lp");
 }

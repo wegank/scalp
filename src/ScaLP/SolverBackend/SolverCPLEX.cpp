@@ -26,6 +26,7 @@ ScaLP::SolverCPLEX::SolverCPLEX()
   this->features.milp=true;
   this->features.indicators=true;
   this->features.logical=false;
+  this->features.warmstart=true;
 }
 
 static IloNumVar::Type mapVariableType(const ScaLP::Variable& v)
@@ -238,6 +239,16 @@ std::pair<ScaLP::status,ScaLP::Result> ScaLP::SolverCPLEX::solve()
 
     //cplex.exportModel("cplex.lp");
 
+    // add warmstart
+    if(startVar!=nullptr and startVal!=nullptr)
+    {
+      cplex.addMIPStart(*startVar, *startVal);
+      startVal->end();
+      startVar->end();
+      delete startVal;
+      delete startVar;
+    }
+
     if(cplex.solve())
     {
       // extract result
@@ -331,4 +342,30 @@ void ScaLP::SolverCPLEX::setAbsoluteMIPGap(double d)
 {
   this->absMIPGap=d;
   //this->relMIPGap=-1;
+}
+
+void ScaLP::SolverCPLEX::setStartValues(const ScaLP::Result& start)
+{
+  // cleanup old values
+  if(startVar!=nullptr)
+  {
+    startVar->end();
+    delete startVar;
+    startVar=nullptr;
+  }
+  if(startVal!=nullptr)
+  {
+    startVal->end();
+    delete startVal;
+    startVar=nullptr;
+  }
+
+  // add new values
+  startVar = new IloNumVarArray(env);
+  startVal = new IloNumArray(env);
+  for(auto&p:start.values)
+  {
+    startVar->add(variables.at(p.first));
+    startVal->add(p.second);
+  }
 }

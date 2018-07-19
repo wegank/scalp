@@ -19,6 +19,16 @@ namespace ScaLP
         try
         {
           env.end();
+          if(startVar!=nullptr)
+          {
+            startVar->end();
+            delete startVar;
+          }
+          if(startVal!=nullptr)
+          {
+            startVal->end();
+            delete startVal;
+          }
         }
         catch(IloCplex::Exception& e)
         {
@@ -38,6 +48,7 @@ namespace ScaLP
       virtual void setThreads(unsigned int t) override;
       virtual void setRelativeMIPGap(double d) override;
       virtual void setAbsoluteMIPGap(double d) override;
+      virtual void setStartValues(const ScaLP::Result& start);
 
       IloEnv env;
       IloModel model;
@@ -55,5 +66,8 @@ namespace ScaLP
 
       double relMIPGap=-1;
       double absMIPGap=-1;
+
+      IloNumVarArray* startVar=nullptr;
+      IloNumArray* startVal=nullptr;
   };
 }

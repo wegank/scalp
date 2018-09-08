@@ -18,8 +18,9 @@ ScaLP::SolverBackend* ScaLP::newSolverGurobi()
 }
 
 ScaLP::SolverGurobi::SolverGurobi()
-  :environment(GRBEnv()), model(GRBModel(environment))
+try :environment(GRBEnv()), model(GRBModel(environment))
 {
+
   name="Gurobi";
   this->features.lp=true;
   this->features.ilp=true;
@@ -32,6 +33,10 @@ ScaLP::SolverGurobi::SolverGurobi()
   #endif
   this->features.logical=false;
   this->features.warmstart=true;
+}
+catch(GRBException e)
+{
+  throw ScaLP::Exception("Error while creating Gurobi environment" + e.getMessage());
 }
 
 char ScaLP::SolverGurobi::variableType(ScaLP::VariableType t)
@@ -252,7 +257,14 @@ GRBLinExpr ScaLP::SolverGurobi::mapTerm(ScaLP::Term t)
     coeffs[i] = p.second;
     ++i;
   }
-  expr.addTerms(coeffs.data(),vars.data(),t.sum.size());
+  try
+  {
+    expr.addTerms(coeffs.data(),vars.data(),t.sum.size());
+  }
+  catch(GRBException e)
+  {
+    throw ScaLP::Exception("Error while converting a term for Gurobi: " + e.getMessage());
+  }
   return expr;
 }
 
@@ -335,24 +347,47 @@ void ScaLP::SolverGurobi::presolve(bool presolve)
 
 void ScaLP::SolverGurobi::setThreads(unsigned int t)
 {
-  model.getEnv().set(GRB_IntParam_Threads,t);
+  try
+  {
+    model.getEnv().set(GRB_IntParam_Threads,t);
+  }catch(GRBException &e)
+  {
+    throw ScaLP::Exception(std::to_string(e.getErrorCode())+" "+e.getMessage());
+  }
 }
 
 void ScaLP::SolverGurobi::setRelativeMIPGap(double d)
 {
-  model.getEnv().set(GRB_DoubleParam_MIPGap,d);
+  try
+  {
+    model.getEnv().set(GRB_DoubleParam_MIPGap,d);
+  }catch(GRBException &e)
+  {
+    throw ScaLP::Exception(std::to_string(e.getErrorCode())+" "+e.getMessage());
+  }
 }
 
 void ScaLP::SolverGurobi::setAbsoluteMIPGap(double d)
 {
-  model.getEnv().set(GRB_DoubleParam_MIPGapAbs,d);
+  try
+  {
+    model.getEnv().set(GRB_DoubleParam_MIPGapAbs,d);
+  }catch(GRBException &e)
+  {
+    throw ScaLP::Exception(std::to_string(e.getErrorCode())+" "+e.getMessage());
+  }
 }
 
 void ScaLP::SolverGurobi::setStartValues(const ScaLP::Result& start)
 {
   for(auto&p:start.values)
   {
-    variables.at(p.first).set(GRB_DoubleAttr_Start,p.second);
+    try
+    {
+      variables.at(p.first).set(GRB_DoubleAttr_Start,p.second);
+    }catch(GRBException &e)
+    {
+      throw ScaLP::Exception(std::to_string(e.getErrorCode())+" "+e.getMessage());
+    }
   }
-
 }

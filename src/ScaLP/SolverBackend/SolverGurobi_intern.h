@@ -28,7 +28,7 @@ namespace ScaLP
       virtual void setThreads(unsigned int t) override;
       virtual void setRelativeMIPGap(double d) override;
       virtual void setAbsoluteMIPGap(double d) override;
-      virtual void setStartValues(const ScaLP::Result& start);
+      virtual void setStartValues(const ScaLP::Result& start) override;
 
     private:
       // map some values

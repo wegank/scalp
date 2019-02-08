@@ -182,7 +182,7 @@ class SolverDynamic : public SolverBackend
   {
     back->setAbsoluteMIPGap(d);
   }
-  void setStartValues(const ScaLP::Result& start)
+  void setStartValues(const ScaLP::Result& start) override
   {
     back->setStartValues(start);
   }

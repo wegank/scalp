@@ -318,9 +318,6 @@ void ScaLP::SolverGurobi::setIntFeasTol(double intFeasTol)
   {
     model.getEnv().set(GRB_DoubleParam_IntFeasTol,intFeasTol);
 //    model.getEnv().set(GRB_DoubleParam_FeasibilityTol,intFeasTol);
-
-    std::cout << "!!! GRB_DoubleParam_IntFeasTol=" << model.getEnv().get(GRB_DoubleParam_IntFeasTol) << std::endl;
-//    std::cout << "!!! GRB_DoubleParam_FeasibilityTol=" << model.getEnv().get(GRB_DoubleParam_FeasibilityTol) << std::endl;
   }catch(GRBException &e)
   {
     throw ScaLP::Exception(std::to_string(e.getErrorCode())+" "+e.getMessage());
@@ -384,6 +381,7 @@ void ScaLP::SolverGurobi::setStartValues(const ScaLP::Result& start)
   {
     try
     {
+//      std::cout << "initializing variable " << p.first << " to " << p.second << std::endl; std::flush(std::cout);
       variables.at(p.first).set(GRB_DoubleAttr_Start,p.second);
     }catch(GRBException &e)
     {

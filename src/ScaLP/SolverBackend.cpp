@@ -115,6 +115,7 @@ bool ScaLP::SolverBackend::featureSupported(ScaLP::Feature f) const
     case ScaLP::Feature::MILP : return this->features.milp;
     case ScaLP::Feature::INDICATOR_CONSTRAINTS : return this->features.indicators;
     case ScaLP::Feature::LOGICAL_OPERATORS : return this->features.logical;
+    case ScaLP::Feature::WARMSTART : return this->features.warmstart;
   }
   return false;
 }

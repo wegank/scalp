@@ -495,7 +495,7 @@ static void construction(ScaLP::SolverBackend* back, const ScaLP::VariableSet& v
   {
     for(auto&p:vs)
     {
-      if(p->getStart()!=NAN)
+      if(p->getStart()!=INFINITY)
       {
         start.values.emplace(p,p->getStart());
       }

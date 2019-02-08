@@ -21,6 +21,7 @@ std::string ScaLP::showStatus(ScaLP::status s)
     case ScaLP::status::INFEASIBLE_OR_UNBOUND: return "INFEASIBLE_OR_UNBOUND";
     case ScaLP::status::ALREADY_SOLVED: return "ALREADY_SOLVED";
     case ScaLP::status::UNKNOWN:    return "UNKNOWN";
+    case ScaLP::status::NO_SOLVER_FOUND:    return "NO_SOLVER_FOUND";
   }
   return "UNKNOWN";
 }

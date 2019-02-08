@@ -16,7 +16,7 @@ ScaLP::Variable ScaLP::newVariable(const std::string& n,double a, double b, doub
 };
 ScaLP::Variable ScaLP::newVariable(const std::string& n,double a, double b, VariableType t)
 {
-  Variable v = std::make_shared<VariableBase>(n,a,b,NAN,t);
+  Variable v = std::make_shared<VariableBase>(n,a,b,INFINITY,t);
   return v;
 };
 

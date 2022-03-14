@@ -423,6 +423,26 @@ static void showLPBase(const std::function<void(std::string)>& f
   f("END\n");
 }
 
+const std::vector<ScaLP::Constraint> ScaLP::Solver::getConstraints()
+{
+  return cons;
+}
+
+int ScaLP::Solver::getConstraintCount()
+{
+  return cons.size();
+}
+
+const ScaLP::VariableSet ScaLP::Solver::getVariables()
+{
+  return extractVariables(cons,objective);
+}
+
+int ScaLP::Solver::getVariableCount()
+{
+  return extractVariables(cons,objective).size();
+}
+
 std::string ScaLP::Solver::showLP() const
 {
   std::string s;

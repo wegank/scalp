@@ -9,17 +9,17 @@ cmake_policy(SET CMP0010 NEW)
 include_directories ("${PROJECT_SOURCE_DIR}/src")
 
 # add the local module path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # set a standard CMAKE_BUILD_TYPE
-if(NOT_FIRST_RUN)
-else()
-  set(NOT_FIRST_RUN ON CACHE INTERNAL "")
-
-  # set a default build-type
-  set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "The compilation type (Debug,Release,RelWithDebInfo,MinSizeRel)" FORCE)
-endif()
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel "")
+#if(NOT_FIRST_RUN)
+#else()
+#  set(NOT_FIRST_RUN ON CACHE INTERNAL "")
+#
+#  # set a default build-type
+#  set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "The compilation type (Debug,Release,RelWithDebInfo,MinSizeRel)" FORCE)
+#endif()
+#set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel "")
 
 # build type specific changes
 #if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -27,10 +27,10 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInf
 #endif()
 
 # some options and values
-option(USE_GUROBI "Compile the Gurobi-Backend" OFF)
-option(USE_SCIP "Compile the SCIP-Backend" OFF)
-option(USE_CPLEX "Compile the CPLEX-Backend" OFF)
-option(USE_LPSOLVE "Compile the LPSolve-Backend" OFF)
+#option(USE_GUROBI "Compile the Gurobi-Backend" OFF)
+#option(USE_SCIP "Compile the SCIP-Backend" OFF)
+#option(USE_CPLEX "Compile the CPLEX-Backend" OFF)
+#option(USE_LPSOLVE "Compile the LPSolve-Backend" OFF)
 option(BUILD_SHARED_LIBRARIES "Build as shared libraries" ON)
 option(BUILD_TESTS "Build tests" OFF)
 option(BUILD_SCALP_EXECUTABLE "Build the scalp executable (no functionality yet)" ON)
@@ -83,101 +83,143 @@ else()
   set(LIBRARY_TYPE STATIC)
 endif()
 
-function(checkIncludes nam lis)
-  foreach(I IN LISTS ${lis})
-    if(EXISTS ${I})
-    else()
-      message(SEND_ERROR "${nam}: Can't found the include directory \"${I}\"")
-    endif()
-  endforeach()
-endfunction()
+#function(checkIncludes nam lis)
+#  foreach(I IN LISTS ${lis})
+#    if(EXISTS ${I})
+#    else()
+#      message(SEND_ERROR "${nam}: Can't found the include directory \"${I}\"")
+#    endif()
+#  endforeach()
+#endfunction()
+#
+#function(checkLibraries nam lis)
+#  foreach(I IN LISTS ${lis})
+#    string(FIND ${I} "-" TMP)
+#    if(${TMP} EQUAL 0)
+#    else()
+#      if(EXISTS ${I})
+#      else()
+#        message(SEND_ERROR "${nam}: Can't found the library \"${I}\"")
+#      endif()
+#    endif()
+#  endforeach()
+#endfunction()
 
-function(checkLibraries nam lis)
-  foreach(I IN LISTS ${lis})
-    string(FIND ${I} "-" TMP)
-    if(${TMP} EQUAL 0)
-    else()
-      if(EXISTS ${I})
-      else()
-        message(SEND_ERROR "${nam}: Can't found the library \"${I}\"")
-      endif()
-    endif()
-  endforeach()
-endfunction()
+
+find_path(GUROBI_H
+    NAMES gurobi_c.h
+    HINTS ${GUROBI_INCLUDE_DIRS} ${GUROBI_DIR}/include
+    PATH_SUFFIXES linux64/include include)
+
+find_library(GUROBI_LIB
+    NAMES gurobi70 gurobi75 gurobi80 gurobi81 gurobi90 gurobi91 gurobi95 
+    HINTS ${GUROBI_LIBRARIES} ${GUROBI_DIR}/lib
+    PATH_SUFFIXES linux64/lib lib)
+
+find_library(GUROBI_CPP_LIB
+    NAMES gurobi_c++
+    HINTS ${GUROBI_LIBRARIES} ${GUROBI_DIR}/lib
+    PATH_SUFFIXES linux64/lib lib)
+
+IF (GUROBI_H AND GUROBI_LIB AND GUROBI_CPP_LIB)
+  set(USE_GUROBI ON CACHE BOOL "Switch GUROBI on")
+  mark_as_advanced(FORCE GUROBI_LIBRARIES GUROBI_INCLUDE_DIRS)
+  message("Found GUROBI (Header: ${GUROBI_H}, Libraries: ${GUROBI_LIB} ${GUROBI_CPP_LIB})")
+else(GUROBI_H AND GUROBI_LIB AND GUROBI_CPP_LIB)
+  message("Gurobi was not found and is not used, if you want to use it, pass Gurobi install directory by -DGUROBI_DIR=... or the individual lib and include directories by -DGUROBI_LIBRARIES=... and -DGUROBI_INCLUDE_DIRS=... (Header: ${GUROBI_H}, Libraries: ${GUROBI_LIB} ${GUROBI_CPP_LIB})")
+  mark_as_advanced(FORCE GUROBI_LIBRARIES GUROBI_INCLUDE_DIRS)
+endif(GUROBI_H AND GUROBI_LIB AND GUROBI_CPP_LIB)
+
+
+find_path(SCIP_H
+    NAMES scip/scip.h
+    HINTS ${SCIP_INCLUDE_DIRS} ${SCIP_DIR}/include
+    PATH_SUFFIXES linux64/include include)
+
+find_library(SCIP_LIB
+    NAMES scip
+    HINTS ${SCIP_LIBRARIES} ${SCIP_DIR}/lib
+    PATH_SUFFIXES linux64/lib lib)
+
+find_library(SOPLEX_LIB
+    NAMES soplex
+    HINTS ${SCIP_LIBRARIES} ${SCIP_DIR}/lib
+    PATH_SUFFIXES linux64/lib lib)
+
+find_library(Z_LIB
+    NAMES z
+    HINTS ${SCIP_LIBRARIES} ${SCIP_DIR}/lib
+    PATH_SUFFIXES linux64/lib lib)
+
+
+IF (SCIP_H AND SCIP_LIB AND SOPLEX_LIB AND Z_LIB)
+  set(USE_SCIP ON CACHE BOOL "Switch SCIP on")
+  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
+  message("Found SCIP (Header: ${SCIP_H}, Libraries: ${SCIP_LIB} ${SOPLEX_LIB} ${Z_LIB})")
+else(SCIP_H AND SCIP_LIB AND SOPLEX_LIB AND Z_LIB)
+  message("SCIP was not found and is not used, if you want to use it, pass SCIP install directory by -DSCIP_DIR=... or the individual lib and include directories by -DSCIP_LIBRARIES=... and -DSCIP_INCLUDE_DIRS=...  (Header: ${SCIP_H}, Libraries: ${SCIP_LIB} ${SOPLEX_LIB} ${Z_LIB})")
+  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
+endif(SCIP_H AND SCIP_LIB AND SOPLEX_LIB AND Z_LIB)
+
+
+#find_package(SCIP)
+#if(SCIP_FOUND)
+#  set(USE_SCIP ON CACHE BOOL "Switch SCIP on")
+#  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
+#  message("Found SCIP, switched it on automatically")
+#elseif(USE_SCIP)
+#  if((NOT SCIP_LIBRARIES) OR (NOT SCIP_INCLUDE_DIRS))
+#    message(SEND_ERROR "SCIP neither found nor set manually. Set SCIP_LIBRARIES and SCIP_INCLUDE_DIRS.")
+#  endif()
+#  message("Using SCIP libraries and headers located at: ${SCIP_LIBRARIES}, ${SCIP_INCLUDE_DIRS}")
+#  checkIncludes("SCIP" SCIP_INCLUDE_DIRS)
+#  checkLibraries("SCIP" SCIP_LIBRARIES)
+#  mark_as_advanced(CLEAR SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
+#elseif(NOT USE_SCIP)
+#  message("SCIP was not found and is not used")
+#  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
+#endif()
 
 
 #find_package(CPLEX QUIET)
 #find_package(CPLEX)
-if(CPLEX_FOUND)
-  set(USE_CPLEX ON CACHE BOOL "Switch CPLEX on")
-  mark_as_advanced(FORCE CPLEX_LIBRARIES CPLEX_INCLUDE_DIRS)
-  message("Found CPLEX, switched it on automatically")
-elseif(USE_CPLEX)
-  if((NOT CPLEX_LIBRARIES) OR (NOT CPLEX_INCLUDE_DIRS))
-    message(SEND_ERROR "CPLEX neither found nor set manually. Set CPLEX_LIBRARIES and CPLEX_INCLUDE_DIRS.")
-  endif()
-  message("Using CPLEX libraries and headers located at: ${CPLEX_LIBRARIES}, ${CPLEX_INCLUDE_DIRS}")
-  checkIncludes("CPLEX" CPLEX_INCLUDE_DIRS)
-  checkLibraries("CPLEX" CPLEX_LIBRARIES)
-  mark_as_advanced(CLEAR CPLEX_LIBRARIES CPLEX_INCLUDE_DIRS)
-elseif(NOT USE_CPLEX)
-  message("CPLEX was not found and is not used")
-  mark_as_advanced(FORCE CPLEX_LIBRARIES CPLEX_INCLUDE_DIRS)
-endif()
+#if(CPLEX_FOUND)
+#  set(USE_CPLEX ON CACHE BOOL "Switch CPLEX on")
+#  mark_as_advanced(FORCE CPLEX_LIBRARIES CPLEX_INCLUDE_DIRS)
+#  message("Found CPLEX, switched it on automatically")
+#elseif(USE_CPLEX)
+#  if((NOT CPLEX_LIBRARIES) OR (NOT CPLEX_INCLUDE_DIRS))
+#    message(SEND_ERROR "CPLEX neither found nor set manually. Set CPLEX_LIBRARIES and CPLEX_INCLUDE_DIRS.")
+#  endif()
+#  message("Using CPLEX libraries and headers located at: ${CPLEX_LIBRARIES}, ${CPLEX_INCLUDE_DIRS}")
+#  checkIncludes("CPLEX" CPLEX_INCLUDE_DIRS)
+#  checkLibraries("CPLEX" CPLEX_LIBRARIES)
+#  mark_as_advanced(CLEAR CPLEX_LIBRARIES CPLEX_INCLUDE_DIRS)
+#elseif(NOT USE_CPLEX)
+#  message("CPLEX was not found and is not used")
+#  mark_as_advanced(FORCE CPLEX_LIBRARIES CPLEX_INCLUDE_DIRS)
+#endif()
 
-#find_package(GUROBI)
-if(GUROBI_FOUND)
-  set(USE_GUROBI ON CACHE BOOL "Switch GUROBI on")
-  mark_as_advanced(FORCE GUROBI_LIBRARIES GUROBI_INCLUDE_DIRS)
-  message("Found GUROBI, switched it on automatically")
-elseif(USE_GUROBI)
-  if((NOT GUROBI_LIBRARIES) OR (NOT GUROBI_INCLUDE_DIRS))
-    message(SEND_ERROR "Gurobi neither found nor set manually. Set GUROBI_LIBRARIES and GUROBI_INCLUDE_DIRS.")
-  endif()
-  message("Using Gurobi libraries and headers located at: ${GUROBI_LIBRARIES}, ${GUROBI_INCLUDE_DIRS}")
-  checkIncludes("Gurobi" GUROBI_INCLUDE_DIRS)
-  checkLibraries("Gurobi" GUROBI_LIBRARIES)
-  mark_as_advanced(CLEAR GUROBI_LIBRARIES GUROBI_INCLUDE_DIRS)
-elseif(NOT USE_GUROBI)
-  message("Gurobi was not found and is not used")
-  mark_as_advanced(FORCE GUROBI_LIBRARIES GUROBI_INCLUDE_DIRS)
-endif()
 
-#find_package(SCIP)
-if(SCIP_FOUND)
-  set(USE_SCIP ON CACHE BOOL "Switch SCIP on")
-  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
-  message("Found SCIP, switched it on automatically")
-elseif(USE_SCIP)
-  if((NOT SCIP_LIBRARIES) OR (NOT SCIP_INCLUDE_DIRS))
-    message(SEND_ERROR "SCIP neither found nor set manually. Set SCIP_LIBRARIES and SCIP_INCLUDE_DIRS.")
-  endif()
-  message("Using SCIP libraries and headers located at: ${SCIP_LIBRARIES}, ${SCIP_INCLUDE_DIRS}")
-  checkIncludes("SCIP" SCIP_INCLUDE_DIRS)
-  checkLibraries("SCIP" SCIP_LIBRARIES)
-  mark_as_advanced(CLEAR SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
-elseif(NOT USE_SCIP)
-  message("SCIP was not found and is not used")
-  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
-endif()
 
-#find_package(LPSOLVE)
-if(LPSOLVE_FOUND)
-  set(USE_LPSOLVE ON CACHE BOOL "Switch lp_solve on")
-  mark_as_advanced(FORCE LPSOLVE_LIBRARIES LPSOLVE_INCLUDE_DIRS)
-  message("Found lp_solve, switched it on automatically")
-elseif(USE_LPSOLVE)
-  if((NOT LPSOLVE_LIBRARIES) OR (NOT LPSOLVE_INCLUDE_DIRS))
-    message(SEND_ERROR "lp_solve neither found nor set manually. Set LPSOLVE_LIBRARIES and LPSOLVE_INCLUDE_DIRS.")
-  endif()
-  message("Using lp_solve libraries and headers located at: ${LPSOLVE_LIBRARIES}, ${LPSOLVE_INCLUDE_DIRS}")
-  checkIncludes("LPSolve" LPSOLVE_INCLUDE_DIRS)
-  checkLibraries("LPSolve" LPSOLVE_LIBRARIES)
-  mark_as_advanced(CLEAR LPSOLVE_LIBRARIES LPSOLVE_INCLUDE_DIRS)
-elseif(NOT USE_LPSOLVE)
-  message("lp_solve was not found and is not used")
-  mark_as_advanced(FORCE LPSOLVE_LIBRARIES LPSOLVE_INCLUDE_DIRS)
-endif()
+#
+##find_package(LPSOLVE)
+#if(LPSOLVE_FOUND)
+#  set(USE_LPSOLVE ON CACHE BOOL "Switch lp_solve on")
+#  mark_as_advanced(FORCE LPSOLVE_LIBRARIES LPSOLVE_INCLUDE_DIRS)
+#  message("Found lp_solve, switched it on automatically")
+#elseif(USE_LPSOLVE)
+#  if((NOT LPSOLVE_LIBRARIES) OR (NOT LPSOLVE_INCLUDE_DIRS))
+#    message(SEND_ERROR "lp_solve neither found nor set manually. Set LPSOLVE_LIBRARIES and LPSOLVE_INCLUDE_DIRS.")
+#  endif()
+#  message("Using lp_solve libraries and headers located at: ${LPSOLVE_LIBRARIES}, ${LPSOLVE_INCLUDE_DIRS}")
+#  checkIncludes("LPSolve" LPSOLVE_INCLUDE_DIRS)
+#  checkLibraries("LPSolve" LPSOLVE_LIBRARIES)
+#  mark_as_advanced(CLEAR LPSOLVE_LIBRARIES LPSOLVE_INCLUDE_DIRS)
+#elseif(NOT USE_LPSOLVE)
+#  message("lp_solve was not found and is not used")
+#  mark_as_advanced(FORCE LPSOLVE_LIBRARIES LPSOLVE_INCLUDE_DIRS)
+#endif()
 
 
 set(CMAKE_INSTALL_RPATH "$ORIGIN")

@@ -154,6 +154,18 @@ namespace ScaLP
       // check, if sol is a feasible solution
       bool isFeasible(const ScaLP::Result& sol);
 
+      // returns a copy of the constraints of the problem
+      const std::vector<ScaLP::Constraint> getConstraints();
+
+      // returns the no of constraints defined so far
+      int getConstraintCount();
+
+      // returns a copy of the variables of the problem
+      const ScaLP::VariableSet getVariables();
+
+      // returns the no of variables used in constraint and objective so far
+      int getVariableCount();
+
       // return the LP-Format-representation as a string
       std::string showLP() const;
 

@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.0)
 project (ScaLP)
 
 set(CMAKE_MACOSX_RPATH 1)
@@ -8,29 +8,7 @@ cmake_policy(SET CMP0010 NEW)
 
 include_directories ("${PROJECT_SOURCE_DIR}/src")
 
-# add the local module path
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-
-# set a standard CMAKE_BUILD_TYPE
-#if(NOT_FIRST_RUN)
-#else()
-#  set(NOT_FIRST_RUN ON CACHE INTERNAL "")
-#
-#  # set a default build-type
-#  set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "The compilation type (Debug,Release,RelWithDebInfo,MinSizeRel)" FORCE)
-#endif()
-#set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel "")
-
-# build type specific changes
-#if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-#  add_definitions(-D__DEBUG__)
-#endif()
-
 # some options and values
-#option(USE_GUROBI "Compile the Gurobi-Backend" OFF)
-#option(USE_SCIP "Compile the SCIP-Backend" OFF)
-#option(USE_CPLEX "Compile the CPLEX-Backend" OFF)
-#option(USE_LPSOLVE "Compile the LPSolve-Backend" OFF)
 option(BUILD_SHARED_LIBRARIES "Build as shared libraries" ON)
 option(BUILD_TESTS "Build tests" OFF)
 option(BUILD_SCALP_EXECUTABLE "Build the scalp executable (no functionality yet)" ON)
@@ -62,7 +40,6 @@ mark_as_advanced(
   LPSOLVE_DIR
   )
 
-
 # Check if c++11 is supported
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -82,28 +59,6 @@ if(BUILD_SHARED_LIBRARIES)
 else()
   set(LIBRARY_TYPE STATIC)
 endif()
-
-#function(checkIncludes nam lis)
-#  foreach(I IN LISTS ${lis})
-#    if(EXISTS ${I})
-#    else()
-#      message(SEND_ERROR "${nam}: Can't found the include directory \"${I}\"")
-#    endif()
-#  endforeach()
-#endfunction()
-#
-#function(checkLibraries nam lis)
-#  foreach(I IN LISTS ${lis})
-#    string(FIND ${I} "-" TMP)
-#    if(${TMP} EQUAL 0)
-#    else()
-#      if(EXISTS ${I})
-#      else()
-#        message(SEND_ERROR "${nam}: Can't found the library \"${I}\"")
-#      endif()
-#    endif()
-#  endforeach()
-#endfunction()
 
 # search for Gurobi:
 find_path(GUROBI_H
@@ -127,13 +82,11 @@ find_library(GUROBI_CPP_LIB
     PATH_SUFFIXES linux64/lib lib)
 
 IF (GUROBI_H AND GUROBI_LIB AND GUROBI_CPP_H AND GUROBI_CPP_LIB)
-#  mark_as_advanced(FORCE GUROBI_LIBRARIES GUROBI_INCLUDE_DIRS)
   message("Found GUROBI (Header: ${GUROBI_H} ${GUROBI_CPP_H}, Libraries: ${GUROBI_LIB} ${GUROBI_CPP_LIB})")
   set(USE_GUROBI ON CACHE BOOL "Switching GUROBI on")
   include_directories(${GUROBI_H} ${GUROBI_CPP_H})
 else(GUROBI_H AND GUROBI_LIB AND GUROBI_CPP_H AND GUROBI_CPP_LIB)
   message("Gurobi was not found and is not used, if you want to use it, pass Gurobi install directory by -DGUROBI_DIR=... or the individual lib and include directories by -DGUROBI_LIBRARIES=... and -DGUROBI_INCLUDE_DIRS=... (Header: ${GUROBI_H} ${GUROBI_CPP_H}, Libraries: ${GUROBI_LIB} ${GUROBI_CPP_LIB})")
-#  mark_as_advanced(FORCE GUROBI_LIBRARIES GUROBI_INCLUDE_DIRS)
 endif(GUROBI_H AND GUROBI_LIB AND GUROBI_CPP_H AND GUROBI_CPP_LIB)
 
 
@@ -163,14 +116,12 @@ find_library(Z_LIB
 IF (SCIP_H AND SCIP_LIB AND SOPLEX_LIB AND Z_LIB)
   message("Found SCIP (Header: ${SCIP_H}, Libraries: ${SCIP_LIB} ${SOPLEX_LIB} ${Z_LIB})")
   set(USE_SCIP ON CACHE BOOL "Switching SCIP on")
-#  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
-#  include_directories(${SCIP_H})
 else(SCIP_H AND SCIP_LIB AND SOPLEX_LIB AND Z_LIB)
   message("SCIP was not found and is not used, if you want to use it, pass SCIP install directory by -DSCIP_DIR=... or the individual lib and include directories by -DSCIP_LIBRARIES=... and -DSCIP_INCLUDE_DIRS=...  (Header: ${SCIP_H}, Libraries: ${SCIP_LIB} ${SOPLEX_LIB} ${Z_LIB})")
-#  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
 endif(SCIP_H AND SCIP_LIB AND SOPLEX_LIB AND Z_LIB)
 
 # search for liblpsolve:
+
 find_path(LPSOLVE_H
         NAMES lpsolve/lp_simplex.h
         HINTS ${LPSOLVE_INCLUDE_DIRS} ${LPSOLVE_DIR}/include
@@ -188,66 +139,48 @@ else(LPSOLVE_H AND LPSOLVE_LIB)
   message("LPSOLVE was not found and is not used, if you want to use it, pass LPSOLVE install directory by -DLPSOLVE_DIR=... or the individual lib and include directories by -DLPSOLVE_LIBRARIES=... and -DLPSOLVE_INCLUDE_DIRS=...  (Header: ${LPSOLVE_H}, Library: ${LPSOLVE_LIB})")
 endif(LPSOLVE_H AND LPSOLVE_LIB)
 
+# search for CPLEX:
 
-#find_package(SCIP)
-#if(SCIP_FOUND)
-#  set(USE_SCIP ON CACHE BOOL "Switch SCIP on")
-#  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
-#  message("Found SCIP, switched it on automatically")
-#elseif(USE_SCIP)
-#  if((NOT SCIP_LIBRARIES) OR (NOT SCIP_INCLUDE_DIRS))
-#    message(SEND_ERROR "SCIP neither found nor set manually. Set SCIP_LIBRARIES and SCIP_INCLUDE_DIRS.")
-#  endif()
-#  message("Using SCIP libraries and headers located at: ${SCIP_LIBRARIES}, ${SCIP_INCLUDE_DIRS}")
-#  checkIncludes("SCIP" SCIP_INCLUDE_DIRS)
-#  checkLibraries("SCIP" SCIP_LIBRARIES)
-#  mark_as_advanced(CLEAR SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
-#elseif(NOT USE_SCIP)
-#  message("SCIP was not found and is not used")
-#  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
-#endif()
+find_path(CPLEX_H
+        NAMES xxx.h
+        HINTS ${CPLEX_INCLUDE_DIRS} ${CPLEX_DIR}/cplex/include/
+        PATH_SUFFIXES linux64/include include)
 
+find_path(CONCERT_H
+        NAMES xxx.h
+        HINTS ${CPLEX_INCLUDE_DIRS} ${CPLEX_DIR}/concert/include/
+        PATH_SUFFIXES linux64/include include)
 
-#find_package(CPLEX QUIET)
-#find_package(CPLEX)
-#if(CPLEX_FOUND)
-#  set(USE_CPLEX ON CACHE BOOL "Switch CPLEX on")
-#  mark_as_advanced(FORCE CPLEX_LIBRARIES CPLEX_INCLUDE_DIRS)
-#  message("Found CPLEX, switched it on automatically")
-#elseif(USE_CPLEX)
-#  if((NOT CPLEX_LIBRARIES) OR (NOT CPLEX_INCLUDE_DIRS))
-#    message(SEND_ERROR "CPLEX neither found nor set manually. Set CPLEX_LIBRARIES and CPLEX_INCLUDE_DIRS.")
-#  endif()
-#  message("Using CPLEX libraries and headers located at: ${CPLEX_LIBRARIES}, ${CPLEX_INCLUDE_DIRS}")
-#  checkIncludes("CPLEX" CPLEX_INCLUDE_DIRS)
-#  checkLibraries("CPLEX" CPLEX_LIBRARIES)
-#  mark_as_advanced(CLEAR CPLEX_LIBRARIES CPLEX_INCLUDE_DIRS)
-#elseif(NOT USE_CPLEX)
-#  message("CPLEX was not found and is not used")
-#  mark_as_advanced(FORCE CPLEX_LIBRARIES CPLEX_INCLUDE_DIRS)
-#endif()
+find_library(CPLEX_LIB
+        NAMES cplex
+        HINTS ${CPLEX_LIBRARIES} ${CPLEX_DIR}/cplex/lib/x86-64_linux/static_pic/
+        PATH_SUFFIXES linux64/lib lib)
+
+find_library(ILOCPLEX_LIB
+        NAMES ilocplex
+        HINTS ${CPLEX_LIBRARIES} ${CPLEX_DIR}/cplex/lib/x86-64_linux/static_pic/
+        PATH_SUFFIXES linux64/lib lib)
+
+find_library(CONCERT_LIB
+        NAMES concert
+        HINTS ${CPLEX_LIBRARIES} ${CPLEX_DIR}/concert/lib/x86-64_linux/static_pic/
+        PATH_SUFFIXES linux64/lib lib)
+
+find_library(M_LIB
+        NAMES m
+        PATH_SUFFIXES linux64/lib lib)
+
+find_library(PTHREAD_LIB
+        NAMES pthread
+        PATH_SUFFIXES linux64/lib lib)
 
 
-
-#
-##find_package(LPSOLVE)
-#if(LPSOLVE_FOUND)
-#  set(USE_LPSOLVE ON CACHE BOOL "Switch lp_solve on")
-#  mark_as_advanced(FORCE LPSOLVE_LIBRARIES LPSOLVE_INCLUDE_DIRS)
-#  message("Found lp_solve, switched it on automatically")
-#elseif(USE_LPSOLVE)
-#  if((NOT LPSOLVE_LIBRARIES) OR (NOT LPSOLVE_INCLUDE_DIRS))
-#    message(SEND_ERROR "lp_solve neither found nor set manually. Set LPSOLVE_LIBRARIES and LPSOLVE_INCLUDE_DIRS.")
-#  endif()
-#  message("Using lp_solve libraries and headers located at: ${LPSOLVE_LIBRARIES}, ${LPSOLVE_INCLUDE_DIRS}")
-#  checkIncludes("LPSolve" LPSOLVE_INCLUDE_DIRS)
-#  checkLibraries("LPSolve" LPSOLVE_LIBRARIES)
-#  mark_as_advanced(CLEAR LPSOLVE_LIBRARIES LPSOLVE_INCLUDE_DIRS)
-#elseif(NOT USE_LPSOLVE)
-#  message("lp_solve was not found and is not used")
-#  mark_as_advanced(FORCE LPSOLVE_LIBRARIES LPSOLVE_INCLUDE_DIRS)
-#endif()
-
+if(CPLEX_H AND CONCERT_H AND CPLEX_LIB AND ILOCPLEX_LIB AND CONCERT_LIB AND M_LIB AND PTHREAD_LIB)
+  message("Found CPLEX (Header: ${CPLEX_H} ${CONCERT_H}, Library: ${CPLEX_LIB} ${ILOCPLEX_LIB} ${CONCERT_LIB} ${M_LIB} ${PTHREAD_LIB})")
+  set(USE_CPLEX ON CACHE BOOL "Switching CPLEX on")
+else(CPLEX_H AND CONCERT_H AND CPLEX_LIB AND ILOCPLEX_LIB AND CONCERT_LIB AND M_LIB AND PTHREAD_LIB)
+  message("CPLEX was not found and is not used, if you want to use it, pass CPLEX install directory by -DCPLEX_DIR=... or the individual lib and include directories by -DCPLEX_LIBRARIES=... and -DCPLEX_INCLUDE_DIRS=... (Header: ${CPLEX_H} ${CONCERT_H}, Library: ${CPLEX_LIB} ${ILOCPLEX_LIB} ${CONCERT_LIB} ${M_LIB} ${PTHREAD_LIB})")
+endif(CPLEX_H AND CONCERT_H AND CPLEX_LIB AND ILOCPLEX_LIB AND CONCERT_LIB AND M_LIB AND PTHREAD_LIB)
 
 set(CMAKE_INSTALL_RPATH "$ORIGIN")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
@@ -290,11 +223,9 @@ if(EXPERIMENTAL_PARSER)
 endif()
 
 
-# add backend-libraries
-
+# add backend-libraries:
 if(USE_GUROBI)
-  add_library(ScaLP-Gurobi ${LIBRARY_TYPE}
-          src/ScaLP/SolverBackend/SolverGurobi.cpp)
+  add_library(ScaLP-Gurobi ${LIBRARY_TYPE} src/ScaLP/SolverBackend/SolverGurobi.cpp)
   include_directories(${GUROBI_H} ${GUROBI_CPP_H})
   target_link_libraries(ScaLP-Gurobi ${GUROBI_CPP_LIB} ${GUROBI_LIB} ScaLP)
   list(APPEND BACKEND_TARGETS ScaLP-Gurobi)
@@ -302,8 +233,7 @@ if(USE_GUROBI)
 endif()
 
 if(USE_SCIP)
-  add_library(ScaLP-SCIP ${LIBRARY_TYPE}
-          src/ScaLP/SolverBackend/SolverSCIP.cpp)
+  add_library(ScaLP-SCIP ${LIBRARY_TYPE} src/ScaLP/SolverBackend/SolverSCIP.cpp)
   include_directories(ScaLP-SCIP PUBLIC ${SCIP_H})
   target_link_libraries(ScaLP-SCIP ${SCIP_LIB} ${SOPLEX_LIB} ${Z_LIB} ScaLP)
   list(APPEND BACKEND_TARGETS ScaLP-SCIP)
@@ -311,33 +241,22 @@ if(USE_SCIP)
 endif()
 
 if(USE_CPLEX)
-  add_library(ScaLP-CPLEX ${LIBRARY_TYPE}
-    src/ScaLP/SolverBackend/SolverCPLEX.cpp)
-  include_directories(ScaLP-CPLEX PUBLIC ${CPLEX_INCLUDE_DIRS})
-  target_link_libraries(ScaLP-CPLEX ${CPLEX_LIBRARIES} ScaLP)
+  add_library(ScaLP-CPLEX ${LIBRARY_TYPE} src/ScaLP/SolverBackend/SolverCPLEX.cpp)
+  include_directories(ScaLP-CPLEX PUBLIC ${CPLEX_H} ${CONCERT_H})
+  target_link_libraries(ScaLP-CPLEX ${CPLEX_LIB} ${ILOCPLEX_LIB} ${CONCERT_LIB} ${M_LIB} ${PTHREAD_LIB} ScaLP)
   list(APPEND BACKEND_TARGETS ScaLP-CPLEX)
   list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverCPLEX.h)
 endif()
 
 if(USE_LPSOLVE)
-  add_library(ScaLP-LPSolve ${LIBRARY_TYPE}
-    src/ScaLP/SolverBackend/SolverLPSolve.cpp)
+  add_library(ScaLP-LPSolve ${LIBRARY_TYPE} src/ScaLP/SolverBackend/SolverLPSolve.cpp)
   include_directories(ScaLP-LPSolve PUBLIC ${LPSOLVE_H})
   target_link_libraries(ScaLP-LPSolve ${LPSOLVE_LIB} ScaLP)
   list(APPEND BACKEND_TARGETS ScaLP-LPSolve)
   list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverLPSolve.h)
 endif()
 
-#if(USE_DYNAMIC)
-#  add_library(ScaLP-Dynamic ${LIBRARY_TYPE}
-#    src/ScaLP/SolverBackend/SolverDynamic.cpp)
-#  target_link_libraries(ScaLP-Dynamic dl ScaLP)
-#  list(APPEND BACKEND_TARGETS ScaLP-Dynamic)
-#  list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverDynamic.h)
-#endif()
 list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverDynamic.h)
-
-
 
 if(BUILD_SCALP_EXECUTABLE)
   add_executable(ScaLPBinary
@@ -361,14 +280,14 @@ if(BUILD_TESTS)
 endif()
 
 # installation
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR} CACHE PATH "local installation" FORCE)
-endif()
+#if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+# set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR} CACHE PATH "local installation" FORCE)
+#endif()
 
-if(${CMAKE_INSTALL_PREFIX} STREQUAL ${PROJECT_SOURCE_DIR})
-  add_custom_command(TARGET ScaLP POST_BUILD
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target install)
-endif()
+#if(${CMAKE_INSTALL_PREFIX} STREQUAL ${PROJECT_SOURCE_DIR})
+#  add_custom_command(TARGET ScaLP POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target install)
+#endif()
 
 install (TARGETS ScaLP ${BACKEND_TARGETS} ${EXECUTABLE_TARGET}
   RUNTIME DESTINATION bin

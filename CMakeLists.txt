@@ -142,12 +142,12 @@ endif(LPSOLVE_H AND LPSOLVE_LIB)
 # search for CPLEX:
 
 find_path(CPLEX_H
-        NAMES xxx.h
+        NAMES ilcplex/ilocplex.h
         HINTS ${CPLEX_INCLUDE_DIRS} ${CPLEX_DIR}/cplex/include/
         PATH_SUFFIXES linux64/include include)
 
 find_path(CONCERT_H
-        NAMES xxx.h
+        NAMES xxx.h # required?
         HINTS ${CPLEX_INCLUDE_DIRS} ${CPLEX_DIR}/concert/include/
         PATH_SUFFIXES linux64/include include)
 

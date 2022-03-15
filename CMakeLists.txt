@@ -170,6 +170,24 @@ else(SCIP_H AND SCIP_LIB AND SOPLEX_LIB AND Z_LIB)
 #  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
 endif(SCIP_H AND SCIP_LIB AND SOPLEX_LIB AND Z_LIB)
 
+# search for liblpsolve:
+find_path(LPSOLVE_H
+        NAMES lpsolve/lp_simplex.h
+        HINTS ${LPSOLVE_INCLUDE_DIRS} ${LPSOLVE_DIR}/include
+        PATH_SUFFIXES linux64/include include)
+
+find_library(LPSOLVE_LIB
+        NAMES lpsolve55
+        HINTS ${LPSOLVE_LIBRARIES} ${LPSOLVE_DIR}/lib
+        PATH_SUFFIXES linux64/lib lib)
+
+if(LPSOLVE_H AND LPSOLVE_LIB)
+  message("Found LPSOLVE (Header: ${LPSOLVE_H}, Library: ${LPSOLVE_LIB})")
+  set(USE_LPSOLVE ON CACHE BOOL "Switching LPSOLVE on")
+else(LPSOLVE_H AND LPSOLVE_LIB)
+  message("LPSOLVE was not found and is not used, if you want to use it, pass LPSOLVE install directory by -DLPSOLVE_DIR=... or the individual lib and include directories by -DLPSOLVE_LIBRARIES=... and -DLPSOLVE_INCLUDE_DIRS=...  (Header: ${LPSOLVE_H}, Library: ${LPSOLVE_LIB})")
+endif(LPSOLVE_H AND LPSOLVE_LIB)
+
 
 #find_package(SCIP)
 #if(SCIP_FOUND)
@@ -286,7 +304,7 @@ endif()
 if(USE_SCIP)
   add_library(ScaLP-SCIP ${LIBRARY_TYPE}
           src/ScaLP/SolverBackend/SolverSCIP.cpp)
-  target_include_directories(ScaLP-SCIP PUBLIC ${SCIP_H})
+  include_directories(ScaLP-SCIP PUBLIC ${SCIP_H})
   target_link_libraries(ScaLP-SCIP ${SCIP_LIB} ${SOPLEX_LIB} ${Z_LIB} ScaLP)
   list(APPEND BACKEND_TARGETS ScaLP-SCIP)
   list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverSCIP.h)
@@ -295,7 +313,7 @@ endif()
 if(USE_CPLEX)
   add_library(ScaLP-CPLEX ${LIBRARY_TYPE}
     src/ScaLP/SolverBackend/SolverCPLEX.cpp)
-  target_include_directories(ScaLP-CPLEX PUBLIC ${CPLEX_INCLUDE_DIRS})
+  include_directories(ScaLP-CPLEX PUBLIC ${CPLEX_INCLUDE_DIRS})
   target_link_libraries(ScaLP-CPLEX ${CPLEX_LIBRARIES} ScaLP)
   list(APPEND BACKEND_TARGETS ScaLP-CPLEX)
   list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverCPLEX.h)
@@ -304,8 +322,8 @@ endif()
 if(USE_LPSOLVE)
   add_library(ScaLP-LPSolve ${LIBRARY_TYPE}
     src/ScaLP/SolverBackend/SolverLPSolve.cpp)
-  target_include_directories(ScaLP-LPSolve PUBLIC ${LPSOLVE_INCLUDE_DIRS})
-  target_link_libraries(ScaLP-LPSolve ${LPSOLVE_LIBRARIES} ScaLP)
+  include_directories(ScaLP-LPSolve PUBLIC ${LPSOLVE_H})
+  target_link_libraries(ScaLP-LPSolve ${LPSOLVE_LIB} ScaLP)
   list(APPEND BACKEND_TARGETS ScaLP-LPSolve)
   list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverLPSolve.h)
 endif()

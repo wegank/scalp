@@ -105,7 +105,7 @@ endif()
 #  endforeach()
 #endfunction()
 
-
+# search for Gurobi:
 find_path(GUROBI_H
     NAMES gurobi_c.h
     HINTS ${GUROBI_INCLUDE_DIRS} ${GUROBI_DIR}/include
@@ -113,23 +113,31 @@ find_path(GUROBI_H
 
 find_library(GUROBI_LIB
     NAMES gurobi70 gurobi75 gurobi80 gurobi81 gurobi90 gurobi91 gurobi95 
-    HINTS ${GUROBI_LIBRARIES} ${GUROBI_DIR}/lib
+    HINTS ${GUROBI_DIR}/lib ${GUROBI_LIBRARIES}
     PATH_SUFFIXES linux64/lib lib)
+
+find_path(GUROBI_CPP_H
+        NAMES gurobi_c++.h
+        HINTS ${GUROBI_INCLUDE_DIRS} ${GUROBI_DIR}/include
+        PATH_SUFFIXES linux64/include include)
 
 find_library(GUROBI_CPP_LIB
     NAMES gurobi_c++
     HINTS ${GUROBI_LIBRARIES} ${GUROBI_DIR}/lib
     PATH_SUFFIXES linux64/lib lib)
 
-IF (GUROBI_H AND GUROBI_LIB AND GUROBI_CPP_LIB)
-  set(USE_GUROBI ON CACHE BOOL "Switch GUROBI on")
-  mark_as_advanced(FORCE GUROBI_LIBRARIES GUROBI_INCLUDE_DIRS)
-  message("Found GUROBI (Header: ${GUROBI_H}, Libraries: ${GUROBI_LIB} ${GUROBI_CPP_LIB})")
-else(GUROBI_H AND GUROBI_LIB AND GUROBI_CPP_LIB)
-  message("Gurobi was not found and is not used, if you want to use it, pass Gurobi install directory by -DGUROBI_DIR=... or the individual lib and include directories by -DGUROBI_LIBRARIES=... and -DGUROBI_INCLUDE_DIRS=... (Header: ${GUROBI_H}, Libraries: ${GUROBI_LIB} ${GUROBI_CPP_LIB})")
-  mark_as_advanced(FORCE GUROBI_LIBRARIES GUROBI_INCLUDE_DIRS)
-endif(GUROBI_H AND GUROBI_LIB AND GUROBI_CPP_LIB)
+IF (GUROBI_H AND GUROBI_LIB AND GUROBI_CPP_H AND GUROBI_CPP_LIB)
+#  mark_as_advanced(FORCE GUROBI_LIBRARIES GUROBI_INCLUDE_DIRS)
+  message("Found GUROBI (Header: ${GUROBI_H} ${GUROBI_CPP_H}, Libraries: ${GUROBI_LIB} ${GUROBI_CPP_LIB})")
+  set(USE_GUROBI ON CACHE BOOL "Switching GUROBI on")
+  include_directories(${GUROBI_H} ${GUROBI_CPP_H})
+else(GUROBI_H AND GUROBI_LIB AND GUROBI_CPP_H AND GUROBI_CPP_LIB)
+  message("Gurobi was not found and is not used, if you want to use it, pass Gurobi install directory by -DGUROBI_DIR=... or the individual lib and include directories by -DGUROBI_LIBRARIES=... and -DGUROBI_INCLUDE_DIRS=... (Header: ${GUROBI_H} ${GUROBI_CPP_H}, Libraries: ${GUROBI_LIB} ${GUROBI_CPP_LIB})")
+#  mark_as_advanced(FORCE GUROBI_LIBRARIES GUROBI_INCLUDE_DIRS)
+endif(GUROBI_H AND GUROBI_LIB AND GUROBI_CPP_H AND GUROBI_CPP_LIB)
 
+
+# search for SCIP:
 
 find_path(SCIP_H
     NAMES scip/scip.h
@@ -153,12 +161,13 @@ find_library(Z_LIB
 
 
 IF (SCIP_H AND SCIP_LIB AND SOPLEX_LIB AND Z_LIB)
-  set(USE_SCIP ON CACHE BOOL "Switch SCIP on")
-  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
   message("Found SCIP (Header: ${SCIP_H}, Libraries: ${SCIP_LIB} ${SOPLEX_LIB} ${Z_LIB})")
+  set(USE_SCIP ON CACHE BOOL "Switching SCIP on")
+#  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
+#  include_directories(${SCIP_H})
 else(SCIP_H AND SCIP_LIB AND SOPLEX_LIB AND Z_LIB)
   message("SCIP was not found and is not used, if you want to use it, pass SCIP install directory by -DSCIP_DIR=... or the individual lib and include directories by -DSCIP_LIBRARIES=... and -DSCIP_INCLUDE_DIRS=...  (Header: ${SCIP_H}, Libraries: ${SCIP_LIB} ${SOPLEX_LIB} ${Z_LIB})")
-  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
+#  mark_as_advanced(FORCE SCIP_LIBRARIES SCIP_INCLUDE_DIRS)
 endif(SCIP_H AND SCIP_LIB AND SOPLEX_LIB AND Z_LIB)
 
 
@@ -265,6 +274,24 @@ endif()
 
 # add backend-libraries
 
+if(USE_GUROBI)
+  add_library(ScaLP-Gurobi ${LIBRARY_TYPE}
+          src/ScaLP/SolverBackend/SolverGurobi.cpp)
+  include_directories(${GUROBI_H} ${GUROBI_CPP_H})
+  target_link_libraries(ScaLP-Gurobi ${GUROBI_CPP_LIB} ${GUROBI_LIB} ScaLP)
+  list(APPEND BACKEND_TARGETS ScaLP-Gurobi)
+  list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverGurobi.h)
+endif()
+
+if(USE_SCIP)
+  add_library(ScaLP-SCIP ${LIBRARY_TYPE}
+          src/ScaLP/SolverBackend/SolverSCIP.cpp)
+  target_include_directories(ScaLP-SCIP PUBLIC ${SCIP_H})
+  target_link_libraries(ScaLP-SCIP ${SCIP_LIB} ${SOPLEX_LIB} ${Z_LIB} ScaLP)
+  list(APPEND BACKEND_TARGETS ScaLP-SCIP)
+  list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverSCIP.h)
+endif()
+
 if(USE_CPLEX)
   add_library(ScaLP-CPLEX ${LIBRARY_TYPE}
     src/ScaLP/SolverBackend/SolverCPLEX.cpp)
@@ -272,24 +299,6 @@ if(USE_CPLEX)
   target_link_libraries(ScaLP-CPLEX ${CPLEX_LIBRARIES} ScaLP)
   list(APPEND BACKEND_TARGETS ScaLP-CPLEX)
   list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverCPLEX.h)
-endif()
-
-if(USE_GUROBI)
-  add_library(ScaLP-Gurobi ${LIBRARY_TYPE}
-    src/ScaLP/SolverBackend/SolverGurobi.cpp)
-  target_include_directories(ScaLP-Gurobi PUBLIC ${GUROBI_INCLUDE_DIRS})
-  target_link_libraries(ScaLP-Gurobi ${GUROBI_LIBRARIES} ScaLP)
-  list(APPEND BACKEND_TARGETS ScaLP-Gurobi)
-  list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverGurobi.h)
-endif()
-
-if(USE_SCIP)
-  add_library(ScaLP-SCIP ${LIBRARY_TYPE}
-    src/ScaLP/SolverBackend/SolverSCIP.cpp)
-  target_include_directories(ScaLP-SCIP PUBLIC ${SCIP_INCLUDE_DIRS})
-  target_link_libraries(ScaLP-SCIP ${SCIP_LIBRARIES} ScaLP)
-  list(APPEND BACKEND_TARGETS ScaLP-SCIP)
-  list(APPEND BACKEND_HEADERS src/ScaLP/SolverBackend/SolverSCIP.h)
 endif()
 
 if(USE_LPSOLVE)
